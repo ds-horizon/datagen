@@ -1,0 +1,12 @@
+var {{ .FullyQualifiedModelName }}Metadata Metadata = Metadata{
+	Count: {{ .Metadata.Count }},
+	Tags: {{ if .Metadata.Tags }}map[string]string{
+		{{- range $k, $v := .Metadata.Tags }}
+		"{{ $k }}": "{{ $v }}",
+		{{- end }}
+	}{{ else }}map[string]string{}{{ end }},
+}
+
+func (cg *{{.FullyQualifiedModelName}}Generator) Metadata() Metadata {
+     return {{ .FullyQualifiedModelName }}Metadata
+}

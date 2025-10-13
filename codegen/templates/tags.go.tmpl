@@ -1,0 +1,67 @@
+package main
+
+import (
+	"fmt"
+	"strings"
+)
+
+func parseTags(tagsStr string) (map[string]string, error) {
+	tags := make(map[string]string)
+
+	if tagsStr == "" {
+		return tags, nil
+	}
+
+	pairs := strings.Split(tagsStr, ",")
+
+	for _, pair := range pairs {
+		pair = strings.TrimSpace(pair)
+
+		parts := strings.SplitN(pair, "=", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid tag format: %s (expected key=value)", pair)
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		if key == "" {
+			return nil, fmt.Errorf("empty key in tag: %s", pair)
+		}
+
+		tags[key] = value
+	}
+
+    return tags, nil
+}
+
+func getModelsMetadata(datagen *DataGenGenerators) map[string]Metadata {
+    out := make(map[string]Metadata)
+    {{- range .}}
+    if datagen.{{.}} != nil {
+        out["{{.}}"] = datagen.{{.}}.Metadata()
+    }
+    {{- end}}
+    return out
+}
+
+func getMatchingModels(modelsMetadata map[string]Metadata, need map[string]string) []string {
+    matchedModels := make([]string, 0)
+    if len(need) == 0 {
+        return matchedModels
+    }
+
+    for name, md := range modelsMetadata {
+        match := true
+        for k, v := range need {
+            if md.Tags[k] != v {
+                match = false
+                break
+            }
+        }
+        if match {
+            matchedModels = append(matchedModels, name)
+        }
+    }
+    return matchedModels
+}

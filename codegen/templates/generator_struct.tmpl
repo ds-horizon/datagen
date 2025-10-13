@@ -1,0 +1,7 @@
+type {{.FullyQualifiedModelName}}Generator struct {
+{{- range .Fields}}
+	{{.Name}} func(iter int) {{.Type}}
+{{- end}}
+        all *{{.FullyQualifiedModelName}}DataHolder
+	datagen *DataGenGenerators
+} 

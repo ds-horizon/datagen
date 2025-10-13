@@ -1,0 +1,70 @@
+package main
+
+import (
+	"fmt"
+)
+
+// loadModelSinks routes model records to configured sinks per config.json
+func loadModelSinks(modelName string, records []Record, cfg *Config) error {
+	sinks, err := cfg.SinkSpecsForModel(modelName)
+	if err != nil {
+		return err
+	}
+
+	for _, s := range sinks {
+		switch s.SinkType {
+    		case SinkTypeMySQL:
+			err := loadMysqlSink(s, modelName, records, cfg.ClearData)
+			if err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("unsupported sink_type %q for model %q", s.SinkType, modelName)
+		}
+	}
+	return nil
+}
+
+func loadMysqlSink(sinkSpec *SinkSpec, modelName string, records []Record, clearData bool) error {
+	var sc MySQLConfig
+	if err := sinkSpec.ConfigInto(&sc); err != nil {
+		return fmt.Errorf("mysql sink %q config: %w", sinkSpec.SinkName, err)
+	}
+
+	switch modelName {
+	{{- range $i, $sanitised := .SanitisedModelNames}}
+	case "{{$sanitised}}":
+		typed := make([]*{{index $.FullyQualifiedModelNames $i}}, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*{{index $.FullyQualifiedModelNames $i}}))
+		}
+		if err := Init_{{index $.FullyQualifiedModelNames $i}}_mysql_connection(&sc); err != nil {
+			return err
+		}
+		if clearData {
+			if err := Truncate_{{index $.FullyQualifiedModelNames $i}}_mysql(); err != nil {
+				return err
+			}
+		}
+		if err := Load_{{index $.FullyQualifiedModelNames $i}}_mysql(typed, &sc); err != nil {
+			return err
+		}
+		if err := Close_{{index $.FullyQualifiedModelNames $i}}_mysql_connection(); err != nil {
+			return err
+		}
+	{{- end}}
+	default:
+		return fmt.Errorf("mysql sink not implemented for model %q", modelName)
+	}
+	return nil
+}
+
+func getRecordCount(cfg *Config, modelName string, metadata Metadata) int {
+       for _, m := range cfg.Models {
+		if m.ModelName == modelName && m.Count > 0 {
+			return m.Count
+		}
+	}
+
+	return metadata.Count
+}

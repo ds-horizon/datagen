@@ -1,0 +1,5 @@
+type {{.FullyQualifiedModelName}} struct {
+{{- range .Fields}}
+	{{.Name}} {{.Type}}
+{{- end}}
+} 

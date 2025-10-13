@@ -1,0 +1,17 @@
+
+func (cg *{{.FullyQualifiedModelName}}Generator) __gen_wrapper_{{.FieldName}}({{if .GenFuncParams}}{{.GenFuncParams}}, {{end}}) func(iter int) {{.FieldType}} {
+	return func(iter int) {{.FieldType}} {
+		if iter < len(cg.all.{{.FieldName}}) {
+			return cg.all.{{.FieldName}}[iter]
+		}
+
+		for i := len(cg.all.{{.FieldName}}); i <= iter; i++ {
+			val := cg.__gen_{{.FieldName}}({{if .GenFuncVars}}{{.GenFuncVars}}, {{end}}i)
+			cg.all.{{.FieldName}} = append(cg.all.{{.FieldName}}, val)
+		}
+
+		return cg.all.{{.FieldName}}[iter]
+	}
+}
+
+func (self *{{.FullyQualifiedModelName}}Generator) __gen_{{.FieldName}}({{if .GenFuncParams}}{{.GenFuncParams}}, {{end}}iter int) {{.FieldType}} {{.GenFuncBody}}

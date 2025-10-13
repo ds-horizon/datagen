@@ -1,0 +1,88 @@
+package main
+
+import (
+    "context"
+    "database/sql"
+    "fmt"
+    "strings"
+)
+
+// Load_{{.FullyQualifiedModelName}}_mysql inserts all records.
+func Load_{{.FullyQualifiedModelName}}_mysql(records []*{{.FullyQualifiedModelName}}, req *MySQLConfig) error {
+    if len(records) == 0 {
+        return nil
+    }
+
+    db, err := Get_{{.FullyQualifiedModelName}}_mysql_connection()
+    if err != nil {
+        return err
+    }
+
+    ctx := context.Background()
+
+    tx, err := db.BeginTx(ctx, &sql.TxOptions{})
+    if err != nil {
+        return fmt.Errorf("initialization of transaction failed with error : %w", err)
+    }
+    defer tx.Rollback()
+
+    // Build one multi-values INSERT and a flattened args slice
+    var b strings.Builder
+    columns := []string{
+        {{- range .Fields }}
+        "`{{.Name}}`",
+        {{- end }}
+    }
+    b.WriteString("INSERT INTO {{.ModelName}} (")
+    b.WriteString(strings.Join(columns, ","))
+    b.WriteString(") VALUES ")
+    {{ $numCols := len .Fields }}
+    placeholderGroup := "(" + strings.Repeat("?,", {{$numCols}})
+    placeholderGroup = placeholderGroup[:len(placeholderGroup)-1] + ")"
+    for i := range records {
+        if i > 0 {
+            b.WriteString(",")
+        }
+        b.WriteString(placeholderGroup)
+    }
+    sqlStmt := b.String()
+
+    var args []interface{}
+    for _, record := range records {
+        {{ range $k, $f := .Fields }}
+        args = append(args, record.{{$f.Name}})
+        {{ end }}
+    }
+
+    if _, err := tx.ExecContext(ctx, sqlStmt, args...); err != nil {
+        return fmt.Errorf("insertion failed with error : %w", err)
+    }
+
+    if err := tx.Commit(); err != nil {
+        return fmt.Errorf("commit failed with error : %w", err)
+    }
+    fmt.Println("Data loaded successfully")
+    return nil
+}
+
+
+// Truncate_{{.FullyQualifiedModelName}}_mysql() truncates the model's table using the shared connection.
+func Truncate_{{.FullyQualifiedModelName}}_mysql() error {
+    db, err := Get_{{.FullyQualifiedModelName}}_mysql_connection()
+    if err != nil {
+        return err
+    }
+    ctx := context.Background()
+    tx, err := db.BeginTx(ctx, &sql.TxOptions{})
+    if err != nil {
+        return fmt.Errorf("initialization of transaction failed with error : %w", err)
+    }
+    defer tx.Rollback()
+    if _, err := tx.ExecContext(ctx, "DELETE FROM {{.ModelName}}" ); err != nil {
+        return fmt.Errorf("delete failed with error : %w", err)
+    }
+    if err := tx.Commit(); err != nil {
+        return fmt.Errorf("commit failed with error : %w", err)
+    }
+    return nil
+}

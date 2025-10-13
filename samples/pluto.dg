@@ -1,0 +1,33 @@
+model pluto {
+  metadata {
+      count: 10
+      tags: {
+          "service":  "pluto",
+          "team_name":  "nimbus"
+      }
+  }
+
+  misc {
+    const Count = 1000000
+  }
+
+  fields {
+    age() int
+    next_page() int
+    set_name() string
+  }
+
+  gens {
+    func age() {
+      return iter + 18
+    }
+
+    func next_page() {
+      return RandomIntBetween(1, Count)
+    }
+
+    func set_name() {
+      return "user_data"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+package main
+
+{{- define "emitDirTree" -}}
+type {{ dirName . }}Dir struct {
+    {{- range models . }}
+    {{ last . }} *{{ . }}Generator
+    {{- end }}
+    {{- range children . }}
+    {{ dirName . }} *{{ dirName . }}Dir
+    {{- end }}
+}
+{{- range children . }}
+{{ template "emitDirTree" . }}
+{{- end }}
+{{- end }}
+
+type DataGenGenerators struct {
+    {{- range models .DgDir }}
+    {{ last . }} *{{ . }}Generator
+    {{- end }}
+    {{- range children .DgDir }}
+    {{ dirName . }} *{{ dirName . }}Dir
+    {{- end }}
+}
+
+
+{{- range children .DgDir }}
+{{ template "emitDirTree" . }}
+{{- end }}
+
+type Metadata struct {
+	Count int
+	Tags  map[string]string
+}
+
+func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) {
+	{{- range .SanitisedModelNames}}
+	{{ .}}Generator := __init_{{ . }}Generator()
+	{{- end}}
+
+	// Construct directory instances bottom-up so children are available
+	{{- define "emitDirInstances" -}}
+	{{- range children . }}
+	{{ template "emitDirInstances" . }}
+	{{- end }}
+	{{ dirName . }}Dir := &{{ dirName . }}Dir{
+		{{- range models . }}
+		{{ last . }}: {{ .}}Generator,
+		{{- end }}
+		{{- range children . }}
+		{{ dirName . }}: {{ dirName . }}Dir,
+		{{- end }}
+	}
+	{{- end }}
+	{{- range children .DgDir }}
+	{{ template "emitDirInstances" . }}
+	{{- end }}
+
+	datagen := &DataGenGenerators{
+		{{- range models .DgDir }}
+		{{ last . }}: {{ last . }}Generator,
+		{{- end }}
+		{{- range children .DgDir }}
+		{{ dirName . }}: {{ dirName . }}Dir,
+		{{- end }}
+	}
+	{{- range .SanitisedModelNames}}
+	{{.}}Generator.datagen = datagen
+	{{- end}}
+
+	// model registry
+	models := map[string]RecordGenerator{
+		{{- range .SanitisedModelNames}}
+		"{{ dot . }}": {{.}}Generator.Gen,
+		{{- end}}
+	}
+
+	return datagen, models
+}

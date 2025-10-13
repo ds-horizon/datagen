@@ -1,0 +1,12 @@
+func (e *{{.FullyQualifiedModelName}}) ToJSON() string {
+    data, err := json.Marshal(map[string]interface{}{
+        {{- range .Fields}}
+        "{{.Name}}": e.{{.Name}},
+        {{- end}}
+    })
+    if err != nil {
+        fmt.Println(err)
+        return ""
+    }
+    return string(data)
+}

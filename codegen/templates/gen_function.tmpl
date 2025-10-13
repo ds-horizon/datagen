@@ -1,0 +1,7 @@
+func (cg *{{.FullyQualifiedModelName}}Generator) Gen(iter int) Record {
+	return &{{.FullyQualifiedModelName}}{
+{{- range .Fields}}
+		{{.Name}}: cg.{{.Name}}(iter),
+{{- end}}
+	}
+} 

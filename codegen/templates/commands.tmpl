@@ -1,0 +1,119 @@
+package main
+
+import (
+    "fmt"
+    "os"
+    "strings"
+)
+
+func getModelGenCount(metadata Metadata, flagCount int) int {
+	if flagCount != -1 {
+		return flagCount
+	}
+
+	return metadata.Count
+}
+
+func runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string) error {
+	datagen, models := initGeneratorsAndModels()
+        allMetadata := getModelsMetadata(datagen)
+
+	selected := make(map[string]int)
+	if strings.TrimSpace(flagTags) != "" {
+		tags, err := parseTags(flagTags)
+		if err != nil {
+			return fmt.Errorf("error parsing tags: %v", err)
+		}
+    matchedModels := getMatchingModels(allMetadata, tags)
+    if len(matchedModels) == 0 {
+			fmt.Fprintln(os.Stdout, "no models found matching the specified tags")
+			return nil
+	}
+    for _, model := range matchedModels {
+        selected[model] = getModelGenCount(allMetadata[model], flagCount)
+    }
+    } else {
+        for model := range models {
+            selected[model] = getModelGenCount(allMetadata[model], flagCount)
+        }
+    }
+
+	writers := map[string]OutputWriter{
+		FormatCSV:    writeCSV,
+		FormatJSON:   writeJSON,
+		FormatXML:    writeXML,
+		FormatStdout: writeStdout,
+	}
+
+    if flagFormat == "" {
+        flagFormat = FormatStdout
+    }
+
+    w, ok := writers[flagFormat]
+	if !ok {
+		return fmt.Errorf("--format must be one of %s", strings.Join([]string{FormatCSV, FormatJSON, FormatXML, FormatStdout}, ", "))
+	}
+	writeFn := func(name string, records []Record) error { return w(name, records, flagOutput) }
+
+	for name, count := range selected {
+		gen, exists := models[name]
+		if !exists {
+			return fmt.Errorf("unknown model %s", name)
+		}
+
+		records := make([]Record, 0, count)
+		for i := 0; i < count; i++ {
+			records = append(records, gen(i))
+		}
+
+                if err := writeFn(name, records); err != nil {
+                    return err
+                }
+	}
+	return nil
+}
+
+func runExecuteCommand(flagConfig, flagOutput string) error {
+	if strings.TrimSpace(flagConfig) == "" {
+		return fmt.Errorf("config.json not passed")
+	}
+
+	cfg, err := LoadConfigFile(flagConfig)
+	if err != nil {
+		return err
+	}
+
+	datagen, models := initGeneratorsAndModels()
+	var modelsToLoad []string
+        allMetadata := getModelsMetadata(datagen)
+
+	for _, m := range cfg.Models {
+		if _, ok := models[m.ModelName]; ok {
+			sinks, err := cfg.SinkSpecsForModel(m.ModelName)
+			if err != nil {
+				return err
+			}
+			if len(sinks) > 0 {
+				modelsToLoad = append(modelsToLoad, m.ModelName)
+			}
+		}
+	}
+
+	for _, name := range modelsToLoad {
+		gen, exists := models[name]
+		if !exists {
+			return fmt.Errorf("unknown model %s", name)
+		}
+
+		count := getRecordCount(cfg, name, allMetadata[name])
+
+		records := make([]Record, 0, count)
+		for i := 0; i < count; i++ {
+			records = append(records, gen(i))
+		}
+        if err := loadModelSinks(name, records, cfg); err != nil {
+            return err
+        }
+	}
+	return nil
+}

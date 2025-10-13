@@ -1,0 +1,5 @@
+type {{.FullyQualifiedModelName}}DataHolder struct {
+{{- range .Fields}}
+	{{.Name}} []{{.Type}}
+{{- end}}
+} 

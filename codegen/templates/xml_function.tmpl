@@ -1,0 +1,21 @@
+func (e *{{.FullyQualifiedModelName}}) ToXML() string {
+    type alias struct {
+        XMLName xml.Name `xml:"{{.ModelName}}"`
+        {{- range .Fields}}
+        {{XmlPrefix .Name}} {{.Type}} `xml:"{{.Name}}"`
+        {{- end}}
+    }
+
+    data := alias{
+        {{- range .Fields}}
+        {{XmlPrefix .Name}}: e.{{.Name}},
+        {{- end}}
+    }
+
+    xmlData, err := xml.Marshal(data)
+    if err != nil {
+        fmt.Println(err)
+        return ""
+    }
+    return string(xmlData)
+}
