@@ -5,31 +5,52 @@ import (
 	"strings"
 )
 
-type MultiErr []string
+type MultiErr struct {
+	Errors []error
+}
 
-func (m *MultiErr) Add(msg string) {
+func (m *MultiErr) Add(err error) {
+	if err != nil {
+		m.Errors = append(m.Errors, err)
+	}
+}
+
+func (m *MultiErr) AddMsg(msg string) {
 	if msg == "" {
 		return
 	}
-	*m = append(*m, msg)
+	m.Errors = append(m.Errors, fmt.Errorf("%s", msg))
 }
 
 func (m *MultiErr) Addf(format string, args ...any) {
-	*m = append(*m, fmt.Sprintf(format, args...))
+	m.Errors = append(m.Errors, fmt.Errorf(format, args...))
 }
 
 func (m *MultiErr) Any() bool {
-	if m == nil {
-		return false
-	}
-	return len(*m) > 0
+	return len(m.Errors) > 0
 }
 
 func (m *MultiErr) Error() string {
-	if m == nil {
+	if len(m.Errors) == 0 {
 		return ""
 	}
-	return strings.Join(*m, ";\n")
+
+	var b strings.Builder
+	b.WriteString("multiple errors occurred\n")
+	for _, err := range m.Errors {
+		b.WriteString("  - ")
+		b.WriteString(err.Error())
+		b.WriteString("\n")
+	}
+	return b.String()
+}
+
+func (m *MultiErr) HasErrors() bool {
+	return len(m.Errors) > 0
+}
+
+func (m *MultiErr) Count() int {
+	return len(m.Errors)
 }
 
 func errorOrNil(errs *MultiErr) error {

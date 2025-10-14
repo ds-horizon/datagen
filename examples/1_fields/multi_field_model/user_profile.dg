@@ -1,0 +1,31 @@
+model user_profile {
+  fields {
+    id() int
+    name() string
+    is_active() bool
+    rating() float32
+    created_at() time.Time
+  }
+
+  gens {
+    func id() {
+      return iter + 1
+    }
+
+    func name() {
+      return Name()
+    }
+
+    func is_active() {
+      return Boolean()
+    }
+
+    func rating() {
+      return FloatBetween(1, 5)
+    }
+
+   func created_at() {
+      return time.Now()
+   }
+  }
+}

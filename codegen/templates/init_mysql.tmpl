@@ -8,17 +8,18 @@ import (
     "github.com/go-sql-driver/mysql"
 )
 
-var {{.FullyQualifiedModelName}}_mysql_connection *sql.DB
+var __datagen_{{.FullyQualifiedModelName}}_mysql_connection *sql.DB
 
-// Init_{{.FullyQualifiedModelName}}_mysql_connection initializes a shared MySQL connection for {{.FullyQualifiedModelName}}.
-func Init_{{.FullyQualifiedModelName}}_mysql_connection(req *MySQLConfig) error {
-    if _, err := Get_{{.FullyQualifiedModelName}}_mysql_connection(); err == nil {
+// Init___datagen_{{.FullyQualifiedModelName}}_mysql_connection initializes a shared MySQL connection for __datagen_{{.FullyQualifiedModelName}}.
+func Init___datagen_{{.FullyQualifiedModelName}}_mysql_connection(req *MySQLConfig) error {
+    if _, err := Get___datagen_{{.FullyQualifiedModelName}}_mysql_connection(); err == nil {
         return nil
     }
 
     cfg := mysql.Config{
         User:            req.Username,
         Passwd:          req.Password,
+        Net:             "tcp",
         Addr:            fmt.Sprintf("%s:%d", req.Host, req.Port),
         DBName:          req.Database,
         ParseTime:       true,
@@ -42,24 +43,24 @@ func Init_{{.FullyQualifiedModelName}}_mysql_connection(req *MySQLConfig) error 
         return fmt.Errorf("ping db: %w", err)
     }
 
-    {{.FullyQualifiedModelName}}_mysql_connection = db
+    __datagen_{{.FullyQualifiedModelName}}_mysql_connection = db
     return nil
 }
 
-// Get_{{.FullyQualifiedModelName}}_mysql_connection returns the shared MySQL DB or an error if not initialized.
-func Get_{{.FullyQualifiedModelName}}_mysql_connection() (*sql.DB, error) {
-    if {{.FullyQualifiedModelName}}_mysql_connection == nil {
-        return nil, fmt.Errorf("mysql connection for {{.FullyQualifiedModelName}} is not initialized")
+// Get___datagen_{{.FullyQualifiedModelName}}_mysql_connection returns the shared MySQL DB or an error if not initialized.
+func Get___datagen_{{.FullyQualifiedModelName}}_mysql_connection() (*sql.DB, error) {
+    if __datagen_{{.FullyQualifiedModelName}}_mysql_connection == nil {
+        return nil, fmt.Errorf("mysql connection for __datagen_{{.FullyQualifiedModelName}} is not initialized")
     }
-    return {{.FullyQualifiedModelName}}_mysql_connection, nil
+    return __datagen_{{.FullyQualifiedModelName}}_mysql_connection, nil
 }
 
-// Close_{{.FullyQualifiedModelName}}_mysql_connection closes the shared MySQL DB for {{.FullyQualifiedModelName}} if initialized.
-func Close_{{.FullyQualifiedModelName}}_mysql_connection() error {
-    if {{.FullyQualifiedModelName}}_mysql_connection == nil {
+// Close___datagen_{{.FullyQualifiedModelName}}_mysql_connection closes the shared MySQL DB for __datagen_{{.FullyQualifiedModelName}} if initialized.
+func Close___datagen_{{.FullyQualifiedModelName}}_mysql_connection() error {
+    if __datagen_{{.FullyQualifiedModelName}}_mysql_connection == nil {
         return nil
     }
-    err := {{.FullyQualifiedModelName}}_mysql_connection.Close()
-    {{.FullyQualifiedModelName}}_mysql_connection = nil
+    err := __datagen_{{.FullyQualifiedModelName}}_mysql_connection.Close()
+    __datagen_{{.FullyQualifiedModelName}}_mysql_connection = nil
     return err
 }

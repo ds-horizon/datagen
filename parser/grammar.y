@@ -3,7 +3,7 @@ package main
 
 import (
 	  "go/ast"
-	  "github.com/dream-sports-labs/datagen/codegen"
+	  "github.com/ds-horizon/datagen/codegen"
 )
 %}
 

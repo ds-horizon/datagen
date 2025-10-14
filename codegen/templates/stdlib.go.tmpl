@@ -44,23 +44,23 @@ func Phone() string {
 	return gofakeit.Phone()
 }
 
-func RandomBoolean() bool {
+func Boolean() bool {
 	return gofakeit.Bool()
 }
 
-func RandomUrl() string {
+func Url() string {
 	return gofakeit.URL()
 }
 
-func RandomCompany() string {
+func Company() string {
 	return gofakeit.Company()
 }
 
-func RandomHexColor() string {
+func HexColor() string {
 	return gofakeit.HexColor()
 }
 
-func RandomDateBetweenStr(startStr, endStr string) string {
+func DateBetweenStr(startStr, endStr string) string {
 	const layout = "2006-01-02 15:04:05"
 
 	startDate, err := time.Parse(layout, startStr)
@@ -84,7 +84,7 @@ func RandomDateBetweenStr(startStr, endStr string) string {
 	return randomTime.Format(layout)
 }
 
-func RandomText(len int) string {
+func Text(len int) string {
 	return gofakeit.LetterN(uint(len))
 }
 
@@ -96,14 +96,14 @@ func ToJSON(v interface{}) string {
 	return string(bytes)
 }
 
-func RandomIntBetween(min, max int) int {
+func IntBetween(min, max int) int {
 	if min > max {
 		min, max = max, min
 	}
 	return rand.Intn(max-min+1) + min
 }
 
-func RandomDateBetween(startDate, endDate time.Time) time.Time {
+func DateBetween(startDate, endDate time.Time) time.Time {
 	if startDate.After(endDate) {
 		startDate, endDate = endDate, startDate
 	}
@@ -126,7 +126,7 @@ func UUID() string {
 	return gofakeit.UUID()
 }
 
-func RandomFloatBetween(min, max float64) float32 {
+func FloatBetween(min, max float64) float32 {
 	value := min + rand.Float64()*(max-min)
 	rounded := math.Round(value*100) / 100
 	return float32(rounded)
@@ -350,10 +350,6 @@ func SafariUserAgent() string {
 
 func OperaUserAgent() string {
 	return gofakeit.OperaUserAgent()
-}
-
-func Number(min, max int) int {
-	return gofakeit.Number(min, max)
 }
 
 func Int8() int8 {
@@ -610,18 +606,6 @@ func Unit() string {
 }
 func Weighted(options []any, weights []float32) (any, error) {
 	return gofakeit.Weighted(options, weights)
-}
-func RandomInt(i []int) int {
-	return gofakeit.RandomInt(i)
-}
-func RandomUint(u []uint) uint {
-	return gofakeit.RandomUint(u)
-}
-func RandomString(a []string) string {
-	return gofakeit.RandomString(a)
-}
-func RandomMapKey(mapI any) any {
-	return gofakeit.RandomMapKey(mapI)
 }
 func ShuffleAnySlice(v any) {
 	gofakeit.ShuffleAnySlice(v)

@@ -1,0 +1,11 @@
+model users {
+    fields {
+        name() string
+    }
+
+    gens {
+        func name() {
+            return "John Doe"
+        }
+    }
+}

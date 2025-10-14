@@ -1,0 +1,20 @@
+model session {
+  fields {
+    created_by() string
+    created_at(start string, end string) string
+  }
+
+  gens {
+    func created_by() {
+      return "admin"
+    }
+
+    func created_at(start string, end string) {
+      return DateBetweenStr(start, end)
+    }
+  }
+
+  calls {
+    created_at("2023-01-01 00:00:00", "2023-12-31 23:59:59")
+  }
+}

@@ -453,37 +453,42 @@ created_at(time.Now(), time.Now())`,
 
 // compareCallExpr compares two CallExprs
 func compareCallExpr(t *testing.T, expected, actual *ast.CallExpr) {
-	// Compare function type
-	expectedFuncType, ok1 := expected.Fun.(*ast.FuncType)
-	actualFuncType, ok2 := actual.Fun.(*ast.FuncType)
-	assert.True(t, ok1 && ok2, "both should be FuncType")
+    // Compare the function being called. It can be a FuncType (for param list parsing)
+    // or a regular callable expression like Ident/Selector (for call list parsing).
+    switch expectedFun := expected.Fun.(type) {
+    case *ast.FuncType:
+        actualFun, ok := actual.Fun.(*ast.FuncType)
+        assert.True(t, ok, "actual Fun should be FuncType")
 
-	// Compare parameter lists
-	if expectedFuncType.Params != nil {
-		assert.NotNil(t, actualFuncType.Params, "actual params should not be nil")
-		assert.Equal(t, len(expectedFuncType.Params.List), len(actualFuncType.Params.List), "number of parameters should match")
+        if expectedFun.Params != nil {
+            assert.NotNil(t, actualFun.Params, "actual params should not be nil")
+            assert.Equal(t, len(expectedFun.Params.List), len(actualFun.Params.List), "number of parameters should match")
 
-		for i, expectedField := range expectedFuncType.Params.List {
-			actualField := actualFuncType.Params.List[i]
+            for i, expectedField := range expectedFun.Params.List {
+                actualField := actualFun.Params.List[i]
 
-			// Compare field names
-			assert.Equal(t, len(expectedField.Names), len(actualField.Names), "number of names should match")
-			for j, expectedName := range expectedField.Names {
-				assert.Equal(t, expectedName.Name, actualField.Names[j].Name, "parameter name should match")
-			}
+                // Compare field names
+                assert.Equal(t, len(expectedField.Names), len(actualField.Names), "number of names should match")
+                for j, expectedName := range expectedField.Names {
+                    assert.Equal(t, expectedName.Name, actualField.Names[j].Name, "parameter name should match")
+                }
 
-			// Compare types
-			compareType(t, expectedField.Type, actualField.Type)
-		}
-	} else {
-		assert.Nil(t, actualFuncType.Params, "actual params should be nil")
-	}
+                // Compare types
+                compareType(t, expectedField.Type, actualField.Type)
+            }
+        } else {
+            assert.Nil(t, actualFun.Params, "actual params should be nil")
+        }
+    default:
+        // For non-FuncType call targets, compare as general expressions
+        compareExpr(t, expected.Fun, actual.Fun)
+    }
 
-	// Compare arguments if any
-	assert.Equal(t, len(expected.Args), len(actual.Args), "number of arguments should match")
-	for i, expectedArg := range expected.Args {
-		compareExpr(t, expectedArg, actual.Args[i])
-	}
+    // Compare arguments if any
+    assert.Equal(t, len(expected.Args), len(actual.Args), "number of arguments should match")
+    for i, expectedArg := range expected.Args {
+        compareExpr(t, expectedArg, actual.Args[i])
+    }
 }
 
 func TestParseParamList(t *testing.T) {
@@ -494,7 +499,7 @@ func TestParseParamList(t *testing.T) {
 	}{
 		{
 			name:  "empty parameters",
-			input: "()",
+			input: "",
 			expected: &ast.CallExpr{
 				Fun: &ast.FuncType{
 					Params: &ast.FieldList{
@@ -505,7 +510,7 @@ func TestParseParamList(t *testing.T) {
 		},
 		{
 			name:  "single parameter",
-			input: "(start time.Time)",
+			input: "start time.Time",
 			expected: &ast.CallExpr{
 				Fun: &ast.FuncType{
 					Params: &ast.FieldList{
@@ -524,7 +529,7 @@ func TestParseParamList(t *testing.T) {
 		},
 		{
 			name:  "multiple parameters with same type",
-			input: "(a, b, c int)",
+			input: "a, b, c int",
 			expected: &ast.CallExpr{
 				Fun: &ast.FuncType{
 					Params: &ast.FieldList{
@@ -544,7 +549,7 @@ func TestParseParamList(t *testing.T) {
 		},
 		{
 			name:  "multiple parameters with different types",
-			input: "(id int, name string, createdAt time.Time)",
+			input: "id int, name string, createdAt time.Time",
 			expected: &ast.CallExpr{
 				Fun: &ast.FuncType{
 					Params: &ast.FieldList{

@@ -23,7 +23,7 @@ model pluto {
     }
 
     func next_page() {
-      return RandomIntBetween(1, Count)
+      return IntBetween(1, Count)
     }
 
     func set_name() {

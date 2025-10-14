@@ -1,0 +1,26 @@
+### `count`
+
+1. Use model default (metadata.count)
+
+```shell
+$ datagen gen ./examples/6_metadata/count
+```
+Output:
+```shell
+orders{id:c9e3bb18-2fd9-4dfc-b96d-cc82ce63cea2 amount:235.55}
+orders{id:fbaa8761-6911-4b01-b023-81623d3a77a3 amount:82.61}
+orders{id:44a811c9-ac61-43dc-9923-1b974dee7523 amount:162.79}
+orders{id:f47a628a-c290-41b1-9118-78f638dce9fe amount:216.36}
+orders{id:9ea7896d-f2ef-42aa-8f8c-38f5b40ce47a amount:153.98}
+```
+
+2. Override default for all models
+```shell
+$ datagen gen ./examples/6_metadata/count -n 3
+```
+Output:
+```shell
+orders{id:206b72a9-d1b5-4891-aa30-1defce148ce1 amount:38.85}
+orders{id:b2ffef0a-c6f8-46b6-9480-a374454a735b amount:193.59}
+orders{id:bcc09540-004e-43a1-a92f-a88ee0268915 amount:191.76}
+```

@@ -39,7 +39,7 @@ func getModelsMetadata(datagen *DataGenGenerators) map[string]Metadata {
     out := make(map[string]Metadata)
     {{- range .}}
     if datagen.{{.}} != nil {
-        out["{{.}}"] = datagen.{{.}}.Metadata()
+        out["{{.}}"] = datagen.{{.}}().Metadata()
     }
     {{- end}}
     return out

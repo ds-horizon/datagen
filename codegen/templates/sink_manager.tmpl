@@ -2,21 +2,69 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"slices"
 )
 
-// loadModelSinks routes model records to configured sinks per config.json
-func loadModelSinks(modelName string, records []Record, cfg *Config) error {
+func orchestrateSinks(topologicallySorted []string, allData map[string][]Record, cfg *Config) error {
+     if cfg.ClearData {
+     	slog.Info("clearing existing data from sinks")
+     	if err := clearAllData(topologicallySorted, allData, cfg); err != nil {
+	   return fmt.Errorf("error in clearing data: %w", err)
+	}
+     }
+
+     slog.Info("loading data into sinks")
+     return loadAllData(topologicallySorted, allData, cfg)
+}
+
+func clearAllData(topologicallySorted []string, allData map[string][]Record, cfg *Config) error {
+	reversedTopologicallySorted := slices.Clone(topologicallySorted)
+	slices.Reverse(reversedTopologicallySorted)
+	slog.Debug("clearing data in reverse topological order", "models", reversedTopologicallySorted)
+	for _, name := range reversedTopologicallySorted {
+		if _, ok := allData[name]; !ok {
+		       continue
+		}
+
+		if err := clearModelSinks(name, allData[name], cfg); err != nil {
+            	   return fmt.Errorf("error clearing sinks for model %s: %w", name, err)
+		}
+	}
+	slog.Info("data deletion completed successfully")
+	return nil
+}
+
+func loadAllData(topologicallySorted []string, allData map[string][]Record, cfg *Config) error {
+     slog.Debug("loading data in topological order", "models", topologicallySorted)
+     for _, name := range topologicallySorted {
+     	    	records, ok := allData[name]
+		if !ok {
+		       continue
+		}
+
+		if err := loadModelSinks(name, records, cfg); err != nil {
+		   return fmt.Errorf("%q, skipping further models", err)
+		}
+	}
+	slog.Info("data loading completed successfully")
+	return nil
+}
+
+// clearModelSinks routes model records to configured sinks per config.json
+func clearModelSinks(modelName string, records []Record, cfg *Config) error {
 	sinks, err := cfg.SinkSpecsForModel(modelName)
 	if err != nil {
-		return err
+		return fmt.Errorf("error while getting sink specs for model %s: %w", modelName, err)
 	}
 
+	slog.Debug("clearing model from sinks", "model", modelName, "sink_count", len(sinks))
 	for _, s := range sinks {
 		switch s.SinkType {
     		case SinkTypeMySQL:
-			err := loadMysqlSink(s, modelName, records, cfg.ClearData)
+			err := clearMysqlSink(s, modelName)
 			if err != nil {
-				return err
+				return fmt.Errorf("error while clearing MySQL sink %s: %w", s.SinkName, err)
 			}
 		default:
 			return fmt.Errorf("unsupported sink_type %q for model %q", s.SinkType, modelName)
@@ -25,7 +73,54 @@ func loadModelSinks(modelName string, records []Record, cfg *Config) error {
 	return nil
 }
 
-func loadMysqlSink(sinkSpec *SinkSpec, modelName string, records []Record, clearData bool) error {
+// loadModelSinks routes model records to configured sinks per config.json
+func loadModelSinks(modelName string, records []Record, cfg *Config) error {
+	sinks, err := cfg.SinkSpecsForModel(modelName)
+	if err != nil {
+		return fmt.Errorf("error while getting sink specs for model %s: %w", modelName, err)
+	}
+
+	slog.Debug("loading model to sinks", "model", modelName, "sink_count", len(sinks), "record_count", len(records))
+	for _, s := range sinks {
+		switch s.SinkType {
+    		case SinkTypeMySQL:
+			err := loadMysqlSink(s, modelName, records)
+			if err != nil {
+				return fmt.Errorf("error in loading MySQL sink %s: %w", s.SinkName, err)
+			}
+		default:
+			return fmt.Errorf("unsupported sink_type %q for model %q", s.SinkType, modelName)
+		}
+	}
+	return nil
+}
+
+func loadMysqlSink(sinkSpec *SinkSpec, modelName string, records []Record) error {
+	var sc MySQLConfig
+	if err := sinkSpec.ConfigInto(&sc); err != nil {
+		return fmt.Errorf("mysql sink %q config: %w", sinkSpec.SinkName, err)
+	}
+
+	if sc.BatchSize <= 0 {
+		sc.BatchSize = len(records)
+	}
+
+	switch modelName {
+	{{- range $i, $sanitised := .SanitisedModelNames}}
+	case "{{$sanitised}}":
+		typed := make([]*__datagen_{{index $.FullyQualifiedModelNames $i}}, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_{{index $.FullyQualifiedModelNames $i}}))
+		}
+
+		return Sink_mysql___datagen_{{index $.FullyQualifiedModelNames $i}}_data(modelName, typed, &sc)
+	{{- end}}
+	default:
+		return fmt.Errorf("mysql sink not implemented for model %q", modelName)
+	}
+}
+
+func clearMysqlSink(sinkSpec *SinkSpec, modelName string) error {
 	var sc MySQLConfig
 	if err := sinkSpec.ConfigInto(&sc); err != nil {
 		return fmt.Errorf("mysql sink %q config: %w", sinkSpec.SinkName, err)
@@ -34,35 +129,21 @@ func loadMysqlSink(sinkSpec *SinkSpec, modelName string, records []Record, clear
 	switch modelName {
 	{{- range $i, $sanitised := .SanitisedModelNames}}
 	case "{{$sanitised}}":
-		typed := make([]*{{index $.FullyQualifiedModelNames $i}}, 0, len(records))
-		for _, r := range records {
-			typed = append(typed, r.(*{{index $.FullyQualifiedModelNames $i}}))
-		}
-		if err := Init_{{index $.FullyQualifiedModelNames $i}}_mysql_connection(&sc); err != nil {
-			return err
-		}
-		if clearData {
-			if err := Truncate_{{index $.FullyQualifiedModelNames $i}}_mysql(); err != nil {
-				return err
-			}
-		}
-		if err := Load_{{index $.FullyQualifiedModelNames $i}}_mysql(typed, &sc); err != nil {
-			return err
-		}
-		if err := Close_{{index $.FullyQualifiedModelNames $i}}_mysql_connection(); err != nil {
-			return err
-		}
+		return Clear_mysql___datagen_{{index $.FullyQualifiedModelNames $i}}_data(modelName, &sc)
 	{{- end}}
 	default:
 		return fmt.Errorf("mysql sink not implemented for model %q", modelName)
 	}
-	return nil
 }
+
 
 func getRecordCount(cfg *Config, modelName string, metadata Metadata) int {
        for _, m := range cfg.Models {
-		if m.ModelName == modelName && m.Count > 0 {
-			return m.Count
+		if m.ModelName == modelName {
+			if m.Count != nil {
+				return *m.Count
+			}
+			return metadata.Count
 		}
 	}
 

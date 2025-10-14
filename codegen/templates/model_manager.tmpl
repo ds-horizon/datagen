@@ -1,9 +1,13 @@
 package main
 
+import (
+       "sync"
+)
+
 {{- define "emitDirTree" -}}
 type {{ dirName . }}Dir struct {
     {{- range models . }}
-    {{ last . }} *{{ . }}Generator
+    {{ last . }} func() *__datagen_{{ . }}Generator
     {{- end }}
     {{- range children . }}
     {{ dirName . }} *{{ dirName . }}Dir
@@ -16,11 +20,13 @@ type {{ dirName . }}Dir struct {
 
 type DataGenGenerators struct {
     {{- range models .DgDir }}
-    {{ last . }} *{{ . }}Generator
+    {{ last . }} func() *__datagen_{{ . }}Generator
     {{- end }}
     {{- range children .DgDir }}
     {{ dirName . }} *{{ dirName . }}Dir
     {{- end }}
+
+    __links *Links
 }
 
 
@@ -33,9 +39,19 @@ type Metadata struct {
 	Tags  map[string]string
 }
 
+{{- range .SanitisedModelNames}}
+func {{ .}}Func(model *__datagen_{{ .}}Generator, tail string) func() *__datagen_{{ .}}Generator {
+     return func() *__datagen_{{ .}}Generator {
+     	    model.datagen.__links.AcceptSignal(tail)
+	    return model
+     }
+}
+{{- end}}
+
+
 func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) {
 	{{- range .SanitisedModelNames}}
-	{{ .}}Generator := __init_{{ . }}Generator()
+	{{ .}}Generator := __init___datagen_{{.}}Generator()
 	{{- end}}
 
 	// Construct directory instances bottom-up so children are available
@@ -45,7 +61,7 @@ func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) 
 	{{- end }}
 	{{ dirName . }}Dir := &{{ dirName . }}Dir{
 		{{- range models . }}
-		{{ last . }}: {{ .}}Generator,
+		{{ last . }}: {{ .}}Func({{ .}}Generator, "{{ dot . }}"),
 		{{- end }}
 		{{- range children . }}
 		{{ dirName . }}: {{ dirName . }}Dir,
@@ -58,11 +74,16 @@ func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) 
 
 	datagen := &DataGenGenerators{
 		{{- range models .DgDir }}
-		{{ last . }}: {{ last . }}Generator,
+		{{ last . }}: {{ .}}Func({{ last .}}Generator, "{{ dot . }}"),
 		{{- end }}
 		{{- range children .DgDir }}
 		{{ dirName . }}: {{ dirName . }}Dir,
 		{{- end }}
+
+ 		__links: &Links{
+ 			mu:       sync.Mutex{},
+ 			data:     map[string]map[string]struct{}{},
+ 		},
 	}
 	{{- range .SanitisedModelNames}}
 	{{.}}Generator.datagen = datagen
@@ -75,5 +96,5 @@ func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) 
 		{{- end}}
 	}
 
-	return datagen, models
+    return datagen, models
 }

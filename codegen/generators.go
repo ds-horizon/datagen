@@ -12,35 +12,38 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/dream-sports-labs/datagen/utils"
+	"github.com/ds-horizon/datagen/utils"
 )
 
 const (
-	tmplPackage      = "templates/package.tmpl"
-	tmplMain         = "templates/main.tmpl"
-	tmplCommands     = "templates/commands.tmpl"
-	tmplModelManager = "templates/model_manager.tmpl"
-	tmplSinkManager  = "templates/sink_manager.tmpl"
-	tmplTags         = "templates/tags.go.tmpl"
-	tmplConfig       = "templates/config.go.tmpl"
-	tmplMySQLConfig  = "templates/mysql_config.tmpl"
-	tmplKafkaConfig  = "templates/kafka_config.tmpl"
-	tmplWriters      = "templates/writers.tmpl"
-	tmplGoMod        = "templates/go.mod.tmpl"
-	tmplGoSum        = "templates/go.sum.tmpl"
-	tmplStdlib       = "templates/stdlib.go.tmpl"
-	tmplMetadata     = "templates/metadata_struct.tmpl"
-	tmplBaseStruct   = "templates/base_struct.tmpl"
-	tmplGenerator    = "templates/generator_struct.tmpl"
-	tmplDataHolder   = "templates/data_holder_struct.tmpl"
-	tmplWrapperFunc  = "templates/wrapper_func.tmpl"
-	tmplGenFunction  = "templates/gen_function.tmpl"
-	tmplInitFunction = "templates/init_function.tmpl"
-	tmplCSV          = "templates/csv_function.tmpl"
-	tmplJSON         = "templates/json_function.tmpl"
-	tmplXML          = "templates/xml_function.tmpl"
-	tmplMysqlSink    = "templates/load_mysql.tmpl"
-	tmplMysqlInit    = "templates/init_mysql.tmpl"
+	tmplPackage        = "templates/package.tmpl"
+	tmplMain           = "templates/main.tmpl"
+	tmplCommands       = "templates/commands.tmpl"
+	tmplModelManager   = "templates/model_manager.tmpl"
+	tmplSinkManager    = "templates/sink_manager.tmpl"
+	tmplSinkMysqlModel = "templates/sink_mysql_model.tmpl"
+	tmplTags           = "templates/tags.go.tmpl"
+	tmplConfig         = "templates/config.go.tmpl"
+	tmplLinks          = "templates/links.go.tmpl"
+	tmplMySQLConfig    = "templates/mysql_config.tmpl"
+	tmplKafkaConfig    = "templates/kafka_config.tmpl"
+	tmplWriters        = "templates/writers.tmpl"
+	tmplGoMod          = "templates/go.mod.tmpl"
+	tmplGoSum          = "templates/go.sum.tmpl"
+	tmplStdlib         = "templates/stdlib.go.tmpl"
+	tmplLogger         = "templates/logger.go.tmpl"
+	tmplMetadata       = "templates/metadata_struct.tmpl"
+	tmplBaseStruct     = "templates/base_struct.tmpl"
+	tmplGenerator      = "templates/generator_struct.tmpl"
+	tmplDataHolder     = "templates/data_holder_struct.tmpl"
+	tmplWrapperFunc    = "templates/wrapper_func.tmpl"
+	tmplGenFunction    = "templates/gen_function.tmpl"
+	tmplInitFunction   = "templates/init_function.tmpl"
+	tmplCSV            = "templates/csv_function.tmpl"
+	tmplJSON           = "templates/json_function.tmpl"
+	tmplXML            = "templates/xml_function.tmpl"
+	tmplMysqlSink      = "templates/load_mysql.tmpl"
+	tmplMysqlInit      = "templates/init_mysql.tmpl"
 )
 
 type SectionGenerator func(d *DatagenParsed) (string, error)
@@ -58,8 +61,7 @@ func Codegen(parsed []*DatagenParsed, dirPath string, dgDir *utils.DgDir) error 
 
 	for _, result := range parsed {
 		if err := codegenModel(result, dirPath); err != nil {
-			fmt.Printf("Error generating code for %s: %v\n", result.ModelName, err)
-			return err
+			return fmt.Errorf("failed to generate code for model\n  model: %s\n  cause: %w", result.ModelName, err)
 		}
 	}
 
@@ -111,14 +113,17 @@ func codegenModel(parsed *DatagenParsed, dirPath string) error {
 
 	modelPath := filepath.Join(modelDir, fmt.Sprintf("%s.go", parsed.FullyQualifiedModelName))
 	if err := writeFormattedGoFile(modelPath, buf.Bytes()); err != nil {
-		return err
+		return fmt.Errorf("failed to write generated model file\n  path: %s\n  cause: %w", modelPath, err)
 	}
 
 	if err := parsed.generateMySQLInitFile(modelDir); err != nil {
-		return err
+		return fmt.Errorf("failed to generate MySQL init file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
 	}
 	if err := parsed.generateMySQLLoadFile(modelDir); err != nil {
-		return err
+		return fmt.Errorf("failed to generate MySQL load file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
+	}
+	if err := parsed.generateMySQLSinkFile(modelDir); err != nil {
+		return fmt.Errorf("failed to generate MySQL sink file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
 	}
 
 	return nil
@@ -184,11 +189,13 @@ func codegenCommons(parsed []*DatagenParsed, dirPath string, dgDir *utils.DgDir)
 		tmplGoMod:       "go.mod",
 		tmplGoSum:       "go.sum",
 		tmplStdlib:      "stdlib.go",
+		tmplLogger:      "logger.go",
 		tmplMySQLConfig: "mysql_config.go",
 		tmplKafkaConfig: "kafka_config.go",
+		tmplLinks:       "links.go",
 	}
 	if err := copyStaticTemplates(dirPath, staticFiles); err != nil {
-		return err
+		return fmt.Errorf("failed to copy static templates\n  output_dir: %s\n  cause: %w", dirPath, err)
 	}
 
 	return nil
@@ -230,7 +237,7 @@ func generateGeneratorStruct(d *DatagenParsed) (string, error) {
 func generateDataHolderStruct(d *DatagenParsed) (string, error) {
 	s, err := renderFS(tmplDataHolder, fieldsVars(d))
 	if err != nil {
-		return "", fmt.Errorf("error generating data holder struct: %w", err)
+		return "", fmt.Errorf("failed to generate data holder section\n  model: %s\n  cause: %w", d.FullyQualifiedModelName, err)
 	}
 	return s, nil
 }
@@ -238,7 +245,7 @@ func generateDataHolderStruct(d *DatagenParsed) (string, error) {
 func generateGeneratorFuncs(d *DatagenParsed) (string, error) {
 	tmpl, err := template.ParseFS(templates, tmplWrapperFunc)
 	if err != nil {
-		return "", fmt.Errorf("error parsing wrapper function template: %w", err)
+		return "", fmt.Errorf("failed to parse template\n  template: %s\n  cause: %w", tmplWrapperFunc, err)
 	}
 
 	var buf bytes.Buffer
@@ -291,14 +298,13 @@ func generateGeneratorFuncs(d *DatagenParsed) (string, error) {
 			FullyQualifiedModelName: d.FullyQualifiedModelName,
 			FieldName:               fieldName,
 			FieldType:               fieldType,
-			SnakeCaseFieldName:      utils.ToSnakeCase(fieldName),
 			GenFuncParams:           paramsBuf.String(),
 			GenFuncVars:             varsBuf.String(),
 			GenFuncBody:             bodyBuf.String(),
 		}
 
 		if err := tmpl.Execute(&buf, data); err != nil {
-			return "", fmt.Errorf("error generating wrapper for %s: %w", fieldName, err)
+			return "", fmt.Errorf("failed to generate wrapper function\n  model: %s\n  field: %s\n  cause: %w", d.FullyQualifiedModelName, fieldName, err)
 		}
 	}
 
@@ -308,7 +314,7 @@ func generateGeneratorFuncs(d *DatagenParsed) (string, error) {
 func generateGenFunction(d *DatagenParsed) (string, error) {
 	s, err := renderFS(tmplGenFunction, fieldsVars(d))
 	if err != nil {
-		return "", fmt.Errorf("error generating Gen function: %w", err)
+		return "", fmt.Errorf("failed to generate Gen section\n  model: %s\n  cause: %w", d.FullyQualifiedModelName, err)
 	}
 	return s, nil
 }
@@ -316,7 +322,7 @@ func generateGenFunction(d *DatagenParsed) (string, error) {
 func generateInitFunction(d *DatagenParsed) (string, error) {
 	s, err := renderFS(tmplInitFunction, fieldsVars(d))
 	if err != nil {
-		return "", fmt.Errorf("error generating init function: %w", err)
+		return "", fmt.Errorf("failed to generate init section\n  model: %s\n  cause: %w", d.FullyQualifiedModelName, err)
 	}
 	return s, nil
 }
@@ -324,7 +330,7 @@ func generateInitFunction(d *DatagenParsed) (string, error) {
 func generateCSVFunctions(d *DatagenParsed) (string, error) {
 	s, err := renderFS(tmplCSV, fieldsVars(d))
 	if err != nil {
-		return "", fmt.Errorf("error generating CSV functions: %w", err)
+		return "", fmt.Errorf("failed to generate CSV functions section\n  model: %s\n  cause: %w", d.FullyQualifiedModelName, err)
 	}
 	return s, nil
 }
@@ -332,7 +338,7 @@ func generateCSVFunctions(d *DatagenParsed) (string, error) {
 func generateJSONFunctions(d *DatagenParsed) (string, error) {
 	s, err := renderFS(tmplJSON, fieldsVars(d))
 	if err != nil {
-		return "", fmt.Errorf("error generating JSON functions: %w", err)
+		return "", fmt.Errorf("failed to generate JSON functions section\n  model: %s\n  cause: %w", d.FullyQualifiedModelName, err)
 	}
 	return s, nil
 }
@@ -348,7 +354,7 @@ func generateXMLFunctions(d *DatagenParsed) (string, error) {
 	}
 	s, err := renderFSWithFuncs(tmplXML, funcs, "xml_function.tmpl", fieldsVars(d))
 	if err != nil {
-		return "", fmt.Errorf("error generating XML functions: %w", err)
+		return "", fmt.Errorf("failed to generate XML functions section\n  model: %s\n  cause: %w", d.FullyQualifiedModelName, err)
 	}
 	return s, nil
 }
@@ -361,12 +367,12 @@ func (d *DatagenParsed) generateMySQLLoadFile(modelDir string) error {
 
 	ib, err := renderFS(tmplMysqlSink, fieldsVars(d))
 	if err != nil {
-		return fmt.Errorf("failed to render load_mysql template: %v", err)
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplMysqlSink, err)
 	}
 
 	outPath := filepath.Join(modelDir, fmt.Sprintf("%s_mysql.go", d.FullyQualifiedModelName))
 	if err := writeFormattedGoFile(outPath, []byte(ib)); err != nil {
-		return fmt.Errorf("failed to write mysql loader file: %v", err)
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", outPath, err)
 	}
 	return nil
 }
@@ -375,12 +381,26 @@ func (d *DatagenParsed) generateMySQLLoadFile(modelDir string) error {
 func (d *DatagenParsed) generateMySQLInitFile(modelDir string) error {
 	ib, err := renderFS(tmplMysqlInit, fieldsVars(d))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplMysqlInit, err)
 	}
 	initMySQLPath := filepath.Join(modelDir, fmt.Sprintf("%s_init_mysql.go", d.FullyQualifiedModelName))
 
 	if err := writeFormattedGoFile(initMySQLPath, []byte(ib)); err != nil {
-		return fmt.Errorf("failed to write %s: %v", initMySQLPath, err)
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", initMySQLPath, err)
+	}
+	return nil
+}
+
+// generateMySQLSinkFile renders templates/sink_mysql_model.tmpl into <ModelName>_sink_mysql.go
+func (d *DatagenParsed) generateMySQLSinkFile(modelDir string) error {
+	ib, err := renderFS(tmplSinkMysqlModel, fieldsVars(d))
+	if err != nil {
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplSinkMysqlModel, err)
+	}
+	sinkMySQLPath := filepath.Join(modelDir, fmt.Sprintf("%s_sink_mysql.go", d.FullyQualifiedModelName))
+
+	if err := writeFormattedGoFile(sinkMySQLPath, []byte(ib)); err != nil {
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", sinkMySQLPath, err)
 	}
 	return nil
 }
@@ -389,12 +409,12 @@ func (d *DatagenParsed) generateMySQLInitFile(modelDir string) error {
 func generateMainFile(dirPath string) error {
 	content, err := templates.ReadFile(tmplMain)
 	if err != nil {
-		return fmt.Errorf("failed to read main template: %v", err)
+		return fmt.Errorf("failed to read template\n  template: %s\n  cause: %w", tmplMain, err)
 	}
 
 	mainPath := filepath.Join(dirPath, "main.go")
 	if err := writeFormattedGoFile(mainPath, content); err != nil {
-		return fmt.Errorf("failed to write main.go: %v", err)
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", mainPath, err)
 	}
 	return nil
 }
@@ -403,17 +423,17 @@ func generateMainFile(dirPath string) error {
 func generateCommandsFile(dirPath string, modelNames []string) error {
 	tmpl, err := template.ParseFS(templates, tmplCommands)
 	if err != nil {
-		return fmt.Errorf("failed to parse commands template: %v", err)
+		return fmt.Errorf("failed to parse template\n  template: %s\n  cause: %w", tmplCommands, err)
 	}
 
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, modelNames); err != nil {
-		return fmt.Errorf("failed to generate commands.go: %v", err)
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplCommands, err)
 	}
 
 	commandsPath := filepath.Join(dirPath, "commands.go")
 	if err := writeFormattedGoFile(commandsPath, buf.Bytes()); err != nil {
-		return fmt.Errorf("failed to write commands.go: %v", err)
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", commandsPath, err)
 	}
 	return nil
 }
@@ -453,18 +473,18 @@ func generateModelManagerFile(dirPath string, modelNames []string, dgDir *utils.
 
 	tmpl, err := template.New(filepath.Base(tmplModelManager)).Funcs(funcs).ParseFS(templates, tmplModelManager)
 	if err != nil {
-		return fmt.Errorf("failed to parse model manager template: %v", err)
+		return fmt.Errorf("failed to parse template\n  template: %s\n  cause: %w", tmplModelManager, err)
 	}
 
 	var buf bytes.Buffer
 
 	if err := tmpl.Execute(&buf, &modelNameData{DgDir: dgDir, SanitisedModelNames: modelNames}); err != nil {
-		return fmt.Errorf("failed to generate model_manager.go: %v", err)
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplModelManager, err)
 	}
 
 	modelManagerPath := filepath.Join(dirPath, "model_manager.go")
 	if err := writeFormattedGoFile(modelManagerPath, buf.Bytes()); err != nil {
-		return fmt.Errorf("failed to write model_manager.go: %v", err)
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", modelManagerPath, err)
 	}
 	return nil
 }
@@ -478,17 +498,18 @@ func generateSinkManagerFile(dirPath string, modelNameData *modelNameData) error
 	}
 	tmpl, err := template.New(filepath.Base(tmplSinkManager)).Funcs(funcs).ParseFS(templates, tmplSinkManager)
 	if err != nil {
-		return fmt.Errorf("failed to parse sink manager template: %v", err)
+		return fmt.Errorf("failed to parse template\n  template: %s\n  cause: %w", tmplSinkManager, err)
 	}
 
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, modelNameData); err != nil {
-		return fmt.Errorf("failed to generate sink_manager.go: %v", err)
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplSinkManager, err)
 	}
 
 	sinkManagerPath := filepath.Join(dirPath, "sink_manager.go")
 	if err := writeFormattedGoFile(sinkManagerPath, buf.Bytes()); err != nil {
-		return fmt.Errorf("failed to write sink_manager.go: %v", err)
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", sinkManagerPath, err)
 	}
+
 	return nil
 }

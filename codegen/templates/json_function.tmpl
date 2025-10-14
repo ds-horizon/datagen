@@ -1,4 +1,4 @@
-func (e *{{.FullyQualifiedModelName}}) ToJSON() string {
+func (e *__datagen_{{.FullyQualifiedModelName}}) ToJSON() string {
     data, err := json.Marshal(map[string]interface{}{
         {{- range .Fields}}
         "{{.Name}}": e.{{.Name}},

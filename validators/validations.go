@@ -5,13 +5,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dream-sports-labs/datagen/codegen"
-	"github.com/dream-sports-labs/datagen/utils"
+	"log/slog"
+
+	"github.com/ds-horizon/datagen/codegen"
+	"github.com/ds-horizon/datagen/utils"
 )
 
 type ValidatorFunc func(d *codegen.DatagenParsed, errs *MultiErr)
 
 func Validate(d *codegen.DatagenParsed) error {
+	slog.Debug("validating model", "model", d.ModelName, "file", d.Filepath)
+
 	var aggregateErrs MultiErr
 
 	validators := []ValidatorFunc{
@@ -23,18 +27,25 @@ func Validate(d *codegen.DatagenParsed) error {
 		CallExprsValidator,
 		FilePathModelNameValidator,
 	}
+
 	for _, validator := range validators {
 		validator(d, &aggregateErrs)
 	}
-	return errorOrNil(&aggregateErrs)
+
+	if aggregateErrs.HasErrors() {
+		return errorOrNil(&aggregateErrs)
+	}
+
+	slog.Debug("model validation passed", "model", d.ModelName, "file", d.Filepath)
+	return nil
 }
 
 func RequiredSectionsValidator(d *codegen.DatagenParsed, errs *MultiErr) {
 	if d.Fields == nil || d.Fields.List == nil {
-		errs.Add("model has no fields section")
+		errs.AddMsg("model has no fields section")
 	}
 	if d.GenFuns == nil {
-		errs.Add("model has no gens section")
+		errs.AddMsg("model has no gens section")
 	}
 }
 

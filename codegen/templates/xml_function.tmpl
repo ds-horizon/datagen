@@ -1,4 +1,4 @@
-func (e *{{.FullyQualifiedModelName}}) ToXML() string {
+func (e *__datagen_{{.FullyQualifiedModelName}}) ToXML() string {
     type alias struct {
         XMLName xml.Name `xml:"{{.ModelName}}"`
         {{- range .Fields}}

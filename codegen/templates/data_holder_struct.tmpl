@@ -1,4 +1,4 @@
-type {{.FullyQualifiedModelName}}DataHolder struct {
+type __datagen_{{.FullyQualifiedModelName}}DataHolder struct {
 {{- range .Fields}}
 	{{.Name}} []{{.Type}}
 {{- end}}

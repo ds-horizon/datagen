@@ -1,0 +1,128 @@
+package main
+
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+	"log/slog"
+	"time"
+)
+
+// Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data loads __datagen_{{.FullyQualifiedModelName}} data into MySQL
+func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, records []*__datagen_{{.FullyQualifiedModelName}}, config *MySQLConfig) error {
+	slog.Debug("initializing MySQL connection", "model", modelName, "record_count", len(records))
+	if err := Init___datagen_{{.FullyQualifiedModelName}}_mysql_connection(config); err != nil {
+		return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: 0/%d\n   └─ Error: %v\n",
+                     modelName, len(records), err)
+	}
+    defer func() {
+        err := Close___datagen_{{.FullyQualifiedModelName}}_mysql_connection()
+        if err != nil {
+            slog.Warn("failed to close DB connection", "model", modelName, "error", err.Error())
+        }
+    }()
+
+	db, err := Get___datagen_{{.FullyQualifiedModelName}}_mysql_connection()
+	if err != nil {
+		return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: 0/%d\n   └─ Error: %v\n",
+                         			modelName, len(records), err)
+	}
+
+	batchSize := config.BatchSize
+	if batchSize <= 0 {
+		batchSize = len(records)
+	}
+
+	totalInserted := 0
+
+	slog.Debug("starting MySQL transaction", "model", modelName, "batch_size", batchSize)
+    tx, err := db.Begin()
+    if err != nil {
+		return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: %d/%d\n   └─ Error: %v\n",
+                                     modelName, totalInserted, len(records), err)
+    }
+
+    defer func() {
+	if err := tx.Rollback(); err != nil {
+	    if !errors.Is(err, sql.ErrTxDone) {
+		slog.Warn("error rolling back transaction", "model", modelName, "error", err.Error())
+	    }
+	}
+    }()
+
+	for i := 0; i < len(records); i += batchSize {
+		end := i + batchSize
+		if end > len(records) {
+			end = len(records)
+		}
+		batch := records[i:end]
+
+		slog.Debug("loading batch into MySQL", "model", modelName, "batch_start", i, "batch_size", len(batch))
+		if err := Load___datagen_{{.FullyQualifiedModelName}}_mysql(batch, tx); err != nil {
+			return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: %d/%d\n   └─ Error: %v\n",
+                             				modelName, totalInserted, len(records), err)
+		}
+
+		totalInserted += len(batch)
+
+		if config.Throttle != "" && end < len(records) {
+			if throttleDuration, err := time.ParseDuration(config.Throttle); err == nil {
+				slog.Debug("throttling between batches", "model", modelName, "duration", throttleDuration)
+				time.Sleep(throttleDuration)
+			}
+		}
+	}
+
+    if err := tx.Commit(); err != nil {
+		return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: %d/%d\n   └─ Error: %v\n",
+                                     modelName, totalInserted, len(records), err)
+    }
+
+	slog.Info("successfully loaded data into MySQL", "model", modelName, "rows_inserted", totalInserted, "total_rows", len(records))
+	return nil
+}
+
+// Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data clears __datagen_{{.FullyQualifiedModelName}} data from MySQL
+func Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, config *MySQLConfig) error {
+	slog.Debug("initializing MySQL connection for clearing data", "model", modelName)
+	if err := Init___datagen_{{.FullyQualifiedModelName}}_mysql_connection(config); err != nil {
+		return fmt.Errorf("MySQL connection failed: %w", err)
+	}
+
+    defer func() {
+	err := Close___datagen_{{.FullyQualifiedModelName}}_mysql_connection()
+	if err != nil {
+	    slog.Warn("failed to close DB connection", "error", err.Error())
+	}
+    }()
+
+    db, err := Get___datagen_{{.FullyQualifiedModelName}}_mysql_connection()
+	if err != nil {
+		return fmt.Errorf("failed to get MySQL connection: %w", err)
+	}
+
+    slog.Debug("starting MySQL transaction for clearing data", "model", modelName)
+    tx, err := db.Begin()
+    if err != nil {
+	return fmt.Errorf("beginning transaction for clearing model %s: %w", modelName, err)
+    }
+
+	if err := Truncate___datagen_{{.FullyQualifiedModelName}}_mysql(tx); err != nil {
+			return fmt.Errorf("failed to truncate table for model %s: %w", modelName, err)
+	}
+
+    defer func() {
+	if err := tx.Rollback(); err != nil {
+	    if !errors.Is(err, sql.ErrTxDone) {
+		slog.Warn("error rolling back transaction", "model", modelName, "error", err.Error())
+	    }
+	}
+    }()
+
+    if err := tx.Commit(); err != nil {
+	return fmt.Errorf("failed to commit transaction for clearing model %s: %w", modelName, err)
+    }
+
+	slog.Info("successfully cleared data from MySQL", "model", modelName)
+	return nil
+}

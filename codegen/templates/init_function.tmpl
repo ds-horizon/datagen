@@ -1,6 +1,6 @@
-func __init_{{.FullyQualifiedModelName}}Generator() *{{.FullyQualifiedModelName}}Generator {
-        all := &{{.FullyQualifiedModelName}}DataHolder{}
-	cg := &{{.FullyQualifiedModelName}}Generator{all: all}
+func __init___datagen_{{.FullyQualifiedModelName}}Generator() *__datagen_{{.FullyQualifiedModelName}}Generator {
+        all := &__datagen_{{.FullyQualifiedModelName}}DataHolder{}
+	cg := &__datagen_{{.FullyQualifiedModelName}}Generator{all: all}
 {{- range .Fields}}
 	cg.{{.Name}} = cg.__gen_wrapper_{{.Name}}({{.InitArgs}})
 {{- end}}

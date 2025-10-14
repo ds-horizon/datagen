@@ -6,7 +6,7 @@ TRANSPILED_BINARY_NAME=datagen
 all: target build-compiler transpile run
 
 build-compiler:
-	go build -o target/$(COMPILER_BINARY_NAME) .
+	go build -o $(COMPILER_BINARY_NAME) cmd/datagenc/main.go
 
 clean:
 	go clean

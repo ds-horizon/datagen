@@ -1,5 +1,5 @@
-func (cg *{{.FullyQualifiedModelName}}Generator) Gen(iter int) Record {
-	return &{{.FullyQualifiedModelName}}{
+func (cg *__datagen_{{.FullyQualifiedModelName}}Generator) Gen(iter int) Record {
+	return &__datagen_{{.FullyQualifiedModelName}}{
 {{- range .Fields}}
 		{{.Name}}: cg.{{.Name}}(iter),
 {{- end}}

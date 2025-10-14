@@ -24,8 +24,8 @@ The following are reserved keywords in the Datagen DSL:
 - `misc` - Injects arbitrary Go code
 - `func` - Declares a function
 - `metadata` - Defines model metadata
-  - `count` - Specifies default record count
-  - `tags` - Defines model tags
+    - `count` - Specifies default record count
+    - `tags` - Defines model tags
 
 *Unless otherwise specified, the definitions of identifiers, literals, punctuators are is the same as in the [Go spec](https://go.dev/ref/spec)*
 

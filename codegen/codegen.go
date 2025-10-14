@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/dream-sports-labs/datagen/utils"
+	"github.com/ds-horizon/datagen/utils"
 )
 
 //go:embed templates
@@ -36,7 +36,6 @@ type wrapperFuncData struct {
 	FullyQualifiedModelName string
 	FieldName               string
 	FieldType               string
-	SnakeCaseFieldName      string
 	GenFuncParams           string
 	GenFuncVars             string
 	GenFuncBody             string
@@ -180,11 +179,11 @@ func copyStaticTemplates(dirPath string, files map[string]string) error {
 	for src, dst := range files {
 		content, err := templates.ReadFile(src)
 		if err != nil {
-			return fmt.Errorf("failed to read %s: %w", src, err)
+			return fmt.Errorf("failed to read template\n  template: %s\n  cause: %w", src, err)
 		}
 		outPath := filepath.Join(dirPath, dst)
 		if err := os.WriteFile(outPath, content, 0644); err != nil {
-			return fmt.Errorf("failed to write %s: %w", outPath, err)
+			return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", outPath, err)
 		}
 	}
 	return nil
@@ -223,15 +222,15 @@ func renderFSWithFuncs(tmplPath string, funcs template.FuncMap, execName string,
 func writeFormattedGoFile(path string, src []byte) error {
 	formatted, err := format.Source(src)
 	if err != nil {
-		return fmt.Errorf("failed to format generated %s: %w", filepath.Base(path), err)
+		return fmt.Errorf("failed to format generated file\n  file: %s\n  cause: %w", filepath.Base(path), err)
 	}
 
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return fmt.Errorf("failed to create directory for %s: %w", path, err)
+		return fmt.Errorf("failed to create directory\n  path: %s\n  cause: %w", path, err)
 	}
 
 	if err := os.WriteFile(path, formatted, 0o644); err != nil {
-		return fmt.Errorf("failed to write %s: %w", path, err)
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", path, err)
 	}
 	return nil
 }

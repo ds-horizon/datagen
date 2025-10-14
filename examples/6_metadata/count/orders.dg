@@ -1,0 +1,22 @@
+model orders {
+  metadata {
+    count: 5
+  }
+
+  fields {
+    id() string
+    amount() float32
+  }
+
+  gens {
+    func id() {
+      return UUID()
+    }
+
+    func amount() {
+      return FloatBetween(10.0, 250.0)
+    }
+  }
+}
+
+

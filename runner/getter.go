@@ -7,7 +7,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/dream-sports-labs/datagen/utils"
+	"github.com/ds-horizon/datagen/utils"
 )
 
 func GetDgDirStructure(inputDir string, cumulatedPath string) (*utils.DgDir, error) {
@@ -51,8 +51,7 @@ func GetDgDirectoryStructure(inputDir string, cumulatedPath string) (*utils.DgDi
 	entries, err := os.ReadDir(filepath.Join(inputDir, cumulatedPath))
 
 	if err != nil {
-		fmt.Println("Error reading directory:", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to read directory %s: %w", filepath.Join(inputDir, cumulatedPath), err)
 	}
 
 	for _, entry := range entries {

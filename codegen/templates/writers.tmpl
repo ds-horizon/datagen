@@ -5,6 +5,7 @@ import (
 	"errors"
 	"encoding/csv"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -78,14 +79,15 @@ func writeCSV(name string, records []Record, outPath string) error {
 		row := record.ToCSV()
 		if !headersWritten {
 			if err := writer.Write(record.CSVHeaders()); err != nil {
-				return fmt.Errorf("error writing headers for %s: %v", name, err)
+				return fmt.Errorf("error writing CSV headers for %s: %w", name, err)
 			}
 			headersWritten = true
 		}
 		if err := writer.Write(row); err != nil {
-			return fmt.Errorf("error writing row for %s: %v", name, err)
+			return fmt.Errorf("error writing CSV row for %s: %w", name, err)
 		}
 	}
+	slog.Info("generated output file", "format", "csv", "file", csvFile.Name(), "record_count", len(records))
 	return nil
 }
 
@@ -101,6 +103,7 @@ func writeJSON(name string, records []Record, outPath string) error {
 		jsonRow := record.ToJSON()
 		fmt.Fprintln(jsonWriter, jsonRow)
 	}
+	slog.Info("generated output file", "format", "json", "file", jsonFile.Name(), "record_count", len(records))
 	return nil
 }
 
@@ -116,6 +119,7 @@ func writeXML(name string, records []Record, outPath string) error {
 		xmlRow := record.ToXML()
 		fmt.Fprintln(xmlWriter, xmlRow)
 	}
+	slog.Info("generated output file", "format", "xml", "file", xmlFile.Name(), "record_count", len(records))
 	return nil
 }
 

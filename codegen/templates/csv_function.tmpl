@@ -1,4 +1,4 @@
-func (e *{{.FullyQualifiedModelName}}) ToCSV() []string {
+func (e *__datagen_{{.FullyQualifiedModelName}}) ToCSV() []string {
 	return []string{
 		{{- range .Fields}}
 		fmt.Sprintf("%v", e.{{.Name}}),
@@ -6,7 +6,7 @@ func (e *{{.FullyQualifiedModelName}}) ToCSV() []string {
 	}
 }
 
-func (e *{{.FullyQualifiedModelName}}) CSVHeaders() []string {
+func (e *__datagen_{{.FullyQualifiedModelName}}) CSVHeaders() []string {
 	return []string{
 		{{- range .Fields}}
 		"{{.Name}}",

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+    "sort"
 	"os"
+    "strings"
 )
 
 type SinkType string
@@ -18,12 +20,14 @@ type Config struct {
     ClearData bool       `json:"clear_data,omitempty"`
     Models   []ModelSpec `json:"models"`
     Sinks    []SinkSpec  `json:"sinks"`
+    Seed   int64       `json:"seed,omitempty"`
+
 }
 
 type ModelSpec struct {
 	ModelName   string   `json:"model_name"`
 	TargetSinks []string `json:"target_sinks"`
-	Count       int      `json:"count,omitempty"`
+	Count       *int     `json:"count,omitempty"`
 }
 
 type SinkSpec struct {
@@ -31,7 +35,6 @@ type SinkSpec struct {
 	SinkType SinkType        `json:"sink_type"`
 	Config   json.RawMessage `json:"config"`
 }
-
 
 func LoadConfigFile(path string) (*Config, error) {
 	b, err := os.ReadFile(path)
@@ -42,13 +45,42 @@ func LoadConfigFile(path string) (*Config, error) {
 	if err := json.Unmarshal(b, &cfg); err != nil {
 		return nil, fmt.Errorf("decode config: %w", err)
 	}
-	if err := cfg.Validate(); err != nil {
-		return nil, err
-	}
 	return &cfg, nil
 }
 
-func (c *Config) Validate() error {
+func (c *Config) Validate(models map[string]RecordGenerator) error {
+	var missingModels []string
+	for _, m := range c.Models {
+		if _, ok := models[m.ModelName]; !ok {
+			missingModels = append(missingModels, m.ModelName)
+		}
+	}
+
+     if len(missingModels) > 0 {
+        availableModels := make([]string, 0, len(models))
+        for modelName := range models {
+            availableModels = append(availableModels, modelName)
+        }
+        sort.Strings(availableModels)
+
+        var b strings.Builder
+        b.WriteString("configuration validation failed\n")
+        b.WriteString("The following models specified in config.json do not exist in the binary:\n")
+        for i, model := range missingModels {
+            _, _ = fmt.Fprintf(&b, "    %d. %s\n", i+1, model)
+        }
+        b.WriteString("Available models in this binary:\n")
+        if len(availableModels) == 0 {
+            b.WriteString("(no models available)\n")
+        } else {
+            for i, model := range availableModels {
+                _, _ = fmt.Fprintf(&b, "    %d. %s\n", i+1, model)
+            }
+        }
+
+        return fmt.Errorf(b.String())
+    }
+
 	modelsSet := make(map[string]struct{})
 	for _, m := range c.Models {
 		if m.ModelName == "" {
@@ -91,7 +123,7 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("sink %q: unsupported sink_type %q", s.SinkName, s.SinkType)
 		}
 	}
-	
+
 	for _, m := range c.Models {
 		for _, sinkName := range m.TargetSinks {
 			if c.findSinkByName(sinkName) == nil {

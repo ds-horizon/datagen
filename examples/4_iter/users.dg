@@ -1,0 +1,16 @@
+model users {
+    fields {
+        id() int
+        name() string
+    }
+
+    gens {
+        func id() {
+            return iter + 1
+        }
+
+        func name() {
+            return Name()
+        }
+    }
+}

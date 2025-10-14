@@ -11,9 +11,9 @@ type MySQLConfig struct {
 	Username       string `json:"username"`
 	Password       string `json:"password"`
 	BatchSize      int    `json:"batch_size,omitempty"`
-	Timeout      string `json:"timeout,omitempty"`
-	WriteTimeout string `json:"write_timeout,omitempty"`
-	Throttle     int    `json:"throttle,omitempty"`
+	Timeout        string `json:"timeout,omitempty"`
+	WriteTimeout   string `json:"write_timeout,omitempty"`
+	Throttle       string `json:"throttle,omitempty"`
 }
 
 func (c *MySQLConfig) Validate() error {
