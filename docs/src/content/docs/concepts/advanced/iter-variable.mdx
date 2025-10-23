@@ -1,0 +1,358 @@
+---
+title: The iter Variable
+description: Generate sequential and index-based data using the built-in iter variable
+---
+
+Every generation function has access to the built-in `iter` variable, which represents the current record index (0-based). This enables you to generate sequential IDs, create batches, implement patterns, and build index-dependent logic.
+
+## Basic Usage
+
+The `iter` variable is available in all `gens` functions without any declaration:
+
+```go title="User.dg"
+model User {
+  fields {
+    id() int
+    name() string
+  }
+  
+  gens {
+    func id() {
+      return iter + 1  // 1-based IDs
+    }
+    
+    func name() {
+      return fmt.Sprintf("User-%d", iter)
+    }
+  }
+}
+```
+
+**Output:**
+
+```shell
+User{id:1 name:User-0}
+User{id:2 name:User-1}
+User{id:3 name:User-2}
+```
+
+## Common Patterns
+
+### Sequential IDs
+
+Generate 1-based or custom-offset IDs:
+
+```go
+gens {
+  func id() {
+    return iter + 1  // 1, 2, 3, ...
+  }
+  
+  func custom_id() {
+    return iter + 1000  // 1000, 1001, 1002, ...
+  }
+}
+```
+
+**Output (first 5 records):**
+
+```shell
+Record{id:1 custom_id:1000}
+Record{id:2 custom_id:1001}
+Record{id:3 custom_id:1002}
+Record{id:4 custom_id:1003}
+Record{id:5 custom_id:1004}
+```
+
+### Batch Grouping
+
+Group records into batches:
+
+```go
+gens {
+  func batch_id() {
+    return iter / 100  // Batch 0: 0-99, Batch 1: 100-199, etc.
+  }
+  
+  func batch_name() {
+    batchNum := iter / 50
+    return fmt.Sprintf("Batch-%d", batchNum)
+  }
+}
+```
+
+**Output (showing records 0, 50, 100, 150, 200):**
+
+```shell
+Record{batch_id:0 batch_name:Batch-0}    # iter=0
+Record{batch_id:0 batch_name:Batch-1}    # iter=50
+Record{batch_id:1 batch_name:Batch-2}    # iter=100
+Record{batch_id:1 batch_name:Batch-3}    # iter=150
+Record{batch_id:2 batch_name:Batch-4}    # iter=200
+```
+
+### Alternating Patterns
+
+Create alternating or repeating patterns:
+
+```go
+gens {
+  func is_active() {
+    return iter%2 == 0  // alternates: true, false, true, false...
+  }
+  
+  func priority() {
+    priorities := []string{"low", "medium", "high"}
+    return priorities[iter%3]  // cycles through priorities
+  }
+  
+  func is_special() {
+    return iter%10 == 0  // every 10th record is special
+  }
+}
+```
+
+**Output (first 12 records):**
+
+```shell
+Record{is_active:true  priority:low    is_special:true}
+Record{is_active:false priority:medium is_special:false}
+Record{is_active:true  priority:high   is_special:false}
+Record{is_active:false priority:low    is_special:false}
+Record{is_active:true  priority:medium is_special:false}
+Record{is_active:false priority:high   is_special:false}
+Record{is_active:true  priority:low    is_special:false}
+Record{is_active:false priority:medium is_special:false}
+Record{is_active:true  priority:high   is_special:false}
+Record{is_active:false priority:low    is_special:false}
+Record{is_active:true  priority:medium is_special:true}
+Record{is_active:false priority:high   is_special:false}
+```
+
+### Conditional Logic
+
+```go
+gens {
+  func tier() {
+    if iter < 10 {
+      return "premium"  // first 10 records
+    } else if iter < 50 {
+      return "standard"  // next 40 records
+    } else {
+      return "basic"  // remaining records
+    }
+  }
+  
+  func discount() {
+    if iter%5 == 0 {
+      return 20.0  // every 5th record gets 20% discount
+    }
+    return 0.0
+  }
+}
+```
+
+**Output (showing key records):**
+
+```shell
+Record{tier:premium  discount:20.0}  # iter=0
+Record{tier:premium  discount:0.0}   # iter=5
+Record{tier:premium  discount:20.0}  # iter=10
+Record{tier:standard discount:0.0}   # iter=12
+Record{tier:standard discount:20.0}  # iter=45
+Record{tier:basic    discount:0.0}   # iter=51
+Record{tier:basic    discount:20.0}  # iter=55
+```
+
+## Complete Example
+
+Here's a model that uses `iter` for multiple purposes:
+
+```go title="Order.dg"
+model Order {
+  fields {
+    id() int
+    order_number() string
+    batch_id() int
+    priority() string
+    created_day() int
+    is_vip() bool
+  }
+  
+  gens {
+    func id() {
+      return iter + 1
+    }
+    
+    func order_number() {
+      return fmt.Sprintf("ORD-%08d", iter+1)
+    }
+    
+    func batch_id() {
+      return iter / 100  // 100 orders per batch
+    }
+    
+    func priority() {
+      // Cycles through: high, medium, low
+      priorities := []string{"high", "medium", "low"}
+      return priorities[iter%3]
+    }
+    
+    func created_day() {
+      return (iter / 50) + 1  // Day 1: orders 0-49, Day 2: 50-99, etc.
+    }
+    
+    func is_vip() {
+      return iter%10 == 0  // Every 10th order is VIP
+    }
+  }
+}
+```
+
+**Running the example:**
+
+```bash
+datagenc gen Order.dg -n 10
+```
+
+**Output:**
+
+```shell
+Order{id:1 order_number:ORD-00000001 batch_id:0 priority:high created_day:1 is_vip:true}
+Order{id:2 order_number:ORD-00000002 batch_id:0 priority:medium created_day:1 is_vip:false}
+Order{id:3 order_number:ORD-00000003 batch_id:0 priority:low created_day:1 is_vip:false}
+Order{id:4 order_number:ORD-00000004 batch_id:0 priority:high created_day:1 is_vip:false}
+Order{id:5 order_number:ORD-00000005 batch_id:0 priority:medium created_day:1 is_vip:false}
+Order{id:6 order_number:ORD-00000006 batch_id:0 priority:low created_day:1 is_vip:false}
+Order{id:7 order_number:ORD-00000007 batch_id:0 priority:high created_day:1 is_vip:false}
+Order{id:8 order_number:ORD-00000008 batch_id:0 priority:medium created_day:1 is_vip:false}
+Order{id:9 order_number:ORD-00000009 batch_id:0 priority:low created_day:1 is_vip:false}
+Order{id:10 order_number:ORD-00000010 batch_id:0 priority:high created_day:1 is_vip:true}
+```
+
+## Advanced Techniques
+
+### Time-Based Sequences
+
+```go
+gens {
+  func created_at() {
+    // Each record is created 1 hour after the previous
+    baseTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+    return baseTime.Add(time.Duration(iter) * time.Hour)
+  }
+}
+```
+
+**Output (first 5 records):**
+
+```shell
+Record{created_at:2024-01-01 00:00:00 +0000 UTC}
+Record{created_at:2024-01-01 01:00:00 +0000 UTC}
+Record{created_at:2024-01-01 02:00:00 +0000 UTC}
+Record{created_at:2024-01-01 03:00:00 +0000 UTC}
+Record{created_at:2024-01-01 04:00:00 +0000 UTC}
+```
+
+### Distribution Control
+
+```go
+gens {
+  func status() {
+    // 70% active, 20% inactive, 10% pending
+    if iter%10 < 7 {
+      return "active"
+    } else if iter%10 < 9 {
+      return "inactive"
+    }
+    return "pending"
+  }
+}
+```
+
+**Output (first 10 records showing distribution):**
+
+```shell
+Record{status:active}    # iter=0
+Record{status:active}    # iter=1
+Record{status:active}    # iter=2
+Record{status:active}    # iter=3
+Record{status:active}    # iter=4
+Record{status:active}    # iter=5
+Record{status:active}    # iter=6
+Record{status:inactive}  # iter=7
+Record{status:inactive}  # iter=8
+Record{status:pending}   # iter=9
+```
+
+### Compound Keys
+
+```go
+gens {
+  func partition_key() {
+    return iter / 1000  // Partition ID
+  }
+  
+  func row_key() {
+    return iter % 1000  // Row within partition
+  }
+}
+```
+
+**Output (showing partition boundaries):**
+
+```shell
+Record{partition_key:0 row_key:0}      # iter=0
+Record{partition_key:0 row_key:999}    # iter=999
+Record{partition_key:1 row_key:0}      # iter=1000
+Record{partition_key:1 row_key:999}    # iter=1999
+Record{partition_key:2 row_key:0}      # iter=2000
+Record{partition_key:2 row_key:500}    # iter=2500
+```
+
+## Best Practices
+
+1. **Use iter for deterministic patterns**: When you need predictable, repeatable data
+2. **Combine with randomness**: Mix `iter` with random functions for realistic variation
+3. **Start with simple patterns**: Test with small record counts first
+4. **Document your logic**: Complex iter-based patterns can be hard to understand later
+
+## Common Pitfalls
+
+### Off-by-One Errors
+
+```go
+// Incorrect: 0-based IDs
+func id() {
+  return iter
+}
+
+// Correct: 1-based IDs
+func id() {
+  return iter + 1
+}
+```
+
+### Division by Zero
+
+```go
+// Risky: iter=0 causes division by zero
+func value() {
+  return 100 / iter
+}
+
+// Safe: Handle zero case
+func value() {
+  if iter == 0 {
+    return 100
+  }
+  return 100 / iter
+}
+```
+
+## See Also
+
+- [Data Model](/datagen/concepts/data-model) - Core model concepts
+- [Examples - iter](/datagen/examples/4_iter/iter) - Practical iter examples
+- [Model References](/datagen/concepts/advanced/model-references) - Using iter with references
+

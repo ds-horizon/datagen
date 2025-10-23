@@ -1,0 +1,45 @@
+---
+title: Overview
+description: datagen - an open-source data generation toolkit
+---
+
+## What is datagen?
+
+datagen is an open-source data generation toolkit that allows you to create realistic mock data using a simple, declarative Domain Specific Language (DSL). 
+
+datagen collects and generates the data based on model definitions. The models are transpiled to golang and the transpiled code can be compiled and executed to generate the data in various formats including CSV, JSON, XML, or directly into data stores like MySQL. Each model defines the structure and generation logic for your data, alongside optional metadata for configuration and filtering.
+
+:::note
+Model files use the custom `.dg` extension
+:::
+
+## Features
+
+* **Simple DSL**: Intuitive, declarative syntax for defining data models
+* **High Performance**: Transpiles to native Go code for maximum speed
+* **Complex Generation Logic**: Support for advanced data generation patterns and algorithms
+* **Data Relationships**: Define and maintain relationships between different data models
+* **Ordered Sinking**: Intelligent dependency resolution ensures base models are processed before their dependent models
+* **Seeding Support**: Generate consistent, reproducible data with configurable seed values
+* **Multiple Output Formats**: CSV, JSON, XML, stdout, and database sinks
+* **Built-in Functions**: 140+ data generation functions for common use cases
+* **Tag-based Filtering**: Logical grouping and selective generation
+* **Extensible**: Support for custom types and functions
+
+## When does it fit?
+
+datagen works well for:
+
+* **Application Testing**: Generating realistic test data for any application
+* **Database Seeding**: Populating development and staging databases
+* **Performance Testing**: Creating large datasets for load testing
+* **API Development**: Generating test data for API endpoints
+* **Data Pipeline Testing**: Creating input data for ETL processes
+* **Compliance Testing**: Generating data that meets specific regulatory requirements
+* **Prototyping**: Quickly creating realistic data for demos
+
+datagen is designed for reliability and consistency. You can depend on it to generate the same data reliably via the `--seed` flag, making it ideal for automated testing and CI/CD pipelines.
+
+:::tip[Ready to get started?]
+Check out the [Getting Started guide](/datagen/introduction/getting-started) to install datagen and create your first data model in minutes!
+:::

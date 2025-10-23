@@ -1,0 +1,43 @@
+---
+title: Configuration Overview (config.json)
+---
+
+The config.json file controls which models to generate and where to load the data.
+
+### Top-level keys
+- clear_data (boolean): If true, clears target sink tables/collections before loading
+- models (array): Which models to generate and how many records
+- sinks (array): Target sink definitions and their connection/configuration
+
+### Structure
+```json
+{
+  "clear_data": true,
+  "models": [
+    {
+      "model_name": "<namespace.model>",
+      "target_sinks": ["<sink_name>"],
+      "count": 100
+    }
+  ],
+  "sinks": [
+    {
+      "sink_name": "<sink_name>",
+      "sink_type": "mysql",
+      "config": {...}
+    }
+  ]
+}
+```
+
+**Note:** "namespace.model" refers to the directory structure (namespace) plus the model name, joined with dots. For example, if your file is at models/pluto/users/User.dg and declares `model User { ... }`, the fully-qualified name would be `pluto.users.User`.
+
+### models items
+- model_name (string): Fully-qualified model name derived from directory structure + model name (e.g., "pluto.users.User")
+- target_sinks (array of strings): Names of sinks to load this model into
+- count (number, optional): Overrides the model's metadata count
+
+### sinks items
+- sink_name (string): Unique identifier referenced by models
+- sink_type (string): Type of sink (currently: "mysql")
+- config (object): Sink-specific configuration (see MySQL sink docs)

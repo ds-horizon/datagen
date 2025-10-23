@@ -1,0 +1,134 @@
+---
+title: Function Calls (Parameterized Fields)
+description: Create parameterized field generators using the calls section
+---
+
+When a field generator function accepts parameters, you must provide those arguments in a `calls` section. This enables you to create flexible, configurable field generators while keeping the generation logic clean and reusable.
+
+## Basic Structure
+
+The pattern consists of three parts:
+
+1. **Field declaration** with parameters
+2. **Generator function** that accepts those parameters
+3. **Calls section** that provides the arguments
+
+```go title="Session.dg"
+model Session {
+  // 1. Declare field with parameters
+  fields {
+    created_at(start time.Time, end time.Time) time.Time
+  }
+  
+  // 2. Define generator function
+  gens {
+    func created_at(start time.Time, end time.Time) {
+      return DateBetween(start, end)
+    }
+  }
+  
+  // 3. Provide arguments
+  calls {
+    created_at(time.Now().AddDate(-1, 0, 0), time.Now())
+  }
+}
+```
+
+## How It Works
+
+### Argument Evaluation
+
+Arguments in the `calls` section are **evaluated once** at the start and reused for all generated records.
+
+```go title="example.dg"
+calls {
+  created_at(time.Now(), time.Now().Add(24*time.Hour))
+  // These timestamps are calculated once, not per record
+}
+```
+
+### Type Matching
+
+Argument types and counts must match the field signature exactly:
+
+```go
+// Correct: Types match
+fields {
+  user_id(min int, max int) int
+}
+calls {
+  user_id(1000, 2000)
+}
+
+// Incorrect: Type mismatch
+calls {
+  user_id("1000", "2000")  // Strings instead of ints
+}
+
+// Incorrect: Wrong number of arguments
+calls {
+  user_id(1000)  // Missing second argument
+}
+```
+
+## Common Pitfalls
+
+### Forgetting to Declare Parameters
+
+```go
+// Incorrect: Parameters in gens but not in fields
+fields {
+  user_id() int  // Missing parameters
+}
+
+gens {
+  func user_id(min int, max int) {
+    return IntBetween(min, max)
+  }
+}
+```
+
+### Missing calls Entry
+
+```go
+// Incomplete: No calls entry for parameterized field
+fields {
+  user_id(min int, max int) int
+}
+
+gens {
+  func user_id(min int, max int) {
+    return IntBetween(min, max)
+  }
+}
+
+// Missing: calls section!
+```
+
+### Dynamic Evaluation Assumption
+
+```go
+// Misunderstanding: time.Now() is evaluated once, not per record
+calls {
+  timestamp(time.Now(), time.Now().Add(24*time.Hour))
+  // All records will use the same timestamp range
+}
+
+// Use iter for per-record variation instead
+gens {
+  func timestamp(baseTime time.Time, interval time.Duration) {
+    return baseTime.Add(time.Duration(iter) * interval)
+  }
+}
+
+calls {
+  timestamp(time.Now(), time.Hour)
+}
+```
+
+## See Also
+
+- [Examples - Calls](/datagen/examples/2_calls/calls) - Practical calls examples
+- [Data Model](/datagen/concepts/data-model) - Core model concepts
+- [iter Variable](/datagen/concepts/advanced/iter-variable) - Using iter with parameterized fields
+

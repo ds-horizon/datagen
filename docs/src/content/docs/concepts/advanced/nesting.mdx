@@ -1,0 +1,27 @@
+---
+title: Nesting directories
+description: Overview of advanced datagen features and patterns
+---
+
+## Nesting models in directories
+
+Once datagen is adopted across many services, you might want to organize the models in separate directories, one for each service. Consider serviceA having a model for the 3 tables it has; tableA, tableB, tableC. Also, consider there exists another serviceB, which has tables tableA, tableD, tableE
+
+Now, the directory structure can be:
+
+```bash
+├── serviceA
+│   ├── tableA.dg
+│   ├── tableB.dg
+│   └── tableC.dg
+└── serviceB
+    ├── tableA.dg
+    ├── tableD.dg
+    └── tableE.dg
+```
+
+When you wish to refer to `tableB`, you can do so via: `self.datagen.serviceA.tableB().<column>()`.
+Similarly, to refer to `tableD`, you can do so via: `self.datagen.serviceB.tableB().<column>()`.
+
+Note, both service A and B have `tableA`, but that is okay since they have to be accessed via the fully qualified path, so there is no confusion as to which model is being referred to.
+All the paths are relative to the models input directories.

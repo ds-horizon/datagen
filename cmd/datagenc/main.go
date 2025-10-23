@@ -6,31 +6,26 @@ import (
 	"strings"
 
 	"github.com/ds-horizon/datagen/runner"
-	"github.com/ds-horizon/datagen/utils"
 	"github.com/spf13/cobra"
 )
 
 var (
-	flagCount   int
-	flagTags    string
-	flagOutput  string
-	flagFormat  string
-	flagNoExec  bool
-	flagConfig  string
-	flagSeed    int64
-	flagVerbose bool
-	flagVersion bool
-	version     = "dev"
+	flagCount  int
+	flagTags   string
+	flagOutput string
+	flagFormat string
+	flagNoExec bool
+	flagConfig string
+	flagSeed   int64
+	version    = "dev"
 )
 
 func main() {
 	rootCmd := &cobra.Command{
 		Use:     "datagen",
-		Short:   "Transpile .dg model files into a runnable data generator",
+		Short:   "Generate realistic test data from model definitions",
 		Version: version,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			verbose, _ := cmd.Flags().GetBool("verbose")
-			utils.InitLogger(verbose)
 			// Silence usage for all commands by default
 			// Usage will only be shown for flag-related errors
 			cmd.SilenceUsage = true
@@ -39,12 +34,9 @@ func main() {
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
-	rootCmd.PersistentFlags().BoolVarP(&flagVerbose, "verbose", "v", false, "enable verbose (debug level) logging")
-	rootCmd.PersistentFlags().BoolVarP(&flagVersion, "version", "V", false, "show version information")
-
 	genCmd := &cobra.Command{
 		Use:   "gen [file|directory]",
-		Short: "Transpile models, and optionally invoke datagen",
+		Short: "Generate data from .dg model files and output to CSV, JSON, XML, or stdout",
 		Args:  validateSingleFileOrDir,
 		RunE:  runner.BuildAndRunGen,
 	}
@@ -60,23 +52,19 @@ func main() {
 
 	executeCmd := &cobra.Command{
 		Use:   "execute [file|directory]",
-		Short: "Transpile models, invoke datagen and load data into relevant sinks",
+		Short: "Generate data from .dg model files and load into configured data stores",
 		Args:  validateSingleFileOrDir,
 		RunE:  runner.BuildAndRunExecute,
 	}
-	executeCmd.Flags().StringVarP(&flagConfig, "config", "c", "", "Path of config.json file to be passed to datagen")
+	executeCmd.Flags().StringVarP(&flagConfig, "config", "c", "", "path to config file (specifies models, data stores, and record counts)")
 	_ = executeCmd.MarkFlagRequired("config")
 	executeCmd.Flags().StringVarP(&flagOutput, "output", "o", ".", "output directory or file path")
 	executeCmd.Flags().BoolVar(&flagNoExec, "noexec", false, "skip building and executing generated binary")
 
 	rootCmd.AddCommand(executeCmd)
 
-	if flagVersion {
-		fmt.Printf("datagenc version %s\n", version)
-		os.Exit(0)
-	}
-
 	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }

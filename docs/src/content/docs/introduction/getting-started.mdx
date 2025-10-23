@@ -1,0 +1,106 @@
+---
+title: Getting Started
+description: Get up and running with datagen in just a few minutes
+---
+
+Get up and running with datagen in just a few minutes. This guide will walk you through installing datagen and generating your first dataset.
+
+## Prerequisites
+
+:::note
+Make sure you have the following installed before proceeding:
+- **go 1.24.0 or later**
+- **git** (for installation from source)
+- **make** (for installation from source)
+:::
+
+## Installation
+
+### Option 1: Install via Go
+
+```bash
+go install github.com/ds-horizon/datagen@latest
+```
+
+##### Verify installation
+
+```bash
+datagenc --help
+```
+
+### Option 2: Install from Source
+
+##### Clone the repository
+
+```bash
+git clone github.com/ds-horizon/datagen
+```
+
+##### Build the compiler
+
+```bash
+make build-compiler
+```
+
+:::tip
+For permanent access on Mac/Unix, add to your shell profile:
+```bash
+echo 'export PATH=$PATH:$(pwd)' >> ~/.bashrc  # for bash
+echo 'export PATH=$PATH:$(pwd)' >> ~/.zshrc   # for zsh
+```
+For permanent access on Windows, add to your shell profile:
+```powershell
+echo '$env:PATH += ";C:\path\to\datagen"' >> $PROFILE
+```
+:::
+
+##### Verify installation
+
+```bash
+datagenc --help
+```
+
+## Your First Model
+
+Let's create a simple user model to generate some test data.
+
+```go title="users.dg"
+model users {
+  fields {
+    name() string
+    age() int
+  }
+
+  gens {
+    func name() {
+      return "Arthur Dent"
+    }
+
+    func age() {
+      return IntBetween(18, 65)
+    }
+  }
+}
+```
+
+## Generate Your First Data
+
+Now let's generate some data from this model:
+
+```bash
+datagenc gen users.dg
+```
+
+**Output:**
+```shell
+users{name:Arthur Dent age:42}
+```
+
+:::tip[🎉 Success!]
+Congratulations! You've successfully generated your first dataset with datagen. 
+
+**Next steps:**
+- Learn about [data models](/datagen/concepts/data-model) to understand the core concepts
+- Explore more [examples](/datagen/examples/1_fields/fields-overview) to learn about different data generation patterns
+- Check out [built-in functions](/datagen/language/built-in-functions) for generating realistic data
+:::

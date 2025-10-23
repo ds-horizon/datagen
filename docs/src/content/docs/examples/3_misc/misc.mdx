@@ -1,0 +1,114 @@
+---
+title: Misc
+description: Constants, custom types, and helper functions in datagen
+---
+
+The `misc` section allows you to inject arbitrary Go code into the generated package. Use it to define constants, custom types, and helper functions that your generators can reuse.
+
+## Example
+
+```go title="Product.dg"
+model Product {
+  misc {
+    // Constants for configuration
+    const MinPrice = 10.0
+    const MaxPrice = 500.0
+    const TaxRate = 0.08
+    
+    // Custom type for product categories
+    type Category string
+    
+    const (
+      Electronics Category = "Electronics"
+      Clothing    Category = "Clothing"
+      Books       Category = "Books"
+      Home        Category = "Home"
+    )
+    
+    // Helper function to generate SKU
+    func generateSKU(category Category, id int) string {
+      prefix := ""
+      switch category {
+        case Electronics: prefix = "ELEC"
+        case Clothing:    prefix = "CLTH"
+        case Books:       prefix = "BOOK"
+        case Home:        prefix = "HOME"
+      }
+      return fmt.Sprintf("%s-%08d", prefix, id)
+    }
+  }
+  
+  fields {
+    id() int
+    name() string
+    category() string
+    sku() string
+    price() float64
+    price_with_tax() float64
+  }
+  
+  gens {
+    func id() {
+      return iter + 1
+    }
+    
+    func name() {
+      return fmt.Sprintf("Product %d", iter+1)
+    }
+    
+    func category() {
+      categories := []Category{Electronics, Clothing, Books, Home}
+      return string(categories[iter%4])
+    }
+    
+    func sku() {
+      cat := Category(self.category(iter))
+      return generateSKU(cat, self.id(iter))
+    }
+    
+    func price() {
+      return FloatBetween(MinPrice, MaxPrice)
+    }
+    
+    func price_with_tax() {
+      basePrice := self.price(iter)
+      return basePrice * (1.0 + TaxRate)
+    }
+  }
+}
+```
+
+### Usage Highlights
+
+- **Constants**: `MinPrice`, `MaxPrice`, `TaxRate` for configuration values
+- **Custom Types**: `Category` type with predefined values
+- **Helper Functions**: `generateSKU()` to create product codes
+- **Using misc in gens**: All constants, types, and functions are accessible in generation logic
+
+## Running the Example
+
+```bash
+datagenc gen Product.dg -n 10
+```
+
+## Output
+
+```shell
+Product{id:1 name:Product 1 category:Electronics sku:ELEC-00000001 price:341.25 price_with_tax:368.55}
+Product{id:2 name:Product 2 category:Clothing sku:CLTH-00000002 price:127.83 price_with_tax:138.06}
+Product{id:3 name:Product 3 category:Books sku:BOOK-00000003 price:89.45 price_with_tax:96.61}
+Product{id:4 name:Product 4 category:Home sku:HOME-00000004 price:234.67 price_with_tax:253.44}
+Product{id:5 name:Product 5 category:Electronics sku:ELEC-00000005 price:456.12 price_with_tax:492.61}
+Product{id:6 name:Product 6 category:Clothing sku:CLTH-00000006 price:78.90 price_with_tax:85.21}
+Product{id:7 name:Product 7 category:Books sku:BOOK-00000007 price:145.23 price_with_tax:156.85}
+Product{id:8 name:Product 8 category:Home sku:HOME-00000008 price:312.45 price_with_tax:337.45}
+Product{id:9 name:Product 9 category:Electronics sku:ELEC-00000009 price:198.76 price_with_tax:214.66}
+Product{id:10 name:Product 10 category:Clothing sku:CLTH-00000010 price:267.34 price_with_tax:288.73}
+```
+
+## Key Benefits
+
+- **Reusability**: Define once, use across multiple fields
+- **Type Safety**: Use Go's type system for better code quality
+- **Organization**: Keep related constants and helpers together
+- **Maintainability**: Change configuration values in one place

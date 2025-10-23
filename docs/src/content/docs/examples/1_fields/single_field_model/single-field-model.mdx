@@ -1,0 +1,45 @@
+---
+title: Single Field Model
+description: Creating a simple model with one field
+---
+
+
+This example demonstrates the simplest possible datagen model: a single field with a static value.
+
+:::note
+This is the most basic datagen model structure. In real-world scenarios, you would typically use dynamic generation functions instead of static values.
+:::
+
+### Model
+
+```go title="users.dg"
+model users {
+    fields {
+        name() string
+    }
+
+    gens {
+        func name() {
+            return "John Doe"
+        }
+    }
+}
+```
+
+
+### How to Run
+
+```shell
+$ datagenc gen ./examples/1_fields/single_field_model -f csv -n 3
+```
+
+### Output
+```shell
+$ cat users.csv
+```
+```csv
+name
+John Doe
+John Doe
+John Doe
+```

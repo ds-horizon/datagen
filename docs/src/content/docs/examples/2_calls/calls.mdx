@@ -1,0 +1,55 @@
+---
+title: Calls
+description: Function calls and parameterized fields in datagen
+---
+
+
+The `calls` section passes initialization arguments to field wrappers. Each line is a function call where the function name matches a field name; its arguments become parameters available to your generator implementation.
+
+### Model
+
+```go title="session.dg"
+model session {
+  fields {
+    created_by() string
+    created_at(start string, end string) string
+  }
+
+  gens {
+    func created_by() {
+      return "admin"
+    }
+
+    func created_at(start string, end string) {
+      return DateBetweenStr(start, end)
+    }
+  }
+
+  calls {
+    created_at("2023-01-01 00:00:00", "2023-12-31 23:59:59")
+  }
+}
+```
+
+
+### Usage Highlights
+
+- Arguments in `calls { ... }` must be valid Go expressions.
+- The generated wrappers forward those arguments to `gens` functions.
+
+### How to Run
+
+```shell
+$ datagenc gen ./examples/2_calls -f csv -n 3
+```
+
+### Output
+```shell
+$ cat session.csv
+```
+```csv
+created_by,created_at
+admin,2023-11-24 18:42:13
+admin,2023-09-09 16:09:14
+admin,2023-11-13 06:20:23
+```

@@ -1,0 +1,39 @@
+---
+title: datagenc vs datagen
+description: Understanding the differences between the compiler and encoded binaries
+---
+
+datagen provides two binaries for different use cases. Understanding when to use each one will help you choose the right tool for your workflow.
+
+## Quick Comparison
+
+| Feature | datagenc (Compiler) | datagen (Encoded) |
+|---------|----------------------|---------------------|
+| **Input** | Requires `.dg` file paths | No paths needed |
+| **Models** | Reads from filesystem | Embedded in binary |
+| **Transpilation** | Yes, every run | No, pre-compiled |
+| **Speed** | Slower (transpile + run) | Faster (run only) |
+| **Use Case** | Development, testing | Production, deployment |
+| **Distribution** | Need source files | Single binary |
+| **Model Updates** | Immediate | Requires rebuild |
+
+## Decision Guide
+
+### Choose `datagenc` if:
+
+- You're actively developing models
+- You need quick iteration cycles
+- Models change frequently
+
+### Choose `datagen` if:
+
+- Models are stable and finalized 
+- You want simple distribution
+
+
+## See Also
+
+- [datagenc CLI Reference](/datagen/cli/datagenc-reference) - Full command reference for the compiler binary
+- [datagen CLI Reference](/datagen/cli/datagen-reference) - Full command reference for the encoded binary
+- [Getting Started](/datagen/introduction/getting-started) - Start with datagenc for your first project
+
