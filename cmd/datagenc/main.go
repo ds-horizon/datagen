@@ -25,7 +25,7 @@ var (
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:     "datagenc",
+		Use:     utils.CompilerBinaryName,
 		Short:   "Transpile .dg model files into a runnable data generator",
 		Version: version,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
