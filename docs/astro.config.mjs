@@ -40,6 +40,7 @@ export default defineConfig({
                 'concepts/advanced/iter-variable',
                 'concepts/advanced/function-calls',
                 'concepts/advanced/model-references',
+                'concepts/advanced/nesting',
               ],
             },
             {
