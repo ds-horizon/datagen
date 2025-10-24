@@ -10,7 +10,7 @@ import (
 
 // Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data loads __datagen_{{.FullyQualifiedModelName}} data into MySQL
 func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, records []*__datagen_{{.FullyQualifiedModelName}}, config *MySQLConfig) error {
-	slog.Debug("initializing MySQL connection", "model", modelName, "record_count", len(records))
+    slog.Debug(fmt.Sprintf("initializing MySQL connection for %s with %d records", modelName, len(records)))
 	if err := Init___datagen_{{.FullyQualifiedModelName}}_mysql_connection(config); err != nil {
 		return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: 0/%d\n   └─ Error: %v\n",
                      modelName, len(records), err)
@@ -35,7 +35,7 @@ func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, re
 
 	totalInserted := 0
 
-	slog.Debug("starting MySQL transaction", "model", modelName, "batch_size", batchSize)
+    slog.Debug(fmt.Sprintf("starting MySQL transaction for %s with batch size %d", modelName, batchSize))
     tx, err := db.Begin()
     if err != nil {
 		return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: %d/%d\n   └─ Error: %v\n",
@@ -57,7 +57,7 @@ func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, re
 		}
 		batch := records[i:end]
 
-		slog.Debug("loading batch into MySQL", "model", modelName, "batch_start", i, "batch_size", len(batch))
+        slog.Debug(fmt.Sprintf("loading batch starting at %d of size %d for %s into MySQL", i, len(batch), modelName))
 		if err := Load___datagen_{{.FullyQualifiedModelName}}_mysql(batch, tx); err != nil {
 			return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: %d/%d\n   └─ Error: %v\n",
                              				modelName, totalInserted, len(records), err)
@@ -67,7 +67,7 @@ func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, re
 
 		if config.Throttle != "" && end < len(records) {
 			if throttleDuration, err := time.ParseDuration(config.Throttle); err == nil {
-				slog.Debug("throttling between batches", "model", modelName, "duration", throttleDuration)
+                slog.Debug(fmt.Sprintf("throttling %s between batches for %s", throttleDuration, modelName))
 				time.Sleep(throttleDuration)
 			}
 		}
@@ -78,13 +78,13 @@ func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, re
                                      modelName, totalInserted, len(records), err)
     }
 
-	slog.Info("successfully loaded data into MySQL", "model", modelName, "rows_inserted", totalInserted, "total_rows", len(records))
+    slog.Info(fmt.Sprintf("successfully loaded %d/%d rows for %s into MySQL", totalInserted, len(records), modelName))
 	return nil
 }
 
 // Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data clears __datagen_{{.FullyQualifiedModelName}} data from MySQL
 func Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, config *MySQLConfig) error {
-	slog.Debug("initializing MySQL connection for clearing data", "model", modelName)
+    slog.Debug(fmt.Sprintf("initializing MySQL connection for clearing data for %s", modelName))
 	if err := Init___datagen_{{.FullyQualifiedModelName}}_mysql_connection(config); err != nil {
 		return fmt.Errorf("MySQL connection failed: %w", err)
 	}
@@ -101,7 +101,7 @@ func Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, c
 		return fmt.Errorf("failed to get MySQL connection: %w", err)
 	}
 
-    slog.Debug("starting MySQL transaction for clearing data", "model", modelName)
+    slog.Debug(fmt.Sprintf("starting MySQL transaction for clearing data for %s", modelName))
     tx, err := db.Begin()
     if err != nil {
 	return fmt.Errorf("beginning transaction for clearing model %s: %w", modelName, err)
@@ -123,6 +123,6 @@ func Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, c
 	return fmt.Errorf("failed to commit transaction for clearing model %s: %w", modelName, err)
     }
 
-	slog.Info("successfully cleared data from MySQL", "model", modelName)
+    slog.Info(fmt.Sprintf("successfully cleared data for %s from MySQL", modelName))
 	return nil
 }

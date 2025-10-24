@@ -5,7 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"log/slog"
+    "fmt"
+    "log/slog"
 
 	"github.com/ds-horizon/datagen/codegen"
 	"github.com/ds-horizon/datagen/utils"
@@ -14,7 +15,7 @@ import (
 type ValidatorFunc func(d *codegen.DatagenParsed, errs *MultiErr)
 
 func Validate(d *codegen.DatagenParsed) error {
-	slog.Debug("validating model", "model", d.ModelName, "file", d.Filepath)
+    slog.Debug(fmt.Sprintf("validating model %s from %s", d.ModelName, d.Filepath))
 
 	var aggregateErrs MultiErr
 
@@ -36,7 +37,7 @@ func Validate(d *codegen.DatagenParsed) error {
 		return errorOrNil(&aggregateErrs)
 	}
 
-	slog.Debug("model validation passed", "model", d.ModelName, "file", d.Filepath)
+    slog.Debug(fmt.Sprintf("model %s validation passed for %s", d.ModelName, d.Filepath))
 	return nil
 }
 

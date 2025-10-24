@@ -51,8 +51,14 @@ func BuildAndRunGen(cmd *cobra.Command, args []string) error {
 	if err := findAndTranspileDatagenModels(outDir, inputPath); err != nil {
 		return err
 	}
+
+    verbose, err := cmd.Flags().GetBool("verbose")
+    if err != nil {
+        return fmt.Errorf("invalid value for --verbose: %w", err)
+    }
+
 	if !noexec {
-		if err := invokeGen(outDir, count, tags, output, format, seed, inputPath); err != nil {
+		if err := invokeGen(outDir, count, tags, output, format, seed, inputPath, verbose); err != nil {
 			return err
 		}
 	}
@@ -60,7 +66,7 @@ func BuildAndRunGen(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func invokeGen(outDir string, count int, tags string, output string, format string, seed int64, inputPath string) error {
+func invokeGen(outDir string, count int, tags string, output string, format string, seed int64, inputPath string, verbose bool) error {
 	binaryPath, _ := buildTranspiledBinary(outDir)
 	args := []string{"gen", inputPath}
 	args = append(args, "-n", fmt.Sprintf("%d", count))
@@ -76,6 +82,9 @@ func invokeGen(outDir string, count int, tags string, output string, format stri
 	if seed != 0 {
 		args = append(args, "--seed", fmt.Sprintf("%d", seed))
 	}
+    if verbose {
+        args = append(args, "-v")
+    }
 	err := executeCmd(binaryPath, args)
 	if err != nil {
 		return err
@@ -139,7 +148,7 @@ func invokeExecute(outDir string, output string, config string, inputPath string
 }
 
 func findAndTranspileDatagenModels(outDir string, inputPath string) error {
-	slog.Debug("finding and transpiling datagen models", "input_path", inputPath, "output_dir", outDir)
+    slog.Debug(fmt.Sprintf("finding and transpiling datagen models from %s into %s", inputPath, outDir))
 
 	dgDirData, err := GetDgDirStructure(inputPath, "")
 	if err != nil {
@@ -147,7 +156,7 @@ func findAndTranspileDatagenModels(outDir string, inputPath string) error {
 	}
 
 	dgModelsCount := dgDirData.ModelCount()
-	slog.Debug("found datagen models", "count", dgModelsCount, "input_path", inputPath)
+    slog.Debug(fmt.Sprintf("found %d datagen models in %s", dgModelsCount, inputPath))
 
 	if dgModelsCount == 0 {
 		slog.Warn("no .dg files found", "input_path", inputPath)
@@ -159,12 +168,12 @@ func findAndTranspileDatagenModels(outDir string, inputPath string) error {
 		return fmt.Errorf("failed to process directory data\n  input_path: %s\n  cause: %w", inputPath, err)
 	}
 
-	slog.Debug("generating code", "model_count", len(parsedAll), "output_dir", outDir)
+    slog.Debug(fmt.Sprintf("generating code for %d models into %s", len(parsedAll), outDir))
 	if err := codegen.Codegen(parsedAll, outDir, dgDirData); err != nil {
 		return fmt.Errorf("code generation failed\n  output_dir: %s\n  cause: %w", outDir, err)
 	}
 
-	slog.Info("successfully transpiled datagen models", "model_count", len(parsedAll), "output_dir", outDir)
+    slog.Info(fmt.Sprintf("successfully transpiled %d datagen models into %s", len(parsedAll), outDir))
 	return nil
 }
 
@@ -193,7 +202,7 @@ func transpile(dgDirData *utils.DgDir) ([]*codegen.DatagenParsed, error) {
 	var parsedResults []*codegen.DatagenParsed
 
 	for path, src := range dgDirData.Models {
-		slog.Debug("parsing model file", "file", path)
+        slog.Debug(fmt.Sprintf("parsing model file %s", path))
 
 		result, err := parser.Parse(src, path)
 		if err != nil {
@@ -206,7 +215,7 @@ func transpile(dgDirData *utils.DgDir) ([]*codegen.DatagenParsed, error) {
 			return nil, fmt.Errorf("model validation failed\n  model: %s\n  file: %s\n  cause: %w", result.ModelName, path, err)
 		}
 
-		slog.Debug("successfully parsed and validated model", "model", result.ModelName, "file", path)
+    slog.Debug(fmt.Sprintf("parsed and validated model %s from %s", result.ModelName, path))
 		parsedResults = append(parsedResults, result)
 	}
 
@@ -219,7 +228,7 @@ func buildTranspiledBinary(outDir string) (string, error) {
 		binaryName += ".exe"
 	}
 
-	slog.Debug("building transpiled binary", "output_dir", outDir, "binary_name", binaryName)
+    slog.Debug(fmt.Sprintf("building transpiled binary %s in %s", binaryName, outDir))
 
 	buildCmd := exec.Command("go", "build", "-C", outDir, "-o", binaryName)
 	buildCmd.Stdout, buildCmd.Stderr, buildCmd.Stdin = os.Stdout, os.Stderr, os.Stdin
@@ -233,7 +242,7 @@ func buildTranspiledBinary(outDir string) (string, error) {
 		binaryPath = "./" + binaryPath
 	}
 
-	slog.Debug("successfully built transpiled binary", "binary_path", binaryPath)
+    slog.Debug(fmt.Sprintf("built transpiled binary at %s", binaryPath))
 	return binaryPath, nil
 }
 
@@ -241,13 +250,13 @@ func logCapturedOutput(stdout, stderr strings.Builder) {
 	if stdout.Len() > 0 {
 		logOutputLines(stdout.String(), "command stdout")
 	} else {
-		slog.Debug("no stdout captured")
+        slog.Debug("no stdout captured")
 	}
 
 	if stderr.Len() > 0 {
 		logOutputLines(stderr.String(), "command stderr")
 	} else {
-		slog.Debug("no stderr captured")
+        slog.Debug("no stderr captured")
 	}
 }
 
@@ -264,7 +273,7 @@ func logOutputLines(output, logKey string) {
 }
 
 func executeCmd(binaryPath string, args []string) error {
-	slog.Debug("executing command", "binary", binaryPath, "args", args)
+    slog.Debug(fmt.Sprintf("executing command: %s %s", binaryPath, strings.Join(args, " ")))
 
 	runCmd := exec.CommandContext(context.Background(), binaryPath, args...)
 
@@ -280,6 +289,6 @@ func executeCmd(binaryPath string, args []string) error {
 
 	logCapturedOutput(stdout, stderr)
 
-	slog.Debug("command executed successfully", "binary", binaryPath)
+    slog.Debug(fmt.Sprintf("command executed successfully: %s", binaryPath))
 	return nil
 }

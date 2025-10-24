@@ -37,7 +37,7 @@ func runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string, flagS
 			slog.Warn("no models found matching the specified tags", "tags", flagTags)
 			return nil
 		}
-		slog.Debug("filtered models by tags", "matched_count", len(matchedModels), "tags", flagTags)
+    slog.Debug(fmt.Sprintf("filtered %d models by tags: %s", len(matchedModels), flagTags))
 		for _, model := range matchedModels {
 			selected[model] = getModelGenCount(allMetadata[model], flagCount)
 		}
@@ -71,7 +71,7 @@ func runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string, flagS
 
     sort.Strings(selectedNames)
 
-    slog.Info("generating data", "models_count", len(selectedNames), "format", flagFormat)
+    slog.Info(fmt.Sprintf("generating data for %d models in %s format", len(selectedNames), flagFormat))
 
     for _, name := range selectedNames {
         count, _ := selected[name]
@@ -80,7 +80,7 @@ func runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string, flagS
 		return fmt.Errorf("unknown model: %s", name)
 	}
 
-	slog.Debug("generating records", "model", name, "count", count)
+    slog.Debug(fmt.Sprintf("generating %d records for %s", count, name))
 	records := make([]Record, 0, count)
 	for i := 0; i < count; i++ {
 		records = append(records, gen(i))
@@ -89,7 +89,7 @@ func runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string, flagS
         if err := writeFn(name, records); err != nil {
               return fmt.Errorf("error in writing records for model %s: %w", name, err)
         }
-        slog.Info("generated and wrote records", "model", name, "count", count)
+        slog.Info(fmt.Sprintf("generated and wrote %d records for %s", count, name))
     }
     return nil
 }
@@ -99,7 +99,7 @@ func runExecuteCommand(flagConfig, flagOutput string) error {
 		return fmt.Errorf("config file path not provided")
 	}
 
-	slog.Debug("loading configuration", "config_file", flagConfig)
+    slog.Debug(fmt.Sprintf("loading configuration from %s", flagConfig))
 	datagen, models := initGeneratorsAndModels()
 	var modelsToLoad []string
 	allMetadata := getModelsMetadata(datagen)
@@ -110,7 +110,7 @@ func runExecuteCommand(flagConfig, flagOutput string) error {
 	}
 
     if cfg.Seed != 0 {
-        slog.Debug("setting deterministic seed", "seed", cfg.Seed)
+        slog.Debug(fmt.Sprintf("setting deterministic seed: %d", cfg.Seed))
         if err := setDatagenSeed(cfg.Seed); err != nil {
 	   return fmt.Errorf("error setting seed: %v", err)
 	}
@@ -119,7 +119,7 @@ func runExecuteCommand(flagConfig, flagOutput string) error {
 	if err := cfg.Validate(models); err != nil {
 	   return fmt.Errorf("error validating config file: %v", err)
 	}
-	slog.Debug("config validated successfully")
+    slog.Debug("configuration validated successfully")
 
 	for _, m := range cfg.Models {
 		if _, ok := models[m.ModelName]; ok {
@@ -133,7 +133,7 @@ func runExecuteCommand(flagConfig, flagOutput string) error {
 		}
 	}
 
-	slog.Info("preparing to load data into sinks", "models_count", len(modelsToLoad))
+    slog.Info(fmt.Sprintf("preparing to load data into sinks for %d models", len(modelsToLoad)))
 	allData := map[string][]Record{}
 
 	for _, name := range modelsToLoad {
@@ -142,13 +142,13 @@ func runExecuteCommand(flagConfig, flagOutput string) error {
 		count := getRecordCount(cfg, name, allMetadata[name])
 
 		if count == 0 {
-			slog.Info("skipping model with zero count", "model", name)
+            slog.Info(fmt.Sprintf("skipping %s with zero count", name))
 			continue
 		}
 
 		datagen.__links.StartGen(name)
 
-		slog.Debug("generating records for sink loading", "model", name, "count", count)
+        slog.Debug(fmt.Sprintf("generating %d records for %s for sink loading", count, name))
 		records := make([]Record, 0, count)
 		for i := 0; i < count; i++ {
 			records = append(records, gen(i))
@@ -157,14 +157,14 @@ func runExecuteCommand(flagConfig, flagOutput string) error {
 		allData[name] = records
 
 		datagen.__links.EndGen(name)
-		slog.Debug("generated records for sink loading", "model", name, "count", len(records))
+        slog.Debug(fmt.Sprintf("generated %d records for %s for sink loading", len(records), name))
 	}
 
         topologicallySorted, err := datagen.__links.TopologicalSort()
 	if err != nil {
 		slog.Warn("cannot perform topological sort, loading anyway", "error", err.Error())
 	} else {
-		slog.Debug("topological sort completed", "sorted_models", topologicallySorted)
+        slog.Debug(fmt.Sprintf("topological sort completed: %v", topologicallySorted))
 	}
 	return orchestrateSinks(topologicallySorted, allData, cfg)
 }
