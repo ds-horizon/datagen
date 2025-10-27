@@ -1,0 +1,71 @@
+---
+title: Nesting directories
+description: Overview of advanced datagen features and patterns
+---
+
+## Nesting models in directories
+
+As your collection of datagen models grows, you can organize them into nested directory structures. This allows you to:
+
+- **Namespace your models** - Avoid naming conflicts by organizing models in separate directories
+- **Group related models** - Structure models by service, domain, feature, or any criteria that suits your needs
+- **Maintain clarity** - Keep large codebases organized and easier to navigate
+
+You are free to organize your directories however you wish. For example, you might structure them by:
+- Services or microservices
+- Database schemas
+- Business domains
+- Features or modules
+
+### Example structure
+
+Consider organizing models by service, where each service has its own set of tables:
+
+```bash
+models/
+├── serviceA/
+│   ├── tableA.dg
+│   ├── tableB.dg
+│   └── tableC.dg
+└── serviceB/
+    ├── tableA.dg
+    ├── tableD.dg
+    └── tableE.dg
+```
+
+### Referencing nested models
+
+When referencing models in nested directories, use the fully qualified path:
+
+```
+self.datagen.<directory>.<model>().<field>()
+```
+
+For the structure above:
+- To refer to `tableB` in `serviceA`: `self.datagen.serviceA.tableB().<column>()`
+- To refer to `tableD` in `serviceB`: `self.datagen.serviceB.tableD().<column>()`
+
+:::note
+Notice that both `serviceA` and `serviceB` have a model named `tableA`. This is perfectly fine because they are accessed via their fully qualified paths, so there's no confusion about which model is being referenced.
+:::
+
+All paths are relative to the root models directory you provide to datagen.
+
+## Running datagen with nested directories
+
+:::caution[Important]
+When running `datagen` with nested directory structures, you **must provide the root directory** as input, not individual subdirectories.
+:::
+
+For example, if your models are organized as shown above:
+
+```bash
+# Correct - provide the root directory
+datagen -d ./models -o output
+
+# Incorrect - providing subdirectories will cause errors
+datagen -d ./models/serviceA -o output
+datagen -d ./models/serviceB -o output
+```
+
+Providing individual subdirectories like `serviceA` or `serviceB` will cause data generation errors, especially when models reference each other across directories using `self.datagen` paths.

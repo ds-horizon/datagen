@@ -1,0 +1,49 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import { Card, CardGrid } from "@astrojs/starlight/components";
+import logo from "../assets/datagen-happy-logo.png";
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "datagen",
+    template: "splash",
+    hero: {
+      title: "Generate coherent, fake data at scale with a simple DSL",
+      tagline:
+        "Create data with complex relationships easily. Fast, reproducible, and built for performance.",
+      image: {
+        file: logo,
+      },
+      actions: [
+        {
+          text: "Get started",
+          link: "/datagen/introduction/getting-started",
+          icon: "right-arrow",
+          variant: "primary",
+        },
+        {
+          text: "Read the overview",
+          link: "/datagen/introduction/overview",
+          variant: "minimal",
+        },
+      ],
+    },
+  }}
+>
+  <CardGrid>
+    <Card title="High performance" icon="rocket">
+      Transpiles to native Go code for maximum speed. Generate millions of records in seconds with consistent, reproducible results using configurable seeds.
+    </Card>
+    <Card title="Complex relationships" icon="puzzle">
+      Create interconnected data models with dependencies. Define relationships between entities to generate coherent, realistic datasets.
+    </Card>
+    <Card title="140+ built-in functions" icon="star">
+      Generate random names, emails, dates, numbers, and more. Or write custom functions for your specific needs.
+    </Card>
+    <Card title="Multiple output options" icon="open-book">
+      Export to CSV, JSON, or XML files. Load data directly into MySQL databases. Choose the format that fits your workflow.
+    </Card>
+  </CardGrid>
+</StarlightPage>
+

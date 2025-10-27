@@ -1,0 +1,374 @@
+---
+title: Model References
+description: Create relationships between models using self and self.datagen
+---
+
+datagen allows you to create relationships between different models, enabling you to generate realistic, interconnected data. The `self.datagen` object is used to reference fields from other models, while `self` references fields from the same model.
+
+## Reference Syntax
+
+### Same-Model References
+
+```go
+self.field_name(iter)
+```
+
+### Cross-Model References
+
+```go
+self.datagen.ModelName().field_name(iter)
+```
+
+## Key Concepts
+
+### On-Demand Generation
+
+If you request an index beyond already-generated rows, datagen automatically generates rows up to that index, then returns the requested value.
+
+**Example:**
+
+```go title="Project.dg"
+// User model has metadata count: 5 (generates only 5 rows initially)
+// But in Project model, we access User.id(10)
+
+func owner_id() {
+  return self.datagen.User().id(10)
+  // Datagen will generate User rows for iter 5-10 first, then return id(10)
+}
+```
+
+### Separation of Concerns
+
+datagen separates three distinct responsibilities:
+
+1. **Generation logic** - Defined in `gens` functions (how to create values)
+2. **Parameter values** - Provided in `calls` section (configuration for parameterized fields)
+3. **Field access** - Done via `self` or `self.datagen` (retrieving generated values)
+
+**Example:**
+
+```go title="Product.dg"
+model Product {
+  fields {
+    id() int
+    price(min float64, max float64) float64  // Parameterized field
+    discounted_price() float64
+  }
+  
+  gens {
+    func id() {
+      return iter + 1
+    }
+    
+    // Generation logic: how to create a price
+    func price(min float64, max float64) {
+      return FloatBetween(min, max)
+    }
+    
+    func discounted_price() {
+      // Access: retrieve the generated price value
+      return self.price(iter) * 0.9
+    }
+  }
+  
+  // Parameter values: configure the price range
+  calls {
+    price(10.0, 100.0)
+  }
+}
+```
+
+In this example:
+- **Generation logic** (`FloatBetween`) is in the `price` function
+- **Parameter values** (10.0, 100.0) are in the `calls` section
+- **Field access** (`self.price(iter)`) retrieves the generated value
+
+## Same-Model References
+
+Reference other fields within the same model to create calculated or dependent fields.
+
+### Example: Calculated Fields
+
+```go title="Order.dg"
+model Order {
+  fields {
+    id() int
+    base_amount() float64
+    tax_amount() float64
+    total_amount() float64
+  }
+  
+  gens {
+    func id() {
+      return iter + 1
+    }
+    
+    func base_amount() {
+      return FloatBetween(50.0, 500.0)
+    }
+    
+    func tax_amount() {
+      return self.base_amount(iter) * 0.08
+    }
+    
+    func total_amount() {
+      return self.base_amount(iter) + self.tax_amount(iter)
+    }
+  }
+}
+```
+
+**Running the example:**
+
+```bash
+datagenc gen Order.dg -n 5
+```
+
+**Output:**
+
+```shell
+Order{id:1 base_amount:377.41 tax_amount:30.19 total_amount:407.60}
+Order{id:2 base_amount:441.55 tax_amount:35.32 total_amount:476.87}
+Order{id:3 base_amount:303.28 tax_amount:24.26 total_amount:327.54}
+Order{id:4 base_amount:153.99 tax_amount:12.32 total_amount:166.31}
+Order{id:5 base_amount:218.52 tax_amount:17.48 total_amount:236.00}
+```
+
+## Cross-Model References
+
+Create relationships between different models to generate interconnected, realistic data.
+
+### Simple Cross-Model Example
+
+Create two models in a directory `library`:
+
+```go title="Author.dg"
+model Author {
+  fields {
+    id() int
+    name() string
+    country() string
+  }
+  
+  gens {
+    func id() {
+      return iter + 1
+    }
+    
+    func name() {
+      return FullName()
+    }
+    
+    func country() {
+      countries := []string{"USA", "UK", "Canada", "Australia", "India"}
+      return countries[IntBetween(0, len(countries)-1)]
+    }
+  }
+}
+```
+
+```go title="Book.dg"
+model Book {
+  fields {
+    id() int
+    title() string
+    author_id() int
+    author_name() string
+  }
+  
+  gens {
+    func id() {
+      return iter + 1
+    }
+    
+    func title() {
+      return fmt.Sprintf("Book Title %d", iter+1)
+    }
+    
+    func author_id() {
+      // Reference Author model's id field
+      return self.datagen.Author().id(IntBetween(0, 4))
+    }
+    
+    func author_name() {
+      // Reference Author model's name field
+      authorIdx := self.author_id(iter) - 1
+      return self.datagen.Author().name(authorIdx)
+    }
+  }
+}
+```
+
+**Running the example:**
+
+```bash
+datagenc gen ./library -n 5
+```
+
+**Output:**
+
+```shell
+Author{id:1 name:Lillian Haley country:USA}
+Author{id:2 name:Emilie Torphy country:Canada}
+Author{id:3 name:Verner Nicolas country:India}
+Author{id:4 name:Macie Schowalter country:UK}
+Author{id:5 name:Americo Konopelski country:Australia}
+Book{id:1 title:Book Title 1 author_id:2 author_name:Emilie Torphy}
+Book{id:2 title:Book Title 2 author_id:4 author_name:Macie Schowalter}
+Book{id:3 title:Book Title 3 author_id:1 author_name:Lillian Haley}
+Book{id:4 title:Book Title 4 author_id:3 author_name:Verner Nicolas}
+Book{id:5 title:Book Title 5 author_id:2 author_name:Emilie Torphy}
+```
+
+## Advanced Multi-Model Example
+
+Create complex relationships with conditional logic:
+
+```go title="Customer.dg"
+model Customer {
+  metadata {
+    count: 1000
+  }
+  
+  fields {
+    id() int
+    tier() string
+  }
+  
+  gens {
+    func id() {
+      return iter + 1
+    }
+    
+    func tier() {
+      rand := IntBetween(1, 100)
+      if rand <= 10 {
+        return "premium"
+      } else if rand <= 40 {
+        return "gold"
+      }
+      return "standard"
+    }
+  }
+}
+```
+
+```go title="Order.dg"
+model Order {
+  fields {
+    id() int
+    customer_id() int
+    discount() float64
+    total() float64
+  }
+  
+  gens {
+    func id() {
+      return iter + 1
+    }
+    
+    func customer_id() {
+      return self.datagen.Customer().id(IntBetween(0, 999))
+    }
+    
+    func discount() {
+      // Get customer tier and apply discount
+      tier := self.datagen.Customer().tier(iter)
+      if tier == "premium" {
+        return 20.0
+      } else if tier == "gold" {
+        return 10.0
+      }
+      return 2.0
+    }
+    
+    func total() {
+      base := FloatBetween(100.0, 500.0)
+      discount := self.discount(iter)
+      return base * (1.0 - discount/100.0)
+    }
+  }
+}
+```
+
+**Running the example:**
+
+```bash
+datagenc gen ./orders -n 5
+```
+
+**Output:**
+
+```shell
+Customer{id:1 tier:standard}
+Customer{id:2 tier:standard}
+Customer{id:3 tier:standard}
+Customer{id:4 tier:premium}
+Customer{id:5 tier:standard}
+Order{id:1 customer_id:208 discount:2.0 total:382.70}
+Order{id:2 customer_id:208 discount:2.0 total:366.23}
+Order{id:3 customer_id:798 discount:2.0 total:213.29}
+Order{id:4 customer_id:4 discount:20.0 total:169.98}
+Order{id:5 customer_id:397 discount:2.0 total:311.95}
+```
+
+## Common Patterns
+
+### Foreign Key Relationships
+
+```go
+// In Order model
+func user_id() {
+  maxUsers := 1000
+  return self.datagen.User().id(IntBetween(0, maxUsers-1))
+}
+```
+
+### Cascading References
+
+```go
+// In Payment model
+func order_id() {
+  return self.datagen.Order().id(iter)
+}
+
+func customer_id() {
+  // Get customer_id from the referenced Order
+  return self.datagen.Order().customer_id(iter)
+}
+```
+
+### Cyclic Data with Modulo
+
+```go
+func assigned_user() {
+  totalUsers := 50
+  return self.datagen.User().id(iter % totalUsers)
+}
+```
+
+### Conditional References
+
+```go
+func manager_id() {
+  if iter < 10 {
+    return 1  // First 10 records report to manager 1
+  }
+  return self.datagen.User().id(IntBetween(0, 9))
+}
+```
+
+## Key Benefits
+
+1. **Data Consistency** - Ensures referenced IDs actually exist
+2. **Realistic Relationships** - Creates proper foreign key relationships
+3. **Dynamic References** - Can reference any field from any model
+4. **Flexible Logic** - Combine multiple model references in complex ways
+
+
+## See Also
+
+- [Examples - Reference](/datagen/examples/5_reference/reference) - Practical reference examples
+- [Data Model](/datagen/concepts/data-model) - Core model concepts
+- [iter Variable](/datagen/concepts/advanced/iter-variable) - Using iter with references
+

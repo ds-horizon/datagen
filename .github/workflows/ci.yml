@@ -1,13 +1,6 @@
 name: Go Lint
 
 on:
-  pull_request:
-    branches:
-      - master
-    types:
-      - opened
-      - synchronize
-
   push:
 
 permissions:

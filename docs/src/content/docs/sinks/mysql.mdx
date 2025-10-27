@@ -1,0 +1,43 @@
+---
+title: MySQL Sink Configuration
+---
+
+A MySQL sink config defines how datagen connects and writes data to MySQL.
+
+### Example
+```json
+{
+  "sink_name": "pluto_mysql",
+  "sink_type": "mysql",
+  "config": {
+    "host": "localhost",
+    "database": "datagen",
+    "port": 3306,
+    "username": "dg",
+    "password": "dg",
+    "batch_size": 1,
+    "throttle": "10ms"
+  }
+}
+```
+
+### Config fields
+
+<div class="cli-flags-table equal-4">
+
+
+| Field       | Type    | Required | Description                               | Default |
+|-------------|---------|----------|-------------------------------------------|---------|
+| host        | string  | Yes      | MySQL server hostname or IP               | -       |
+| database    | string  | Yes      | Database name to write into               | -       |
+| port        | number  | No       | MySQL port                                | 3306    |
+| username    | string  | Yes      | Database user                             | -       |
+| password    | string  | Yes      | Database password                         | -       |
+| batch_size  | number  | No       | Records per batch insert                  | 1       |
+| throttle    | string  | No       | Delay between batches (e.g., "10ms", "1s")| -       |
+
+</div>
+
+**Notes:**
+- Ensure user has INSERT privileges on target tables
+- Use appropriate `batch_size` and `throttle` to control load rate

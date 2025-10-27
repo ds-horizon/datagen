@@ -223,7 +223,7 @@ func transpile(dgDirData *utils.DgDir) ([]*codegen.DatagenParsed, error) {
 }
 
 func buildTranspiledBinary(outDir string) (string, error) {
-	binaryName := "datagen"
+	binaryName := utils.EncodedBinaryName
 	if runtime.GOOS == "windows" && filepath.Ext(binaryName) == "" {
 		binaryName += ".exe"
 	}

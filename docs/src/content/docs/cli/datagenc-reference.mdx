@@ -1,0 +1,275 @@
+---
+title: datagenc - Compiler Binary
+description: Reference documentation for datagenc, the compiler binary that transpiles .dg model files
+---
+
+`datagenc` is the compiler binary that takes `.dg` model files as input, transpiles them to Go code, and generates data. Use this binary when you're working directly with model source files during development and testing.
+
+## Overview
+
+**When to use `datagenc`:**
+- You're iterating on source `.dg` model files
+- You're in development or testing phases
+- You need to validate new or modified models
+
+**What it does:**
+1. Reads `.dg` model files from the specified path
+2. Transpiles them to Go code
+3. Builds a temporary executable binary
+4. Generates data in the specified format
+
+## Commands
+
+### `datagenc gen` - Generate Data to Files
+
+Generate data from model files and output to files or stdout.
+
+#### Syntax
+
+```bash
+datagenc gen <path> [flags]
+```
+
+#### Required Arguments
+
+- `<path>` - Path to a `.dg` model file or directory containing model files
+
+#### Command Flags
+
+| Flag | Short | Description | Default | Example |
+|------|-------|-------------|---------|---------|
+| `--count` | `-n` | Number of records to generate (overrides metadata) | Uses metadata count | `-n 1000` |
+| `--seed` | `-s` | Seed for deterministic random generation | none | `-s 12345` |
+| `--tags` | `-t` | Filter models by tags (must match ALL key-value pairs) | "" | `-t "service=auth,team=platform"` |
+| `--output` | `-o` | Output directory or file path | "." | `-o ./data` |
+| `--format` | `-f` | Output format: csv, json, xml, stdout | stdout | `-f csv` |
+| `--noexec` | | Transpile and build only; skip data generation | false | `--noexec` |
+
+#### Quick Examples
+
+```bash
+# Generate data for all models in current directory
+datagenc gen .
+
+# Generate data for a specific model file
+datagenc gen user.dg
+
+# Generate 1000 records and save as CSV
+datagenc gen user.dg -n 1000 -f csv -o ./data
+
+# Filter models by tags in a directory
+datagenc gen ./models -t "service=auth,team=platform"
+
+# Output to stdout for piping
+datagenc gen user.dg -f stdout -n 10 | jq '.'
+
+# Deterministic output with seed
+datagenc gen user.dg -n 10 -s 12345
+
+# Process all models in a specific directory
+datagenc gen ./models/
+```
+
+#### Output Formats
+
+- **`csv`** - Comma-separated values with headers
+- **`json`** - JSON array of objects
+- **`xml`** - XML format with root element
+- **`stdout`** - Print to standard output (default)
+
+#### Count Behavior
+
+The `--count` flag controls how many records to generate:
+
+##### Without `--count` flag
+Uses the count specified in each model's metadata section:
+
+```go title="User.dg"
+model User {
+  metadata {
+    count: 500  // Will generate 500 records
+  }
+  // ...
+}
+```
+
+If no metadata count is specified, defaults to 1 record.
+
+##### With `--count` flag
+Overrides all model counts with the specified value:
+
+```bash
+# Generate exactly 1000 records for each model, ignoring metadata
+datagenc gen . -n 1000
+```
+
+#### Tags Filtering
+
+Tags allow you to logically group models and generate only specific subsets:
+
+##### Defining Tags
+
+```go title="User.dg"
+model User {
+  metadata {
+    tags: {
+      "service": "user-management",
+      "team": "platform",
+      "environment": "test"
+    }
+  }
+  // ...
+}
+```
+
+##### Using Tags
+```bash
+# Generate only models with specific service
+datagenc gen ./models -t "service=user-management"
+
+# Generate models matching multiple criteria (AND logic)
+datagenc gen ./models -t "service=auth,environment=test"
+
+# Generate models for specific team
+datagenc gen ./models -t "team=platform"
+```
+
+**Important**: Models must match **ALL** provided tag key-value pairs to be selected.
+
+#### File Selection
+
+##### All Models in Directory
+```bash
+# Process all model files in current directory
+datagenc gen .
+
+# Process all model files in specific directory
+datagenc gen ./models/
+```
+
+##### Specific Models
+```bash
+# Process a specific model file
+datagenc gen user.dg
+
+# Process a specific model file with a full path
+datagenc gen ./models/user.dg
+```
+
+##### Using Wildcards
+Wildcards are not supported as multiple path inputs. Provide a single directory path (recommended) or a single file path.
+
+### `datagenc execute` - Load Data to Data Sinks
+
+Transpile model files and load data directly into database sinks like MySQL.
+
+#### Syntax
+
+```bash
+datagenc execute <path> --config <config_file> [flags]
+```
+
+#### Required Arguments
+
+- `<path>` - Path to a `.dg` model file or directory containing model files
+- `--config` - Path to configuration JSON file
+
+#### Command Flags
+
+<div class="cli-flags-table equal-4">
+
+
+| Flag       | Short| Description                               | Example           |
+|------------|------|-------------------------------------------|-------------------|
+| `--config` | `-c` |Path to configuration JSON file            |  `-c config.json` |
+| `--output` | `-o` | Output directory for transpiled artifacts | `-o ./out`        |
+| `--noexec` |      |Transpile only; do not run data loading    | `--noexec`        |
+
+</div>
+
+#### Configuration File
+
+The `execute` command requires a JSON configuration file:
+
+```json title="config.json"
+{
+  "models": [
+    {
+      "model_name": "User",
+      "target_sinks": ["mysql_sink"],
+      "count": 1000
+    },
+    {
+      "model_name": "Order",
+      "target_sinks": ["mysql_sink"],
+      "count": 500
+    }
+  ],
+  "sinks": [
+    {
+      "sink_name": "mysql_sink",
+      "sink_type": "mysql",
+      "config": {
+        "host": "localhost",
+        "database": "testdb",
+        "port": "3306",
+        "user": "root",
+        "password": "password",
+        "batch_size": 1000,
+        "throttle_ms": 10
+      }
+    }
+  ]
+}
+```
+
+#### Examples
+
+```bash
+# Load data from models in a directory
+datagenc execute ./models --config config.json
+
+# Load data with custom output directory
+datagenc execute ./models -c config.json -o ./output
+
+# Transpile only, don't execute
+datagenc execute ./models -c config.json --noexec
+```
+
+#### Process Flow
+
+1. Reads `.dg` files from the specified path
+2. Transpiles `.dg` files to Go code
+3. Builds executable binary
+4. Generates data according to config
+5. Loads data into specified sinks
+
+#### Use Cases
+
+- Testing new models
+- Development environment setup
+- Model validation and debugging
+- Onboarding new data models
+- Local testing with databases
+
+## Getting Help
+
+```bash
+# General help
+datagenc --help
+
+# Command-specific help
+datagenc gen --help
+datagenc execute --help
+
+# Version information
+datagenc --version
+```
+
+## Next Steps
+
+- Once your models are finalized and you want to deploy to production, consider building an encoded binary. See the [datagen reference](/datagen/cli/datagen-reference) for working with pre-compiled binaries.
+- For a detailed comparison between binaries, see [datagenc vs datagen](/datagen/reference/datagenc-vs-datagen)
+- For model syntax, see [Data Model concepts](/datagen/concepts/data-model)
+- For examples, see the [Examples section](/datagen/examples/1_fields/fields-overview)
+

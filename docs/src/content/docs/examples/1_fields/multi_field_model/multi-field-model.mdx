@@ -1,0 +1,65 @@
+---
+title: Multi Field Model
+description: Creating models with multiple fields
+---
+
+
+This example demonstrates a model with multiple fields of different types, showcasing datagen's support for various data types.
+
+:::tip
+Notice how `iter` is used to generate sequential IDs starting from 1. This is a common pattern for primary keys.
+:::
+
+### Model
+
+```go title="user_profile.dg"
+model user_profile {
+  fields {
+    id() int
+    name() string
+    is_active() bool
+    rating() float32
+    created_at() time.Time
+  }
+
+  gens {
+    func id() {
+      return iter + 1
+    }
+
+    func name() {
+      return Name()
+    }
+
+    func is_active() {
+      return Boolean()
+    }
+
+    func rating() {
+      return FloatBetween(1, 5)
+    }
+
+   func created_at() {
+      return time.Now()
+   }
+  }
+}
+```
+
+
+### How to Run
+
+```shell
+$ datagenc gen /path/to/user_profile.dg -f csv -n 3
+```
+
+### Output
+```shell
+$ cat user_profile.csv
+```
+```csv
+id,name,is_active,rating,created_at
+1,Agnes Romaguera,true,2.44,2025-10-01 16:06:54.390193 +0530 IST m=+0.003886084
+2,Danielle Doyle,true,1.12,2025-10-01 16:06:54.390194 +0530 IST m=+0.003887042
+3,Joannie Pacocha,true,4.39,2025-10-01 16:06:54.390195 +0530 IST m=+0.003887917
+```

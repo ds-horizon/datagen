@@ -1,0 +1,83 @@
+---
+title: Reference
+description: Cross-model references with self.datagen
+---
+
+
+Shows how you can use `iter` to refer to any arbitrary row of any arbitrary column of any arbitrary model, via `self.datagen.ModelName().field_name(iter)`.
+
+### Model: Users
+
+```go title="users.dg"
+model users {
+  fields {
+    id() int
+    name() string
+  }
+
+  gens {
+    func id() {
+      return iter + 1
+    }
+
+    func name() {
+      return Name()
+    }
+  }
+}
+```
+
+
+### Model: Orders
+
+```go title="orders.dg"
+model orders {
+  fields {
+    user_id() int
+    user_name() string
+    order_count() int
+  }
+
+  gens {
+    func user_id() {
+      return self.datagen.Users().id(iter)
+    }
+
+    func user_name() {
+      return self.datagen.Users().name(iter)
+    }
+
+    func order_count() {
+      return IntBetween(0, 10)
+    }
+  }
+}
+```
+
+
+### How to Run
+
+```shell
+$ datagenc gen ./examples/5_reference -f csv -n 3
+```
+
+### Output
+```shell
+$ cat orders.csv
+```
+```csv
+user_id,user_name,order_count
+1,Jordy Bashirian,1
+2,Luisa Adams,4
+3,Willow Marks,10
+```
+
+```shell
+$ cat users.csv
+```
+```csv
+id,name
+1,Jordy Bashirian
+2,Luisa Adams
+3,Willow Marks
+```

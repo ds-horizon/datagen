@@ -1,0 +1,85 @@
+/* Scoped styles for the command flags tables across CLI docs */
+.cli-flags-table table {
+	width: 100%;
+	border-collapse: collapse;
+	border-spacing: 0;
+	margin: 1.5rem 0;
+	font-size: 0.9rem;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	border-radius: 8px;
+	overflow: hidden; /* ensures header color fills to rounded edges */
+	table-layout: fixed;
+}
+
+.cli-flags-table thead,
+.cli-flags-table thead tr {
+	background: var(--sl-color-accent);
+}
+
+.cli-flags-table thead th {
+	padding: 1rem 1.25rem;
+	text-align: left;
+	border: none;
+	color: #ffffff !important;
+	font-weight: 600;
+	text-transform: uppercase;
+	font-size: 0.85rem;
+	letter-spacing: 0.05em;
+}
+
+.cli-flags-table tbody tr {
+	border-bottom: 1px solid var(--sl-color-gray-6);
+	transition: background-color 0.2s ease;
+}
+
+.cli-flags-table tbody tr:hover {
+	background-color: var(--sl-color-gray-7);
+}
+
+.cli-flags-table tbody tr:last-child {
+	border-bottom: none;
+}
+
+.cli-flags-table tbody td {
+	padding: 1rem 1.25rem;
+	border: none;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	vertical-align: top;
+}
+
+.cli-flags-table tbody td:first-child {
+	font-weight: 500;
+	color: var(--sl-color-accent-high);
+}
+
+.cli-flags-table tbody td code {
+	background: var(--sl-color-gray-6);
+	padding: 0.2rem 0.4rem;
+	border-radius: 4px;
+	font-size: 0.85em;
+	white-space: normal; /* allow wrapping inside code to avoid column growth */
+	word-break: break-word;
+}
+
+/* Equal-width helpers for markdown tables wrapped with cli-flags-table */
+.cli-flags-table.equal-5 thead th,
+.cli-flags-table.equal-5 tbody td {
+	width: 20% !important;
+}
+
+.cli-flags-table.equal-4 thead th,
+.cli-flags-table.equal-4 tbody td {
+	width: 25% !important;
+}
+
+@media (max-width: 768px) {
+	.cli-flags-table table {
+		font-size: 0.85rem;
+	}
+
+	.cli-flags-table thead th,
+	.cli-flags-table tbody td {
+		padding: 0.75rem 1rem;
+	}
+}
