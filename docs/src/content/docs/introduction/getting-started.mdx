@@ -18,8 +18,18 @@ Make sure you have the following installed before proceeding:
 
 ### Option 1: Install via Go
 
+Check your `$PATH`, and choose a directory you would like to place the `datagenc` compiler in.
+
 ```bash
-go install github.com/ds-horizon/datagen@latest
+echo $PATH
+/Users/username/go/bin:/opt/homebrew/bin:/opt/homebrew/sbin
+```
+
+Say, you wish to place the binary in `/opt/homebrew/bin`;
+
+```bash
+export GOBIN=/opt/homebrew/bin
+go install github.com/ds-horizon/datagen/cmd/datagenc@latest
 ```
 
 ##### Verify installation
@@ -43,12 +53,15 @@ make build-compiler
 ```
 
 :::tip
-For permanent access on Mac/Unix, add to your shell profile:
+For permanent access on Mac/Unix, add the binary to your path, or add the current directory to your path:
+
 ```bash
 echo 'export PATH=$PATH:$(pwd)' >> ~/.bashrc  # for bash
 echo 'export PATH=$PATH:$(pwd)' >> ~/.zshrc   # for zsh
 ```
+
 For permanent access on Windows, add to your shell profile:
+
 ```powershell
 echo '$env:PATH += ";C:\path\to\datagen"' >> $PROFILE
 ```
