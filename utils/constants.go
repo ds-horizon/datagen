@@ -2,10 +2,12 @@ package utils
 
 import "fmt"
 
-const DgDirDelimeter = "___DGDIRDELIM___"
-const DefaultMetadataCount = 1
-const EncodedBinaryName = "datagen"
-const CompilerBinaryName = "datagenc"
+const (
+	DgDirDelimeter       = "___DGDIRDELIM___"
+	DefaultMetadataCount = 1
+	EncodedBinaryName    = "datagen"
+	CompilerBinaryName   = "datagenc"
+)
 
 type DgDir struct {
 	Name     string

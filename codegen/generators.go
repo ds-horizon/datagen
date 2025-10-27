@@ -74,7 +74,7 @@ func Codegen(parsed []*DatagenParsed, dirPath string, dgDir *utils.DgDir) error 
 
 func codegenModel(parsed *DatagenParsed, dirPath string) error {
 	modelDir := dirPath
-	if err := os.MkdirAll(modelDir, 0755); err != nil {
+	if err := os.MkdirAll(modelDir, 0o750); err != nil {
 		return err
 	}
 
@@ -130,12 +130,11 @@ func codegenModel(parsed *DatagenParsed, dirPath string) error {
 }
 
 func codegenCommons(parsed []*DatagenParsed, dirPath string, dgDir *utils.DgDir) error {
-	var modelNames []string
-	var sanitisedModelNames []string
+	modelNames := make([]string, 0, len(parsed))
+	sanitisedModelNames := make([]string, 0, len(parsed))
 	for _, p := range parsed {
 		modelNames = append(modelNames, p.FullyQualifiedModelName)
 		sanitisedModelNames = append(sanitisedModelNames, strings.ReplaceAll(p.FullyQualifiedModelName, utils.DgDirDelimeter, "."))
-
 	}
 
 	if err := generateMainFile(dirPath); err != nil {

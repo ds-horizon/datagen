@@ -1,12 +1,11 @@
 package validators
 
 import (
+	"fmt"
 	"go/ast"
+	"log/slog"
 	"path/filepath"
 	"strings"
-
-    "fmt"
-    "log/slog"
 
 	"github.com/ds-horizon/datagen/codegen"
 	"github.com/ds-horizon/datagen/utils"
@@ -15,7 +14,7 @@ import (
 type ValidatorFunc func(d *codegen.DatagenParsed, errs *MultiErr)
 
 func Validate(d *codegen.DatagenParsed) error {
-    slog.Debug(fmt.Sprintf("validating model %s from %s", d.ModelName, d.Filepath))
+	slog.Debug(fmt.Sprintf("validating model %s from %s", d.ModelName, d.Filepath))
 
 	var aggregateErrs MultiErr
 
@@ -37,7 +36,7 @@ func Validate(d *codegen.DatagenParsed) error {
 		return errorOrNil(&aggregateErrs)
 	}
 
-    slog.Debug(fmt.Sprintf("model %s validation passed for %s", d.ModelName, d.Filepath))
+	slog.Debug(fmt.Sprintf("model %s validation passed for %s", d.ModelName, d.Filepath))
 	return nil
 }
 

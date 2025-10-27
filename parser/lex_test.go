@@ -34,7 +34,6 @@ func TestDitchSpaces(t *testing.T) {
 		l.ditchSpaces()
 		assert.Equal(t, test.expected, l.input[l.curPos:])
 	}
-
 }
 
 func TestDitchComments(t *testing.T) {
@@ -43,15 +42,15 @@ func TestDitchComments(t *testing.T) {
 		expected string
 	}{
 		{
-            input:    " foobar // cmt",
-            expected: " foobar // cmt",
+			input:    " foobar // cmt",
+			expected: " foobar // cmt",
 		},
 		{
-            input:    "//  cmt\nfoo",
+			input:    "//  cmt\nfoo",
 			expected: "foo",
 		},
 		{
-            input:    "// \t\t   foobar\nfoo",
+			input:    "// \t\t   foobar\nfoo",
 			expected: "foo",
 		},
 	}
@@ -61,7 +60,6 @@ func TestDitchComments(t *testing.T) {
 		l.ditchComments()
 		assert.Equal(t, test.expected, l.input[l.curPos:])
 	}
-
 }
 
 func TestConsumeString(t *testing.T) {
@@ -71,22 +69,22 @@ func TestConsumeString(t *testing.T) {
 		remaining string
 	}{
 		{
-            input:     " foobar // cmt",
+			input:     " foobar // cmt",
 			expected:  "foobar",
-            remaining: " // cmt",
+			remaining: " // cmt",
 		},
 		{
-            input:     "//  cmt\nfoo",
+			input:     "//  cmt\nfoo",
 			expected:  "foo",
 			remaining: "",
 		},
 		{
-            input:     "// \t\t   foobar\nfoo",
+			input:     "// \t\t   foobar\nfoo",
 			expected:  "foo",
 			remaining: "",
 		},
 		{
-            input:     "// \t\t   foobar\nfoo() bar",
+			input:     "// \t\t   foobar\nfoo() bar",
 			expected:  "foo",
 			remaining: "() bar",
 		},

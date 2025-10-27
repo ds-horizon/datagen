@@ -9,37 +9,37 @@ import (
     "strings"
 )
 
-type __datagen_plainHandler struct {
+type plainHandler struct {
     w       io.Writer
     leveler slog.Leveler
 }
 
-func __datagen_NewPlainHandler(w io.Writer, opts *slog.HandlerOptions) *__datagen_plainHandler {
+func __datagen_NewPlainHandler(w io.Writer, opts *slog.HandlerOptions) *plainHandler {
     if opts == nil {
         opts = &slog.HandlerOptions{}
     }
-    return &__datagen_plainHandler{w: w, leveler: opts.Level}
+    return &plainHandler{w: w, leveler: opts.Level}
 }
 
-func (h *__datagen_plainHandler) Enabled(ctx context.Context, level slog.Level) bool {
+func (h *plainHandler) Enabled(ctx context.Context, level slog.Level) bool {
     if h.leveler == nil {
         return true
     }
     return level >= h.leveler.Level()
 }
 
-func (h *__datagen_plainHandler) Handle(ctx context.Context, r slog.Record) error {
+func (h *plainHandler) Handle(ctx context.Context, r slog.Record) error {
     ts := r.Time.Local().Format("2006-01-02T15:04:05")
     lvl := strings.ToUpper(r.Level.String())
     _, err := fmt.Fprintf(h.w, "%s %s %s\n", ts, lvl, r.Message)
     return err
 }
 
-func (h *__datagen_plainHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+func (h *plainHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
     return h
 }
 
-func (h *__datagen_plainHandler) WithGroup(name string) slog.Handler {
+func (h *plainHandler) WithGroup(name string) slog.Handler {
     return h
 }
 

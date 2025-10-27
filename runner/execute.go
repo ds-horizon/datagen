@@ -3,13 +3,12 @@ package runner
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"log/slog"
 
 	"github.com/ds-horizon/datagen/codegen"
 	"github.com/ds-horizon/datagen/parser"
@@ -52,10 +51,10 @@ func BuildAndRunGen(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-    verbose, err := cmd.Flags().GetBool("verbose")
-    if err != nil {
-        return fmt.Errorf("invalid value for --verbose: %w", err)
-    }
+	verbose, err := cmd.Flags().GetBool("verbose")
+	if err != nil {
+		return fmt.Errorf("invalid value for --verbose: %w", err)
+	}
 
 	if !noexec {
 		if err := invokeGen(outDir, count, tags, output, format, seed, inputPath, verbose); err != nil {
@@ -66,7 +65,7 @@ func BuildAndRunGen(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func invokeGen(outDir string, count int, tags string, output string, format string, seed int64, inputPath string, verbose bool) error {
+func invokeGen(outDir string, count int, tags, output, format string, seed int64, inputPath string, verbose bool) error {
 	binaryPath, _ := buildTranspiledBinary(outDir)
 	args := []string{"gen", inputPath}
 	args = append(args, "-n", fmt.Sprintf("%d", count))
@@ -82,9 +81,9 @@ func invokeGen(outDir string, count int, tags string, output string, format stri
 	if seed != 0 {
 		args = append(args, "--seed", fmt.Sprintf("%d", seed))
 	}
-    if verbose {
-        args = append(args, "-v")
-    }
+	if verbose {
+		args = append(args, "-v")
+	}
 	err := executeCmd(binaryPath, args)
 	if err != nil {
 		return err
@@ -125,7 +124,7 @@ func BuildAndRunExecute(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func invokeExecute(outDir string, output string, config string, inputPath string, verbose bool) error {
+func invokeExecute(outDir, output, config, inputPath string, verbose bool) error {
 	binaryPath, err := buildTranspiledBinary(outDir)
 	if err != nil {
 		return nil
@@ -147,8 +146,8 @@ func invokeExecute(outDir string, output string, config string, inputPath string
 	return nil
 }
 
-func findAndTranspileDatagenModels(outDir string, inputPath string) error {
-    slog.Debug(fmt.Sprintf("finding and transpiling datagen models from %s into %s", inputPath, outDir))
+func findAndTranspileDatagenModels(outDir, inputPath string) error {
+	slog.Debug(fmt.Sprintf("finding and transpiling datagen models from %s into %s", inputPath, outDir))
 
 	dgDirData, err := GetDgDirStructure(inputPath, "")
 	if err != nil {
@@ -156,7 +155,7 @@ func findAndTranspileDatagenModels(outDir string, inputPath string) error {
 	}
 
 	dgModelsCount := dgDirData.ModelCount()
-    slog.Debug(fmt.Sprintf("found %d datagen models in %s", dgModelsCount, inputPath))
+	slog.Debug(fmt.Sprintf("found %d datagen models in %s", dgModelsCount, inputPath))
 
 	if dgModelsCount == 0 {
 		slog.Warn(fmt.Sprintf("no .dg files found in %s", inputPath))
@@ -168,12 +167,12 @@ func findAndTranspileDatagenModels(outDir string, inputPath string) error {
 		return fmt.Errorf("failed to process directory data\n  input_path: %s\n  cause: %w", inputPath, err)
 	}
 
-    slog.Debug(fmt.Sprintf("generating code for %d models into %s", len(parsedAll), outDir))
+	slog.Debug(fmt.Sprintf("generating code for %d models into %s", len(parsedAll), outDir))
 	if err := codegen.Codegen(parsedAll, outDir, dgDirData); err != nil {
 		return fmt.Errorf("code generation failed\n  output_dir: %s\n  cause: %w", outDir, err)
 	}
 
-    slog.Info(fmt.Sprintf("successfully transpiled %d datagen models into %s", len(parsedAll), outDir))
+	slog.Info(fmt.Sprintf("successfully transpiled %d datagen models into %s", len(parsedAll), outDir))
 	return nil
 }
 
@@ -199,10 +198,10 @@ func processDgDirData(d *utils.DgDir, outDir string, accumulatedParsed []*codege
 }
 
 func transpile(dgDirData *utils.DgDir) ([]*codegen.DatagenParsed, error) {
-	var parsedResults []*codegen.DatagenParsed
+	parsedResults := make([]*codegen.DatagenParsed, 0, len(dgDirData.Models))
 
 	for path, src := range dgDirData.Models {
-        slog.Debug(fmt.Sprintf("parsing model file %s", path))
+		slog.Debug(fmt.Sprintf("parsing model file %s", path))
 
 		result, err := parser.Parse(src, path)
 		if err != nil {
@@ -215,7 +214,7 @@ func transpile(dgDirData *utils.DgDir) ([]*codegen.DatagenParsed, error) {
 			return nil, fmt.Errorf("model validation failed\n  model: %s\n  file: %s\n  cause: %w", result.ModelName, path, err)
 		}
 
-    slog.Debug(fmt.Sprintf("parsed and validated model %s from %s", result.ModelName, path))
+		slog.Debug(fmt.Sprintf("parsed and validated model %s from %s", result.ModelName, path))
 		parsedResults = append(parsedResults, result)
 	}
 
@@ -228,9 +227,11 @@ func buildTranspiledBinary(outDir string) (string, error) {
 		binaryName += ".exe"
 	}
 
-    slog.Debug(fmt.Sprintf("building transpiled binary %s in %s", binaryName, outDir))
+	slog.Debug(fmt.Sprintf("building transpiled binary %s in %s", binaryName, outDir))
 
-	buildCmd := exec.Command("go", "build", "-C", outDir, "-o", binaryName)
+	// Use working directory instead of passing it as an argument to avoid G204
+	buildCmd := exec.Command("go", "build", "-o", binaryName) // #nosec G204: command and flags are constant; binaryName is derived constant
+	buildCmd.Dir = outDir
 	buildCmd.Stdout, buildCmd.Stderr, buildCmd.Stdin = os.Stdout, os.Stderr, os.Stdin
 	if err := buildCmd.Run(); err != nil {
 		return "", fmt.Errorf("failed to build transpiled binary: %s\n  cause: %w", outDir, err)
@@ -242,7 +243,7 @@ func buildTranspiledBinary(outDir string) (string, error) {
 		binaryPath = "./" + binaryPath
 	}
 
-    slog.Debug(fmt.Sprintf("built transpiled binary at %s", binaryPath))
+	slog.Debug(fmt.Sprintf("built transpiled binary at %s", binaryPath))
 	return binaryPath, nil
 }
 
@@ -250,13 +251,13 @@ func logCapturedOutput(stdout, stderr strings.Builder) {
 	if stdout.Len() > 0 {
 		logOutputLines(stdout.String(), "command stdout")
 	} else {
-        slog.Debug("no stdout captured")
+		slog.Debug("no stdout captured")
 	}
 
 	if stderr.Len() > 0 {
 		logOutputLines(stderr.String(), "command stderr")
 	} else {
-        slog.Debug("no stderr captured")
+		slog.Debug("no stderr captured")
 	}
 }
 
@@ -273,7 +274,7 @@ func logOutputLines(output, logKey string) {
 }
 
 func executeCmd(binaryPath string, args []string) error {
-    slog.Debug(fmt.Sprintf("executing command: %s %s", binaryPath, strings.Join(args, " ")))
+	slog.Debug(fmt.Sprintf("executing command: %s %s", binaryPath, strings.Join(args, " ")))
 
 	runCmd := exec.CommandContext(context.Background(), binaryPath, args...)
 
@@ -289,6 +290,6 @@ func executeCmd(binaryPath string, args []string) error {
 
 	logCapturedOutput(stdout, stderr)
 
-    slog.Debug(fmt.Sprintf("command executed successfully: %s", binaryPath))
+	slog.Debug(fmt.Sprintf("command executed successfully: %s", binaryPath))
 	return nil
 }

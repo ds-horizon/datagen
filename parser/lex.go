@@ -145,7 +145,6 @@ func lexBody(l *lex) (stateFn, int) {
 		return lexLBrace, CALLS
 	default:
 		return l.error("expected section header: one of 'fields', 'misc', 'metadata', 'gens', 'calls'; got '%s'", val)
-
 	}
 }
 
@@ -272,13 +271,13 @@ func lexGenFnName(l *lex) (stateFn, int) {
 func lexGenFnArgs(l *lex) (stateFn, int) {
 	l.ditchSpacesAndComments()
 	oldPos := l.curPos
-Loop:
 	for {
-		switch b := l.nextByte(); b {
-		case ')':
+		b := l.nextByte()
+		if b == ')' {
 			l.backup()
-			break Loop
-		case eof:
+			break
+		}
+		if b == eof {
 			return l.error("incomplete body")
 		}
 	}
@@ -455,8 +454,8 @@ func (l *lex) ditchSpacesAndComments() {
 
 func (l *lex) ditchSpaces() {
 	for {
-		switch b := l.nextByte(); {
-		case !unicode.IsSpace(b):
+		b := l.nextByte()
+		if !unicode.IsSpace(b) {
 			l.backup()
 			return
 		}
@@ -496,7 +495,7 @@ func (l *lex) backup() {
 }
 
 func (l *lex) nextByte() rune {
-	if int(l.curPos) >= len(l.input) {
+	if l.curPos >= len(l.input) {
 		return eof
 	}
 	r, w := utf8.DecodeRuneInString(l.input[l.curPos:])
