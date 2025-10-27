@@ -22,7 +22,7 @@ var (
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:     "datagen",
+		Use:     utils.CompilerBinaryName,
 		Short:   "Generate realistic test data from model definitions",
 		Version: version,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {

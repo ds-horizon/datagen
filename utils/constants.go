@@ -4,6 +4,8 @@ import "fmt"
 
 const DgDirDelimeter = "___DGDIRDELIM___"
 const DefaultMetadataCount = 1
+const EncodedBinaryName = "datagen"
+const CompilerBinaryName = "datagenc"
 
 type DgDir struct {
 	Name     string
