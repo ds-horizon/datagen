@@ -69,7 +69,7 @@ datagen will now generate a `user.csv` file in `output` directory with 100 user 
 
 ## More information
 
-* See the [Documentation](https://github.com/ds-horizon/datagen/discussions) for details
+* See the [Documentation](https://ds-horizon.github.io/datagen/) for details
 
 ## Contributing
 
