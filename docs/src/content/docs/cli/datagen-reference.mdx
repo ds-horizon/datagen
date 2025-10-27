@@ -1,0 +1,267 @@
+---
+title: datagen - Encoded Binary
+description: Reference documentation for datagen, the encoded binary with pre-compiled models
+---
+
+`datagen` is the encoded/production binary that has models already compiled and embedded within it. Use this binary when you have a pre-built executable with models encoded for fast, repeatable data generation without transpilation overhead.
+
+## Overview
+
+**When to use `datagen`:**
+- You have a pre-built binary with embedded models
+- You're in production or CI/CD pipelines
+- You need fast, repeatable runs without transpilation
+- You want to distribute a single executable
+
+**What it does:**
+1. Uses models already embedded in the binary
+2. Filters models using tags or config files
+3. Generates data directly (no transpilation step)
+
+**Key Difference**: No file paths needed - models are already inside the binary!
+
+## Commands
+
+### `datagen gen` - Generate Data to Files
+
+Generate data from embedded models and output to files or stdout.
+
+#### Syntax
+
+```bash
+datagen gen [flags]
+```
+
+#### Command Flags
+
+| Flag | Short | Description | Default | Example |
+|------|-------|-------------|---------|---------|
+| `--count` | `-n` | Number of records to generate (overrides metadata) | Uses metadata count | `-n 1000` |
+| `--seed` | `-s` | Seed for deterministic random generation | none | `-s 12345` |
+| `--tags` | `-t` | Filter models by tags (must match ALL key-value pairs) | "" | `-t "service=auth,team=platform"` |
+| `--output` | `-o` | Output directory or file path | "." | `-o ./data` |
+| `--format` | `-f` | Output format: csv, json, xml, stdout | stdout | `-f csv` |
+
+#### Quick Examples
+
+```bash
+# Generate data for all embedded models
+datagen gen
+
+# Generate 1000 records for all models
+datagen gen -n 1000
+
+# Generate data for models matching specific tags
+datagen gen -t "service=auth"
+
+# Generate models matching multiple tag criteria (AND logic)
+datagen gen -t "service=auth,environment=prod"
+
+# Generate and save as CSV
+datagen gen -n 1000 -f csv -o ./data
+
+# Output to stdout for piping
+datagen gen -f stdout -n 10 | jq '.'
+
+# Deterministic output with seed
+datagen gen -n 10 -s 12345
+
+# Generate for specific team
+datagen gen -t "team=platform" -n 500
+```
+
+#### Output Formats
+
+- **`csv`** - Comma-separated values with headers
+- **`json`** - JSON array of objects
+- **`xml`** - XML format with root element
+- **`stdout`** - Print to standard output (default)
+
+#### Count Behavior
+
+The `--count` flag controls how many records to generate:
+
+##### Without `--count` flag
+Uses the count specified in each model's metadata section:
+
+```go title="User.dg (embedded in binary)"
+model User {
+  metadata {
+    count: 500  // Will generate 500 records
+  }
+  // ...
+}
+```
+
+If no metadata count is specified, defaults to 1 record.
+
+##### With `--count` flag
+Overrides all model counts with the specified value:
+
+```bash
+# Generate exactly 1000 records for each model, ignoring metadata
+datagen gen -n 1000
+```
+
+#### Tags Filtering
+
+Since the binary contains multiple embedded models, use tags to filter which models to generate:
+
+##### How Tags Work
+
+Tags are defined in the model's metadata (before compilation):
+
+```go title="User.dg"
+model User {
+  metadata {
+    tags: {
+      "service": "user-management",
+      "team": "platform",
+      "environment": "prod"
+    }
+  }
+  // ...
+}
+```
+
+##### Filtering by Tags
+
+```bash
+# Generate only models with specific service
+datagen gen -t "service=user-management"
+
+# Generate models matching multiple criteria (AND logic)
+datagen gen -t "service=auth,environment=prod"
+
+# Generate models for specific team
+datagen gen -t "team=platform"
+```
+
+**Important**: Models must match **ALL** provided tag key-value pairs to be selected.
+
+### `datagen execute` - Load Data to Data Sinks
+
+Load data from embedded models directly into database sinks like MySQL.
+
+#### Syntax
+
+```bash
+datagen execute --config <config_file> [flags]
+```
+
+#### Required Arguments
+
+- `--config` - Path to configuration JSON file
+
+#### Command Flags
+
+<div class="cli-flags-table equal-4">
+
+| Flag       | Short       | Description                        |  Example        |
+|------------|-------------|------------------------------------|-----------------|
+| `--config` | `-c`        | Path to configuration JSON file    |`-c config.json` |
+| `--output` | `-o`        | Output directory for logs/artifacts| `-o ./logs`     |
+
+</div>
+
+#### Configuration File
+
+The `execute` command requires a JSON configuration file that specifies which embedded models to use:
+
+```json title="config.json"
+{
+  "models": [
+    {
+      "model_name": "User",
+      "target_sinks": ["mysql_sink"],
+      "count": 1000
+    },
+    {
+      "model_name": "Order",
+      "target_sinks": ["mysql_sink"],
+      "count": 500
+    }
+  ],
+  "sinks": [
+    {
+      "sink_name": "mysql_sink",
+      "sink_type": "mysql",
+      "config": {
+        "host": "localhost",
+        "database": "testdb",
+        "port": "3306",
+        "user": "root",
+        "password": "password",
+        "batch_size": 1000,
+        "throttle_ms": 10
+      }
+    }
+  ]
+}
+```
+
+#### Examples
+
+```bash
+# Load data into database using embedded models
+datagen execute -c config.json
+
+# Load data with custom output directory for logs
+datagen execute -c config.json -o ./logs
+
+# Production deployment
+datagen execute --config prod-config.json
+```
+
+#### Process Flow
+
+1. Uses models already embedded in the binary
+2. Reads configuration file to determine which models to use
+3. Generates data according to config
+4. Loads data into specified sinks
+5. No transpilation - fast execution
+
+#### Use Cases
+
+- Production data loading
+- Scheduled data generation (cron jobs)
+- CI/CD pipeline integration
+- High-performance scenarios
+- Distributed deployments with consistent models
+
+## Building an Encoded Binary
+
+To create a `datagen` encoded binary from your models:
+
+```bash
+# Use datagenc to transpile and build
+datagenc gen ./models --noexec -o ./output
+
+# Navigate to output directory and build
+cd ./output
+go build -o datagen
+
+# Now you have an encoded binary with embedded models
+./datagen gen -t "service=auth"
+```
+
+## Getting Help
+
+```bash
+# General help
+datagen --help
+
+# Command-specific help
+datagen gen --help
+datagen execute --help
+
+# Version information
+datagen --version
+```
+
+## Next Steps
+
+- For development workflows, see the [datagenc reference](/datagen/cli/datagenc-reference)
+- For a detailed comparison between binaries, see [datagenc vs datagen](/datagen/reference/datagenc-vs-datagen)
+- For model syntax, see [Data Model concepts](/datagen/concepts/data-model)
+- For examples, see the [Examples section](/datagen/examples/1_fields/fields-overview)

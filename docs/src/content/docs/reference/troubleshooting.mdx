@@ -1,0 +1,340 @@
+---
+title: Troubleshooting Guide
+---
+
+This guide helps you diagnose and resolve common issues when using datagen commands.
+
+## Table of Contents
+
+- [Transpilation Errors](#transpilation-errors)
+- [Generation Errors](#generation-errors)
+- [Execution Errors](#execution-errors)
+- [Common File Issues](#common-file-issues)
+
+## Transpilation Errors
+
+Transpilation errors occur when datagen converts your `.dg` files to Go code.
+
+### 1. "Model X should be in file named X.dg"
+
+**Problem**: Model name doesn't match filename.
+
+**Solution**: Rename file or change model name to match.
+
+```go
+// File: users.dg
+model users {  // ✓ Correct - matches filename
+  // ...
+}
+
+// File: User.dg  
+model User {   // ✓ Correct - matches filename
+  // ...
+}
+```
+
+### 2. "Field X has no corresponding generation function"
+
+**Problem**: You defined a field but forgot to create its generation function.
+
+**Solution**: Add the missing generation function.
+
+```go
+fields {
+  name() string
+  age() int
+}
+
+gens {
+  func name() {
+    return Name()
+  }
+  // Missing: func age() { ... }
+}
+```
+
+### 3. "Generation function X has no corresponding field"
+
+**Problem**: You created a generation function but forgot to define the field.
+
+**Solution**: Add the missing field definition.
+
+```go
+fields {
+  name() string
+  // Missing: age() int
+}
+
+gens {
+  func name() {
+    return Name()
+  }
+  func age() {  // No corresponding field
+    return IntBetween(18, 65)
+  }
+}
+```
+
+### 4. "Parameterized field X requires calls section"
+
+**Problem**: You have a parameterized field but no calls section.
+
+**Solution**: Add the calls section with arguments.
+
+```go
+fields {
+  created_at(start time.Time, end time.Time) time.Time
+}
+
+gens {
+  func created_at(start time.Time, end time.Time) {
+    return DateBetween(start, end)
+  }
+}
+
+// Missing calls section - add this:
+calls {
+  created_at(time.Now().AddDate(-1, 0, 0), time.Now())
+}
+```
+
+### 5. "Syntax error in model file"
+
+**Problem**: Invalid syntax in your `.dg` file.
+
+**Common issues**:
+- Missing braces `{}`
+- Incorrect field syntax
+- Invalid Go syntax in generation functions
+
+**Solution**: Check your syntax carefully.
+
+```go
+// Wrong
+fields {
+  name string  // Missing parentheses and type
+}
+
+// Correct
+fields {
+  name() string
+}
+```
+
+## Generation Errors
+
+Generation errors occur when running `datagen gen` command.
+
+### 1. "No .dg files found"
+
+**Problem**: No model files found in the specified directory.
+
+**Solutions**:
+```bash
+# Check current directory
+pwd
+
+# List .dg files
+ls -la *.dg
+
+# Use correct path
+datagen gen ./models/*.dg
+datagen gen .  # Current directory
+```
+
+### 2. "Build failed: Go compilation error"
+
+**Problem**: Generated Go code has compilation errors.
+
+**Common causes**:
+- Invalid Go syntax in generation functions
+- Missing imports
+- Type mismatches
+
+**Solution**: Check your generation functions for Go syntax errors.
+
+```go
+// Wrong - invalid Go syntax
+func name() {
+  return Name(  // Missing closing parenthesis
+}
+
+// Correct
+func name() {
+  return Name()
+}
+```
+
+### 3. "Permission denied" or "Access denied"
+
+**Problem**: Cannot write to output directory.
+
+**Solutions**:
+```bash
+# Check directory permissions
+ls -la output/
+
+# Create directory if it doesn't exist
+mkdir -p output/
+
+# Use different output directory
+datagen gen users.dg -o /tmp/output
+```
+
+### 4. "Invalid output format"
+
+**Problem**: Unsupported output format specified.
+
+**Solution**: Use supported formats.
+
+```bash
+# Supported formats
+datagen gen users.dg -f csv
+datagen gen users.dg -f json
+datagen gen users.dg -f xml
+datagen gen users.dg -f stdout
+```
+
+## Execution Errors
+
+Execution errors occur when running `datagen exec` command.
+
+### 1. "Config file not found"
+
+**Problem**: Configuration file doesn't exist.
+
+**Solution**: Create or specify correct config file.
+
+```bash
+# Create config.json
+{
+  "models": [...],
+  "sinks": [...]
+}
+
+# Use config file
+datagen exec users.dg --config config.json
+```
+
+### 2. "Database connection failed"
+
+**Problem**: Cannot connect to database sink.
+
+**Common causes**:
+- Wrong connection details
+- Database not running
+- Network issues
+- Authentication problems
+
+**Solution**: Check your database configuration.
+
+```json
+{
+  "sinks": [
+    {
+      "sink_name": "mysql_sink",
+      "sink_type": "mysql",
+      "config": {
+        "host": "localhost",
+        "port": "3306",
+        "user": "root",
+        "password": "password",
+        "database": "testdb"
+      }
+    }
+  ]
+}
+```
+
+### 3. "Model not found in config"
+
+**Problem**: Model referenced in config doesn't exist.
+
+**Solution**: Ensure model name matches exactly.
+
+```json
+{
+  "models": [
+    {
+      "model_name": "users",
+      "target_sinks": ["mysql_sink"],
+      "count": 1000
+    }
+  ]
+}
+```
+
+### 4. "Sink not found"
+
+**Problem**: Model references a sink that doesn't exist in config.
+
+**Solution**: Define the sink in your config file.
+
+```json
+{
+  "models": [
+    {
+      "model_name": "users",
+      "target_sinks": ["mysql_sink"] 
+    }
+  ],
+  "sinks": [
+    {
+      "sink_name": "mysql_sink",  
+      "sink_type": "mysql",
+      "config": {...}
+    }
+  ]
+}
+```
+
+## Common File Issues
+
+### 1. "File not found"
+
+**Problem**: Specified file doesn't exist.
+
+**Solutions**:
+```bash
+# Check if file exists
+ls -la users.dg
+
+# Use absolute path
+datagen gen /full/path/to/users.dg
+
+# Use relative path
+datagen gen ./models/users.dg
+```
+
+### 2. "Invalid file extension"
+
+**Problem**: File doesn't have `.dg` extension.
+
+**Solution**: Rename file with correct extension.
+
+```bash
+# Rename file
+mv users.txt users.dg
+mv users users.dg
+```
+
+### 3. "Empty model file"
+
+**Problem**: Model file is empty or has no content.
+
+**Solution**: Add model content.
+
+```go
+// Minimum valid model
+model users {
+  fields {
+    name() string
+  }
+  
+  gens {
+    func name() {
+      return Name()
+    }
+  }
+}
+```

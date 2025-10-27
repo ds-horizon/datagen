@@ -1,0 +1,85 @@
+---
+title: Advanced Concepts Overview
+description: Overview of advanced datagen features and patterns
+---
+
+Once you're comfortable with the basics of datagen models, you can leverage advanced features to achieve more sophisticated and powerful data generation.
+
+## What You'll Learn
+
+This section covers advanced topics that will help you:
+
+- **Configure and organize models** using metadata and custom Go code
+- **Generate sequential and indexed data** with the `iter` variable
+- **Create parameterized fields** using the `calls` section
+- **Build relationships between models** using `self.datagen` references
+
+## Topics
+
+### Optional Model Sections
+
+Learn how to use `metadata` and `misc` sections to configure your models and inject custom Go code.
+
+**Key features:**
+- Set default record counts
+- Organize models with tags
+- Define custom types and constants
+- Write helper functions
+
+[Go to Optional Sections →](/datagen/concepts/advanced/optional-sections)
+
+### The `iter` Variable
+
+Master the built-in `iter` variable to generate sequential, indexed, and pattern-based data.
+
+**Use cases:**
+- Generate sequential IDs
+- Create batches of records
+- Implement alternating patterns
+- Build index-based logic
+
+[Go to iter Variable →](/datagen/concepts/advanced/iter-variable)
+
+### Function Calls
+
+Understand how to parameterize field generators using the `calls` section.
+
+**Learn about:**
+- Parameterized field syntax
+- Providing arguments in calls
+- Argument evaluation and reuse
+
+[Go to Function Calls →](/datagen/concepts/advanced/function-calls)
+
+### Model References
+
+Create relationships between models using `self` and `self.datagen` references.
+
+**Build:**
+- Same-model references
+- Cross-model relationships
+- Complex multi-model dependencies
+- Realistic foreign key relationships
+
+[Go to Model References →](/datagen/concepts/advanced/model-references)
+
+### Nesting models in directories
+
+You can nest models in directories to namespace them, according to services for example. 
+
+[Go to Nesting →](/datagen/concepts/advanced/nesting)
+
+## Prerequisites
+
+Before diving into these advanced topics, make sure you understand:
+
+- [Data Model basics](/datagen/concepts/data-model) - Core model structure
+- [Built-in Functions](/datagen/language/built-in-functions) - Available generator functions
+
+## Getting Help
+
+If you get stuck, check out:
+
+- [Examples](/datagen/examples/1_fields/fields-overview) - Practical code examples
+- [Troubleshooting](/datagen/reference/troubleshooting) - Common issues and solutions
+

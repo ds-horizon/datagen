@@ -1,0 +1,232 @@
+@import './command-flag-table.css';
+
+/* Dark mode colors. */
+:root {
+	--sl-color-accent-low: #1b252c;
+	--sl-color-accent: #496f86;
+	--sl-color-accent-high: #bdcbd3;
+	--sl-color-white: #ffffff;
+	--sl-color-gray-1: #edeeed;
+	--sl-color-gray-2: #c1c2c2;
+	--sl-color-gray-3: #8a8c8b;
+	--sl-color-gray-4: #575858;
+	--sl-color-gray-5: #373938;
+	--sl-color-gray-6: #252727;
+	--sl-color-black: #181818;
+}
+/* Light mode colors. */
+:root[data-theme='light'] {
+	--sl-color-accent-low: #ced9df;
+	--sl-color-accent: #497086;
+	--sl-color-accent-high: #24353f;
+	--sl-color-white: #181818;
+	--sl-color-gray-1: #252727;
+	--sl-color-gray-2: #373938;
+	--sl-color-gray-3: #575858;
+	--sl-color-gray-4: #8a8c8b;
+	--sl-color-gray-5: #c1c2c2;
+	--sl-color-gray-6: #edeeed;
+	--sl-color-gray-7: #f6f6f6;
+	--sl-color-black: #ffffff;
+}
+
+/* Normalize sidebar group labels - remove bold and match font size */
+.sidebar details > summary,
+.sidebar details > summary span,
+.sidebar li > details > summary {
+	font-weight: 400 !important;
+	font-size: var(--sl-text-sm) !important;
+	color: var(--sl-color-gray-2) !important;
+}
+
+.sidebar details > summary:hover {
+	color: var(--sl-color-white) !important;
+}
+
+.sidebar details[open] > summary,
+.sidebar li > details[open] > summary {
+	font-weight: 400 !important;
+	font-size: var(--sl-text-sm) !important;
+	color: var(--sl-color-gray-2) !important;
+}
+
+/* Specifically target nested group labels like Fields and Metadata */
+.sidebar li li > details > summary {
+	font-weight: 400 !important;
+	font-size: var(--sl-text-sm) !important;
+}
+
+/* Enhanced table styling */
+.sl-markdown-content table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 1.5rem 0;
+	font-size: 0.9rem;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	border-radius: 8px;
+	overflow: hidden;
+	table-layout: fixed;
+}
+
+/* Column width distribution for 5-column tables */
+.sl-markdown-content table th:nth-child(1):nth-last-child(5),
+.sl-markdown-content table td:nth-child(1):nth-last-child(5),
+.sl-markdown-content table th:nth-child(1):nth-last-child(5) ~ th,
+.sl-markdown-content table td:nth-child(1):nth-last-child(5) ~ td {
+	width: auto;
+}
+
+.sl-markdown-content table th:nth-child(1):nth-last-child(5),
+.sl-markdown-content table td:nth-child(1):nth-last-child(5) {
+	width: 16%;
+}
+
+.sl-markdown-content table th:nth-child(2):nth-last-child(4),
+.sl-markdown-content table td:nth-child(2):nth-last-child(4) {
+	width: 10%;
+}
+
+.sl-markdown-content table th:nth-child(3):nth-last-child(3),
+.sl-markdown-content table td:nth-child(3):nth-last-child(3) {
+	width: 36%;
+}
+
+.sl-markdown-content table th:nth-child(4):nth-last-child(2),
+.sl-markdown-content table td:nth-child(4):nth-last-child(2) {
+	width: 18%;
+}
+
+.sl-markdown-content table th:nth-child(5):nth-last-child(1),
+.sl-markdown-content table td:nth-child(5):nth-last-child(1) {
+	width: 20%;
+}
+
+/* Column width distribution for 4-column tables (built-in-functions) */
+.sl-markdown-content table th:nth-child(1):nth-last-child(4),
+.sl-markdown-content table td:nth-child(1):nth-last-child(4) {
+	width: 14%;
+}
+
+.sl-markdown-content table th:nth-child(2):nth-last-child(3),
+.sl-markdown-content table td:nth-child(2):nth-last-child(3) {
+	width: 40%;
+}
+
+.sl-markdown-content table th:nth-child(3):nth-last-child(2),
+.sl-markdown-content table td:nth-child(3):nth-last-child(2) {
+	width: 18%;
+}
+
+.sl-markdown-content table th:nth-child(4):nth-last-child(1),
+.sl-markdown-content table td:nth-child(4):nth-last-child(1) {
+	width: 28%;
+}
+
+.sl-markdown-content thead {
+	background: var(--sl-color-accent);
+	color: #ffffff !important;
+	font-weight: 600;
+	text-transform: uppercase;
+	font-size: 0.85rem;
+	letter-spacing: 0.05em;
+}
+
+.sl-markdown-content thead th {
+	padding: 1rem 1.25rem;
+	text-align: left;
+	border: none;
+	color: #ffffff !important;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+}
+
+.sl-markdown-content tbody tr {
+	border-bottom: 1px solid var(--sl-color-gray-6);
+	transition: background-color 0.2s ease;
+}
+
+.sl-markdown-content tbody tr:hover {
+	background-color: var(--sl-color-gray-7);
+}
+
+.sl-markdown-content tbody tr:last-child {
+	border-bottom: none;
+}
+
+.sl-markdown-content tbody td {
+	padding: 1rem 1.25rem;
+	border: none;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	vertical-align: top;
+}
+
+.sl-markdown-content tbody td:first-child {
+	font-weight: 500;
+	color: var(--sl-color-accent-high);
+}
+
+.sl-markdown-content tbody td code {
+	background: var(--sl-color-gray-6);
+	padding: 0.2rem 0.4rem;
+	border-radius: 4px;
+	font-size: 0.85em;
+}
+
+/* Responsive tables */
+@media (max-width: 768px) {
+	.sl-markdown-content table {
+		font-size: 0.85rem;
+	}
+	
+	.sl-markdown-content thead th,
+	.sl-markdown-content tbody td {
+		padding: 0.75rem 1rem;
+	}
+}
+
+/* Optimize layout - make TOC compact and right-aligned */
+.page {
+	grid-template-columns: var(--sl-sidebar-width) minmax(0, var(--sl-content-width)) 0fr !important;
+	gap: 1rem 2rem !important;
+	margin-right: 0 !important;
+	padding-right: 0 !important;
+}
+
+/* Make TOC compact and truly right-aligned */
+.right-sidebar {
+	position: fixed !important;
+	right: 1rem !important;
+	top: var(--sl-nav-height) !important;
+	width: auto !important;
+	max-width: 15rem !important;
+	padding: 1rem 0 1rem 1rem !important;
+	margin: 0 !important;
+	height: calc(100vh - var(--sl-nav-height)) !important;
+	overflow-y: auto !important;
+	border-left: 1px solid var(--sl-color-gray-5) !important;
+}
+
+.right-sidebar-panel {
+	width: 100% !important;
+	padding: 0 0 0 0.75rem !important;
+	margin: 0 !important;
+}
+
+.right-sidebar-panel h2 {
+	font-size: 0.9rem !important;
+}
+
+.right-sidebar-panel nav {
+	font-size: 0.85rem !important;
+}
+
+.right-sidebar-panel nav ul {
+	padding-left: 0.5rem !important;
+}
+
+/* Increase main content max-width and reduce sidebar */
+:root {
+	--sl-content-width: 60rem;
+	--sl-sidebar-width: 15rem;
+}

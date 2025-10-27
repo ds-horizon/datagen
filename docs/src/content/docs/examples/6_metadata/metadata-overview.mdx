@@ -1,0 +1,77 @@
+---
+title: Metadata Overview
+description: Using metadata for record counts and tags
+---
+
+
+`metadata` provides configuration options that control model behavior and organization.
+
+:::tip
+Metadata allows you to set default record counts and organize models with tags for selective generation.
+:::
+
+### Overview
+
+The metadata section is defined within a model and supports configuration options:
+
+```go title="example.dg"
+model example {
+  metadata {
+    count: 10
+    tags: {
+      "service": "user",
+      "team": "backend"
+    }
+  }
+  
+  fields {
+    // field definitions
+  }
+  
+  gens {
+    // generator implementations
+  }
+}
+```
+
+
+### Count
+
+Sets a default number of records that will be generated when no explicit count is provided.
+
+#### Basic Usage
+```go
+metadata {
+  count: 5
+}
+```
+
+#### Command Behavior
+
+:::caution
+- **Without `-n` flag**: Uses the model's `metadata.count` value
+- **With `-n <number>` flag**: Overrides the default for **ALL** selected models
+:::
+
+### Tags
+
+Allows you to label models with string key-value pairs, which can be used to filter the models to generate the data for.
+
+#### Basic Usage
+```go
+metadata {
+  tags: {
+    "service": "delivery",
+    "team": "backend",
+    "environment": "production"
+  }
+}
+```
+
+#### Filtering Rules
+
+:::note[Tag Matching Rules]
+- Models must match **ALL** specified tags to be selected
+- Tag values must match exactly (case-sensitive)
+- Use comma-separated values for multiple tag filters
+:::

@@ -1,0 +1,151 @@
+---
+title: Optional Model Sections
+description: Configure models with metadata and inject custom Go code with misc
+---
+
+Beyond the core sections (`fields` and `gens`), datagen provides optional sections for configuration and customization.
+
+## Metadata Section
+
+The `metadata` section provides configuration for your model, including default record counts and organizational tags.
+
+### Syntax
+
+```go title="User.dg"
+metadata {
+  count: 1000
+  tags: {
+    "service": "user-management",
+    "team": "platform",
+    "environment": "test"
+  }
+}
+```
+
+### Count
+
+Sets the default number of records to generate. If no `count` is specified, defaults to 1 record.
+
+### Tags
+
+Key-value pairs for organizing and filtering models. Tags are especially useful when working with multiple models in a directory.
+
+**Tag Guidelines:**
+- Must be valid JSON (quoted string keys and values)
+- Use consistent, lowercase keys (e.g., "domain", "environment", "service")
+- Combine multiple tags to express different facets of a model
+
+**Example with Multiple Models:**
+
+```go title="User.dg"
+model User {
+  metadata {
+    count: 1000
+    tags: {
+      "service": "user-management",
+      "team": "platform",
+      "priority": "high"
+    }
+  }
+  // ...
+}
+```
+
+```go title="Order.dg"
+model Order {
+  metadata {
+    count: 5000
+    tags: {
+      "service": "order-processing",
+      "team": "platform",
+      "priority": "critical"
+    }
+  }
+  // ...
+}
+```
+
+## Misc Section
+
+The `misc` section allows you to inject custom Go code into the generated package. This is useful for defining custom types, constants, and helper functions.
+
+### What You Can Define
+
+- Constants and variables
+- Custom types and enums
+- Structs and interfaces
+- Helper functions
+- Any valid Go code
+
+### Example
+
+Here's a full model using the `misc` section:
+
+```go title="Product.dg"
+model Product {
+  misc {
+    type Category string
+    
+    const (
+      Electronics Category = "electronics"
+      Clothing    Category = "clothing"
+      Food        Category = "food"
+      Books       Category = "books"
+    )
+    
+    func randomCategory() Category {
+      categories := []Category{Electronics, Clothing, Food, Books}
+      return categories[IntBetween(0, len(categories)-1)]
+    }
+    
+    func priceForCategory(cat Category) float64 {
+      switch cat {
+      case Electronics:
+        return FloatBetween(50.0, 2000.0)
+      case Clothing:
+        return FloatBetween(10.0, 200.0)
+      case Food:
+        return FloatBetween(1.0, 50.0)
+      case Books:
+        return FloatBetween(5.0, 100.0)
+      default:
+        return 10.0
+      }
+    }
+  }
+  
+  fields {
+    id() int
+    name() string
+    category() string
+    price() float64
+  }
+  
+  gens {
+    func id() {
+      return iter + 1
+    }
+    
+    func name() {
+      return Sentence(3)
+    }
+    
+    func category() {
+      cat := randomCategory()
+      return string(cat)
+    }
+    
+    func price() {
+      cat := Category(self.category(iter))
+      return priceForCategory(cat)
+    }
+  }
+}
+```
+
+## See Also
+
+- [Data Model](/datagen/concepts/data-model) - Core model concepts
+- [DSL Specification](/datagen/language/dsl-specification) - Complete language specification
+- [Examples](/datagen/examples/3_misc/misc) - Practical misc section examples
+

@@ -1,0 +1,176 @@
+---
+title: Data Model
+description: Understanding the datagen data model and DSL syntax
+---
+
+## What is datagen?
+
+datagen is a **Domain Specific Language (DSL)** that helps you generate realistic test data. You write simple model files that describe what your data should look like, and datagen creates realistic records for you.
+
+:::tip
+Think of it like this: instead of manually creating test data or writing complex scripts, you just describe the structure and rules, and datagen does the heavy lifting.
+:::
+
+## What is a Model?
+
+A **model** is a blueprint that tells datagen how to create your data. Think of it as a recipe with 2 main ingredients:
+
+### 1. fields
+Define what fields your data should have (like columns in a database table, keys in a document etc). 
+
+### 2. generator functions
+Specify how to create each field (using built-in functions or custom logic).
+
+:::caution[Important: File Naming Convention]
+The filename (without extension) must match the model name exactly (case-sensitive).
+
+Example: file `User.dg` must contain `model User { ... }`
+:::
+
+### Optional Configuration
+- **Metadata**: Set default record counts, add tags for organization
+- **Misc**: Define constants and custom types for reuse
+
+## A Simple Example
+
+Let's start with a basic user model to understand the core concepts:
+
+```go title="users.dg"
+model users {
+  fields {
+    name() string
+    age() int
+  }
+
+  gens {
+    func name() {
+      return Name()
+    }
+
+    func age() {
+      return IntBetween(18, 65)
+    }
+  }
+}
+```
+
+
+This model creates user records using stdlib functions with :
+
+- A `name` field (string) that gets random names
+- An `age` field (int) that gets random ages between 18-65
+
+When you run `datagenc gen user.dg`, it creates records like: 
+
+**Output:**
+```shell
+user{name:Rosemarie Wiza age:34}
+```
+
+## Understanding the Sections
+
+Every datagen model has two required sections:
+
+### 1. Fields Section - What Data to Create
+
+The `fields` section defines the structure of your data. It's like creating a table with column names and types.
+
+```go
+fields {
+  name() string
+  age() int
+}
+```
+
+**Common types:**
+- `string` - Text (names, emails, addresses)
+- `int` - Whole numbers (ages, counts, IDs)
+- `float64` - Decimal numbers (prices, percentages)
+- `bool` - True/false values
+- `time.Time` - Dates and times
+
+*Any Go type is supported, including custom types you define.*
+
+### 2. Generation Functions Section - How to Create the Data
+
+The `gens` section tells datagen how to fill each field with data. Each function must match a field name exactly and must always have a return statement.
+
+```go
+gens {
+  func name() {
+    return Name()  // Built-in function for random names
+  }
+  func age() {
+    return IntBetween(18, 65) // Built-in function for random numbers between 18 to 65
+  }
+}
+```
+
+*You can use built-in functions or write custom logic for any field.*
+
+### 3. Function Calls Section - For Parameterized Fields (Optional)
+
+See [Advanced Concepts: Function Calls](/datagen/concepts/advanced/function-calls) for usage, structure, and key points.
+
+## Structural Constraints
+- Required sections: `fields` and `gens`
+- Each field must have a generation function with the exact same name
+- Return types in `gens` must match the declared field types
+- Field names must be unique within a model
+- Parameterized fields require a `calls` section that provides arguments matching the field signature
+
+## Complete Example
+
+Here's a complete model that creates user data:
+
+```go title="users.dg"
+model users {
+  fields {
+    name() string
+    age() int
+    email() string
+    is_active() bool
+    created_at(start time.Time, end time.Time) time.Time
+  }
+
+  gens {
+    func name() {
+      return Name()
+    }
+
+    func age() {
+      return IntBetween(18, 65)
+    }
+
+    func email() {
+      return Email()
+    }
+
+    func is_active() {
+      return true
+    }
+
+    func created_at(start time.Time, end time.Time) {
+      return DateBetween(start, end)
+    }
+  }
+
+  calls {
+    created_at(time.Now().AddDate(-1, 0, 0), time.Now())
+  }
+}
+```
+
+When you run `datagenc gen users.dg`, you get:
+```shell
+users{name:Lexus Mann age:52 email:karlmarvin@haag.org is_active:true created_at:{wall:74407000 ext:63889607429 loc:0x1017cea20}}
+```
+
+## Next Steps
+
+Now that you understand the core concepts of datagen models, explore:
+
+- **[Advanced Concepts](/datagen/concepts/advanced/overview)** - Learn about the `iter` variable, cross-model references, and optional sections (`metadata`, `misc`, `calls`)
+- **[Built-in Functions](/datagen/language/built-in-functions)** - Discover all available data generation functions
+- **[Examples](/datagen/examples/1_fields/fields-overview)** - See practical model examples
+- **[DSL Specification](/datagen/language/dsl-specification)** - Deep dive into the complete language specification

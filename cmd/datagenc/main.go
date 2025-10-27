@@ -26,7 +26,7 @@ var (
 func main() {
 	rootCmd := &cobra.Command{
 		Use:     utils.CompilerBinaryName,
-		Short:   "Transpile .dg model files into a runnable data generator",
+		Short:   "Generate realistic test data from model definitions",
 		Version: version,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			verbose, _ := cmd.Flags().GetBool("verbose")
@@ -44,7 +44,7 @@ func main() {
 
 	genCmd := &cobra.Command{
 		Use:   "gen [file|directory]",
-		Short: "Transpile models, and optionally invoke datagen",
+		Short: "Generate data from .dg model files and output to CSV, JSON, XML, or stdout",
 		Args:  validateSingleFileOrDir,
 		RunE:  runner.BuildAndRunGen,
 	}
@@ -60,11 +60,11 @@ func main() {
 
 	executeCmd := &cobra.Command{
 		Use:   "execute [file|directory]",
-		Short: "Transpile models, invoke datagen and load data into relevant sinks",
+		Short: "Generate data from .dg model files and load into configured data stores",
 		Args:  validateSingleFileOrDir,
 		RunE:  runner.BuildAndRunExecute,
 	}
-	executeCmd.Flags().StringVarP(&flagConfig, "config", "c", "", "Path of config.json file to be passed to datagen")
+	executeCmd.Flags().StringVarP(&flagConfig, "config", "c", "", "path to config file (specifies models, data stores, and record counts)")
 	_ = executeCmd.MarkFlagRequired("config")
 	executeCmd.Flags().StringVarP(&flagOutput, "output", "o", ".", "output directory or file path")
 	executeCmd.Flags().BoolVar(&flagNoExec, "noexec", false, "skip building and executing generated binary")
