@@ -18,7 +18,7 @@ func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, re
     defer func() {
         err := Close___datagen_{{.FullyQualifiedModelName}}_mysql_connection()
         if err != nil {
-            slog.Warn("failed to close DB connection", "model", modelName, "error", err.Error())
+            slog.Warn(fmt.Sprintf("failed to close DB connection for %s: %s", modelName, err.Error()))
         }
     }()
 
@@ -45,7 +45,7 @@ func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, re
     defer func() {
 	if err := tx.Rollback(); err != nil {
 	    if !errors.Is(err, sql.ErrTxDone) {
-		slog.Warn("error rolling back transaction", "model", modelName, "error", err.Error())
+		slog.Error(fmt.Sprintf("error rolling back transaction for %s: %s", modelName, err.Error()))
 	    }
 	}
     }()
@@ -92,7 +92,7 @@ func Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, c
     defer func() {
 	err := Close___datagen_{{.FullyQualifiedModelName}}_mysql_connection()
 	if err != nil {
-	    slog.Warn("failed to close DB connection", "error", err.Error())
+	    slog.Warn(fmt.Sprintf("failed to close DB connection: %s", err.Error()))
 	}
     }()
 
@@ -114,7 +114,7 @@ func Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, c
     defer func() {
 	if err := tx.Rollback(); err != nil {
 	    if !errors.Is(err, sql.ErrTxDone) {
-		slog.Warn("error rolling back transaction", "model", modelName, "error", err.Error())
+		slog.Error(fmt.Sprintf("error rolling back transaction for %s: %s", modelName, err.Error()))
 	    }
 	}
     }()

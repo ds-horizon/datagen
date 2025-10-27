@@ -34,7 +34,7 @@ func runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string, flagS
 		}
 		matchedModels := getMatchingModels(allMetadata, tags)
 		if len(matchedModels) == 0 {
-			slog.Warn("no models found matching the specified tags", "tags", flagTags)
+            slog.Warn(fmt.Sprintf("no models found matching the specified tags: %s", flagTags))
 			return nil
 		}
     slog.Debug(fmt.Sprintf("filtered %d models by tags: %s", len(matchedModels), flagTags))
@@ -160,10 +160,10 @@ func runExecuteCommand(flagConfig, flagOutput string) error {
         slog.Debug(fmt.Sprintf("generated %d records for %s for sink loading", len(records), name))
 	}
 
-        topologicallySorted, err := datagen.__links.TopologicalSort()
-	if err != nil {
-		slog.Warn("cannot perform topological sort, loading anyway", "error", err.Error())
-	} else {
+    topologicallySorted, err := datagen.__links.TopologicalSort()
+    if err != nil {
+        slog.Warn(fmt.Sprintf("cannot perform topological sort, loading anyway: %s", err.Error()))
+    } else {
         slog.Debug(fmt.Sprintf("topological sort completed: %v", topologicallySorted))
 	}
 	return orchestrateSinks(topologicallySorted, allData, cfg)

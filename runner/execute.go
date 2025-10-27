@@ -159,7 +159,7 @@ func findAndTranspileDatagenModels(outDir string, inputPath string) error {
     slog.Debug(fmt.Sprintf("found %d datagen models in %s", dgModelsCount, inputPath))
 
 	if dgModelsCount == 0 {
-		slog.Warn("no .dg files found", "input_path", inputPath)
+		slog.Warn(fmt.Sprintf("no .dg files found in %s", inputPath))
 		return fmt.Errorf("no .dg files found in %s", inputPath)
 	}
 
