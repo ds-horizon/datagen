@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ds-horizon/datagen/runner"
+	"github.com/ds-horizon/datagen/utils"
 	"github.com/spf13/cobra"
 )
 
