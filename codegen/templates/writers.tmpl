@@ -87,7 +87,7 @@ func writeCSV(name string, records []Record, outPath string) error {
 			return fmt.Errorf("error writing CSV row for %s: %w", name, err)
 		}
 	}
-	slog.Info("generated output file", "format", "csv", "file", csvFile.Name(), "record_count", len(records))
+    slog.Info(fmt.Sprintf("generated CSV file %s with %d records", csvFile.Name(), len(records)))
 	return nil
 }
 
@@ -103,7 +103,7 @@ func writeJSON(name string, records []Record, outPath string) error {
 		jsonRow := record.ToJSON()
 		fmt.Fprintln(jsonWriter, jsonRow)
 	}
-	slog.Info("generated output file", "format", "json", "file", jsonFile.Name(), "record_count", len(records))
+    slog.Info(fmt.Sprintf("generated JSON file %s with %d records", jsonFile.Name(), len(records)))
 	return nil
 }
 
@@ -119,7 +119,7 @@ func writeXML(name string, records []Record, outPath string) error {
 		xmlRow := record.ToXML()
 		fmt.Fprintln(xmlWriter, xmlRow)
 	}
-	slog.Info("generated output file", "format", "xml", "file", xmlFile.Name(), "record_count", len(records))
+    slog.Info(fmt.Sprintf("generated XML file %s with %d records", xmlFile.Name(), len(records)))
 	return nil
 }
 

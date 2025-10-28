@@ -182,7 +182,7 @@ func copyStaticTemplates(dirPath string, files map[string]string) error {
 			return fmt.Errorf("failed to read template\n  template: %s\n  cause: %w", src, err)
 		}
 		outPath := filepath.Join(dirPath, dst)
-		if err := os.WriteFile(outPath, content, 0644); err != nil {
+		if err := os.WriteFile(outPath, content, 0o600); err != nil {
 			return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", outPath, err)
 		}
 	}
@@ -225,11 +225,11 @@ func writeFormattedGoFile(path string, src []byte) error {
 		return fmt.Errorf("failed to format generated file\n  file: %s\n  cause: %w", filepath.Base(path), err)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
 		return fmt.Errorf("failed to create directory\n  path: %s\n  cause: %w", path, err)
 	}
 
-	if err := os.WriteFile(path, formatted, 0o644); err != nil {
+	if err := os.WriteFile(path, formatted, 0o600); err != nil {
 		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", path, err)
 	}
 	return nil

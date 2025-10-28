@@ -10,7 +10,7 @@ import (
 	"github.com/ds-horizon/datagen/utils"
 )
 
-func GetDgDirStructure(inputDir string, cumulatedPath string) (*utils.DgDir, error) {
+func GetDgDirStructure(inputDir, cumulatedPath string) (*utils.DgDir, error) {
 	fullPath := filepath.Join(inputDir, cumulatedPath)
 
 	if info, err := os.Stat(fullPath); err == nil && !info.IsDir() {
@@ -20,12 +20,12 @@ func GetDgDirStructure(inputDir string, cumulatedPath string) (*utils.DgDir, err
 	return GetDgDirectoryStructure(inputDir, cumulatedPath)
 }
 
-func GetDgFileStructure(filePath string, cumulatedPath string) (*utils.DgDir, error) {
+func GetDgFileStructure(filePath, cumulatedPath string) (*utils.DgDir, error) {
 	if filepath.Ext(filePath) != ".dg" {
 		return nil, fmt.Errorf("file %s is not a .dg file", filePath)
 	}
-
-	content, err := os.ReadFile(filePath)
+	cleanPath := filepath.Clean(filePath)
+	content, err := os.ReadFile(cleanPath)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func GetDgFileStructure(filePath string, cumulatedPath string) (*utils.DgDir, er
 	return dgDir, nil
 }
 
-func GetDgDirectoryStructure(inputDir string, cumulatedPath string) (*utils.DgDir, error) {
+func GetDgDirectoryStructure(inputDir, cumulatedPath string) (*utils.DgDir, error) {
 	dgDir := &utils.DgDir{
 		Name:     cumulatedPath,
 		Models:   make(map[string][]byte),
@@ -49,7 +49,6 @@ func GetDgDirectoryStructure(inputDir string, cumulatedPath string) (*utils.DgDi
 	}
 
 	entries, err := os.ReadDir(filepath.Join(inputDir, cumulatedPath))
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to read directory %s: %w", filepath.Join(inputDir, cumulatedPath), err)
 	}
@@ -72,7 +71,8 @@ func GetDgDirectoryStructure(inputDir string, cumulatedPath string) (*utils.DgDi
 			continue
 		}
 		if filepath.Ext(entry.Name()) == ".dg" {
-			content, readErr := os.ReadFile(filepath.Join(inputDir, cumulatedPath, entry.Name()))
+			cleanPath := filepath.Join(inputDir, cumulatedPath, entry.Name())
+			content, readErr := os.ReadFile(filepath.Clean(cleanPath))
 			if readErr != nil {
 				return nil, readErr
 			}

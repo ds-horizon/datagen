@@ -75,7 +75,7 @@ func parseCallList(input string) ([]*ast.CallExpr, error) {
 	}
 
 	// Extract call expressions from the block
-	var calls []*ast.CallExpr
+	calls := make([]*ast.CallExpr, 0, len(block.List))
 	for _, stmt := range block.List {
 		// Each statement should be an expression statement
 		exprStmt, ok := stmt.(*ast.ExprStmt)
