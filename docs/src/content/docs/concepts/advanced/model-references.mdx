@@ -51,8 +51,8 @@ datagen separates three distinct responsibilities:
 model Product {
   fields {
     id() int
-    price(min float64, max float64) float64  // Parameterized field
-    discounted_price() float64
+    price(min float64, max float64) float32  // Parameterized field
+    discounted_price() float32
   }
   
   gens {
@@ -93,9 +93,9 @@ Reference other fields within the same model to create calculated or dependent f
 model Order {
   fields {
     id() int
-    base_amount() float64
-    tax_amount() float64
-    total_amount() float64
+    base_amount() float32
+    tax_amount() float32
+    total_amount() float32
   }
   
   gens {
@@ -156,7 +156,7 @@ model Author {
     }
     
     func name() {
-      return FullName()
+      return Name()
     }
     
     func country() {
@@ -258,19 +258,19 @@ model Order {
   fields {
     id() int
     customer_id() int
-    discount() float64
-    total() float64
+    discount() float32
+    total() float32
   }
-  
+
   gens {
     func id() {
       return iter + 1
     }
-    
+
     func customer_id() {
       return self.datagen.Customer().id(IntBetween(0, 999))
     }
-    
+
     func discount() {
       // Get customer tier and apply discount
       tier := self.datagen.Customer().tier(iter)
@@ -281,7 +281,7 @@ model Order {
       }
       return 2.0
     }
-    
+
     func total() {
       base := FloatBetween(100.0, 500.0)
       discount := self.discount(iter)
