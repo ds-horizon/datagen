@@ -77,6 +77,8 @@ func GetDgDirectoryStructure(inputDir, cumulatedPath string) (*utils.DgDir, erro
 				return nil, readErr
 			}
 
+			// converting the file system path to dg delimited string for the map
+			// eg: spends/foobar/Alert.dg ==> spends___DG_DIR_DELIMITER___foobar___DG_DIR_DELIMITER___Alert
 			fsPath := strings.ReplaceAll(cumulatedPath, string(filepath.Separator), utils.DgDirDelimeter)
 			ent := strings.Join([]string{fsPath, entry.Name()}, utils.DgDirDelimeter)
 			ent = strings.TrimSuffix(ent, ".dg")
