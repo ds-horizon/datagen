@@ -224,80 +224,142 @@ Records{tier:basic    discount:20}  # iter=55
 
 ### Time-Based Sequences
 
-```go
-gens {
-  func created_at() {
-    // Each record is created 1 hour after the previous
-    baseTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
-    return baseTime.Add(time.Duration(iter) * time.Hour)
+Generate timestamps with precise intervals based on the iteration index:
+
+```go title="Event.dg"
+model Event {
+  fields {
+    id() int
+    created_at() time.Time
+  }
+
+  gens {
+    func id() {
+      return iter + 1
+    }
+
+    func created_at() {
+      // Each record is created 1 hour after the previous
+      baseTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+      return baseTime.Add(time.Duration(iter) * time.Hour)
+    }
   }
 }
 ```
 
-**Output (first 5 records):**
+**Running the example:**
+
+```bash
+datagenc gen Event.dg -n 5
+```
+
+**Output:**
 
 ```shell
-Record{created_at:2024-01-01 00:00:00 +0000 UTC}
-Record{created_at:2024-01-01 01:00:00 +0000 UTC}
-Record{created_at:2024-01-01 02:00:00 +0000 UTC}
-Record{created_at:2024-01-01 03:00:00 +0000 UTC}
-Record{created_at:2024-01-01 04:00:00 +0000 UTC}
+Event{id:1 created_at:{wall:0 ext:63839664000 loc:<nil>}}
+Event{id:2 created_at:{wall:0 ext:63839667600 loc:<nil>}}
+Event{id:3 created_at:{wall:0 ext:63839671200 loc:<nil>}}
+Event{id:4 created_at:{wall:0 ext:63839674800 loc:<nil>}}
+Event{id:5 created_at:{wall:0 ext:63839678400 loc:<nil>}}
 ```
+
+:::note
+The `time.Time` values are displayed as internal Go structs. Each record's timestamp increments by 1 hour (3600 seconds) as shown by the `ext` field incrementing by 3600.
+:::
 
 ### Distribution Control
 
-```go
-gens {
-  func status() {
-    // 70% active, 20% inactive, 10% pending
-    if iter%10 < 7 {
-      return "active"
-    } else if iter%10 < 9 {
-      return "inactive"
+Control the distribution of values across your dataset using modulo operations:
+
+```go title="Account.dg"
+model Account {
+  fields {
+    id() int
+    status() string
+  }
+
+  gens {
+    func id() {
+      return iter + 1
     }
-    return "pending"
+
+    func status() {
+      // 70% active, 20% inactive, 10% pending
+      if iter%10 < 7 {
+        return "active"
+      } else if iter%10 < 9 {
+        return "inactive"
+      }
+      return "pending"
+    }
   }
 }
 ```
 
-**Output (first 10 records showing distribution):**
+**Running the example:**
+
+```bash
+datagenc gen Account.dg -n 10
+```
+
+**Output:**
 
 ```shell
-Record{status:active}    # iter=0
-Record{status:active}    # iter=1
-Record{status:active}    # iter=2
-Record{status:active}    # iter=3
-Record{status:active}    # iter=4
-Record{status:active}    # iter=5
-Record{status:active}    # iter=6
-Record{status:inactive}  # iter=7
-Record{status:inactive}  # iter=8
-Record{status:pending}   # iter=9
+Account{id:1  status:active}
+Account{id:2  status:active}
+Account{id:3  status:active}
+Account{id:4  status:active}
+Account{id:5  status:active}
+Account{id:6  status:active}
+Account{id:7  status:active}
+Account{id:8  status:inactive}
+Account{id:9  status:inactive}
+Account{id:10 status:pending}
 ```
 
 ### Compound Keys
 
-```go
-gens {
-  func partition_key() {
-    return iter / 1000  // Partition ID
+Generate compound keys for partitioned systems like databases or distributed storage:
+
+```go title="DataRecord.dg"
+model DataRecord {
+  fields {
+    partition_key() int
+    row_key() int
+    value() string
   }
-  
-  func row_key() {
-    return iter % 1000  // Row within partition
+
+  gens {
+    func partition_key() {
+      return iter / 1000  // Partition ID
+    }
+    
+    func row_key() {
+      return iter % 1000  // Row within partition
+    }
+
+    func value() {
+      return fmt.Sprintf("data-%d", iter)
+    }
   }
 }
+```
+
+**Running the example:**
+
+```bash
+datagenc gen DataRecord.dg -n 2501
 ```
 
 **Output (showing partition boundaries):**
 
 ```shell
-Record{partition_key:0 row_key:0}      # iter=0
-Record{partition_key:0 row_key:999}    # iter=999
-Record{partition_key:1 row_key:0}      # iter=1000
-Record{partition_key:1 row_key:999}    # iter=1999
-Record{partition_key:2 row_key:0}      # iter=2000
-Record{partition_key:2 row_key:500}    # iter=2500
+DataRecord{partition_key:0 row_key:0   value:data-0}
+DataRecord{partition_key:0 row_key:999 value:data-999}
+DataRecord{partition_key:1 row_key:0   value:data-1000}
+DataRecord{partition_key:1 row_key:999 value:data-1999}
+DataRecord{partition_key:2 row_key:0   value:data-2000}
+DataRecord{partition_key:2 row_key:500 value:data-2500}
 ```
 
 ## Best Practices
