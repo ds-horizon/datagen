@@ -182,7 +182,6 @@ func codegenCommons(parsed []*DatagenParsed, dirPath string, dgDir *utils.DgDir)
 		return fmt.Errorf("failed to write config.go: %v", err)
 	}
 
-	// copy static files
 	staticFiles := map[string]string{
 		tmplWriters:     "writers.go",
 		tmplGoMod:       "go.mod",

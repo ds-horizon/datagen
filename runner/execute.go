@@ -46,7 +46,6 @@ func BuildAndRunGen(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid value for --noexec: %w", err)
 	}
 
-	// Target directory where generated code and binary will live
 	outDir := filepath.Join(output, "target")
 	if err := findAndTranspileDatagenModels(outDir, inputPath); err != nil {
 		return err
@@ -112,7 +111,6 @@ func BuildAndRunExecute(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid value for --verbose: %w", err)
 	}
 
-	// Target directory where generated code and binary will live
 	outDir := filepath.Join(output, "target")
 	if err := findAndTranspileDatagenModels(outDir, inputPath); err != nil {
 		return err
@@ -230,8 +228,8 @@ func buildTranspiledBinary(outDir string) (string, error) {
 
 	slog.Debug(fmt.Sprintf("building transpiled binary %s in %s", binaryName, outDir))
 
-	// Use working directory instead of passing it as an argument to avoid G204
-	buildCmd := exec.Command("go", "build", "-o", binaryName) // #nosec G204: command and flags are constant; binaryName is derived constant
+	// #nosec G204 -- command and args are static; utils.EncodedBinaryName is a compile-time constant
+	buildCmd := exec.Command("go", "build", "-o", binaryName)
 	buildCmd.Dir = outDir
 	buildCmd.Stdout, buildCmd.Stderr, buildCmd.Stdin = os.Stdout, os.Stderr, os.Stdin
 	if err := buildCmd.Run(); err != nil {

@@ -24,9 +24,8 @@ func GetDgFileStructure(filePath, cumulatedPath string) (*utils.DgDir, error) {
 	if filepath.Ext(filePath) != ".dg" {
 		return nil, fmt.Errorf("file %s is not a .dg file", filePath)
 	}
-
-	// #nosec G304: filePath is validated as .dg and path-joined above
-	content, err := os.ReadFile(filePath)
+	cleanPath := filepath.Clean(filePath)
+	content, err := os.ReadFile(cleanPath)
 	if err != nil {
 		return nil, err
 	}
@@ -72,14 +71,12 @@ func GetDgDirectoryStructure(inputDir, cumulatedPath string) (*utils.DgDir, erro
 			continue
 		}
 		if filepath.Ext(entry.Name()) == ".dg" {
-			// #nosec G304: path constructed from trusted directory traversal and .dg filter
-			content, readErr := os.ReadFile(filepath.Join(inputDir, cumulatedPath, entry.Name()))
+			cleanPath := filepath.Join(inputDir, cumulatedPath, entry.Name())
+			content, readErr := os.ReadFile(filepath.Clean(cleanPath))
 			if readErr != nil {
 				return nil, readErr
 			}
 
-			// converting the file system path to dg delimited string for the map
-			// eg: spends/foobar/Alert.dg ==> spends___DG_DIR_DELIMITER___foobar___DG_DIR_DELIMITER___Alert
 			fsPath := strings.ReplaceAll(cumulatedPath, string(filepath.Separator), utils.DgDirDelimeter)
 			ent := strings.Join([]string{fsPath, entry.Name()}, utils.DgDirDelimeter)
 			ent = strings.TrimSuffix(ent, ".dg")
