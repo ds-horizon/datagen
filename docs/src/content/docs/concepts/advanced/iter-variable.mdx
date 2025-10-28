@@ -28,6 +28,12 @@ model User {
 }
 ```
 
+**Running the example:**
+
+```bash
+datagenc gen User.dg -n 3
+```
+
 **Output:**
 
 ```shell
@@ -42,168 +48,20 @@ User{id:3 name:User-2}
 
 Generate 1-based or custom-offset IDs:
 
-```go
-gens {
-  func id() {
-    return iter + 1  // 1, 2, 3, ...
-  }
-  
-  func custom_id() {
-    return iter + 1000  // 1000, 1001, 1002, ...
-  }
-}
-```
-
-**Output (first 5 records):**
-
-```shell
-Record{id:1 custom_id:1000}
-Record{id:2 custom_id:1001}
-Record{id:3 custom_id:1002}
-Record{id:4 custom_id:1003}
-Record{id:5 custom_id:1004}
-```
-
-### Batch Grouping
-
-Group records into batches:
-
-```go
-gens {
-  func batch_id() {
-    return iter / 100  // Batch 0: 0-99, Batch 1: 100-199, etc.
-  }
-  
-  func batch_name() {
-    batchNum := iter / 50
-    return fmt.Sprintf("Batch-%d", batchNum)
-  }
-}
-```
-
-**Output (showing records 0, 50, 100, 150, 200):**
-
-```shell
-Record{batch_id:0 batch_name:Batch-0}    # iter=0
-Record{batch_id:0 batch_name:Batch-1}    # iter=50
-Record{batch_id:1 batch_name:Batch-2}    # iter=100
-Record{batch_id:1 batch_name:Batch-3}    # iter=150
-Record{batch_id:2 batch_name:Batch-4}    # iter=200
-```
-
-### Alternating Patterns
-
-Create alternating or repeating patterns:
-
-```go
-gens {
-  func is_active() {
-    return iter%2 == 0  // alternates: true, false, true, false...
-  }
-  
-  func priority() {
-    priorities := []string{"low", "medium", "high"}
-    return priorities[iter%3]  // cycles through priorities
-  }
-  
-  func is_special() {
-    return iter%10 == 0  // every 10th record is special
-  }
-}
-```
-
-**Output (first 12 records):**
-
-```shell
-Record{is_active:true  priority:low    is_special:true}
-Record{is_active:false priority:medium is_special:false}
-Record{is_active:true  priority:high   is_special:false}
-Record{is_active:false priority:low    is_special:false}
-Record{is_active:true  priority:medium is_special:false}
-Record{is_active:false priority:high   is_special:false}
-Record{is_active:true  priority:low    is_special:false}
-Record{is_active:false priority:medium is_special:false}
-Record{is_active:true  priority:high   is_special:false}
-Record{is_active:false priority:low    is_special:false}
-Record{is_active:true  priority:medium is_special:true}
-Record{is_active:false priority:high   is_special:false}
-```
-
-### Conditional Logic
-
-```go
-gens {
-  func tier() {
-    if iter < 10 {
-      return "premium"  // first 10 records
-    } else if iter < 50 {
-      return "standard"  // next 40 records
-    } else {
-      return "basic"  // remaining records
-    }
-  }
-  
-  func discount() {
-    if iter%5 == 0 {
-      return 20.0  // every 5th record gets 20% discount
-    }
-    return 0.0
-  }
-}
-```
-
-**Output (showing key records):**
-
-```shell
-Record{tier:premium  discount:20.0}  # iter=0
-Record{tier:premium  discount:0.0}   # iter=5
-Record{tier:premium  discount:20.0}  # iter=10
-Record{tier:standard discount:0.0}   # iter=12
-Record{tier:standard discount:20.0}  # iter=45
-Record{tier:basic    discount:0.0}   # iter=51
-Record{tier:basic    discount:20.0}  # iter=55
-```
-
-## Complete Example
-
-Here's a model that uses `iter` for multiple purposes:
-
-```go title="Order.dg"
-model Order {
+```go title="Records.dg"
+model Records {
   fields {
     id() int
-    order_number() string
-    batch_id() int
-    priority() string
-    created_day() int
-    is_vip() bool
+    custom_id() int
   }
-  
+
   gens {
     func id() {
-      return iter + 1
+      return iter + 1  // 1, 2, 3, ...
     }
-    
-    func order_number() {
-      return fmt.Sprintf("ORD-%08d", iter+1)
-    }
-    
-    func batch_id() {
-      return iter / 100  // 100 orders per batch
-    }
-    
-    func priority() {
-      // Cycles through: high, medium, low
-      priorities := []string{"high", "medium", "low"}
-      return priorities[iter%3]
-    }
-    
-    func created_day() {
-      return (iter / 50) + 1  // Day 1: orders 0-49, Day 2: 50-99, etc.
-    }
-    
-    func is_vip() {
-      return iter%10 == 0  // Every 10th order is VIP
+
+    func custom_id() {
+      return iter + 1000  // 1000, 1001, 1002, ...
     }
   }
 }
@@ -212,22 +70,154 @@ model Order {
 **Running the example:**
 
 ```bash
-datagenc gen Order.dg -n 10
+datagenc gen Records.dg -n 5
 ```
 
 **Output:**
 
 ```shell
-Order{id:1 order_number:ORD-00000001 batch_id:0 priority:high created_day:1 is_vip:true}
-Order{id:2 order_number:ORD-00000002 batch_id:0 priority:medium created_day:1 is_vip:false}
-Order{id:3 order_number:ORD-00000003 batch_id:0 priority:low created_day:1 is_vip:false}
-Order{id:4 order_number:ORD-00000004 batch_id:0 priority:high created_day:1 is_vip:false}
-Order{id:5 order_number:ORD-00000005 batch_id:0 priority:medium created_day:1 is_vip:false}
-Order{id:6 order_number:ORD-00000006 batch_id:0 priority:low created_day:1 is_vip:false}
-Order{id:7 order_number:ORD-00000007 batch_id:0 priority:high created_day:1 is_vip:false}
-Order{id:8 order_number:ORD-00000008 batch_id:0 priority:medium created_day:1 is_vip:false}
-Order{id:9 order_number:ORD-00000009 batch_id:0 priority:low created_day:1 is_vip:false}
-Order{id:10 order_number:ORD-00000010 batch_id:0 priority:high created_day:1 is_vip:true}
+Records{id:1 custom_id:1000}
+Records{id:2 custom_id:1001}
+Records{id:3 custom_id:1002}
+Records{id:4 custom_id:1003}
+Records{id:5 custom_id:1004}
+```
+
+### Batch Grouping
+
+Group records into batches:
+
+```go title="Batch.dg"
+model Batch {
+  fields {
+    batch_id() int
+    batch_name() string
+  }
+  gens {
+    func batch_id() {
+      return iter / 100  // Batch 0: 0-99, Batch 1: 100-199, etc.
+    }
+
+    func batch_name() {
+      batchNum := iter / 50
+      return fmt.Sprintf("Batch-%d", batchNum)
+    }
+  }
+}
+```
+
+**Running the example:**
+
+```bash
+datagenc gen Batch.dg -n 201
+```
+
+**Output (showing records 0, 50, 100, 150, 200):**
+
+```shell
+Batch{batch_id:0 batch_name:Batch-0}    # iter=0
+Batch{batch_id:0 batch_name:Batch-1}    # iter=50
+Batch{batch_id:1 batch_name:Batch-2}    # iter=100
+Batch{batch_id:1 batch_name:Batch-3}    # iter=150
+Batch{batch_id:2 batch_name:Batch-4}    # iter=200
+```
+
+### Alternating Patterns
+
+Create alternating or repeating patterns:
+
+```go title="Records.dg"
+model Records {
+  fields {
+    is_active() bool
+    priority() string
+    is_special() bool
+  }
+  gens {
+    func is_active() {
+      return iter%2 == 0  // alternates: true, false, true, false...
+    }
+
+    func priority() {
+      priorities := []string{"low", "medium", "high"}
+      return priorities[iter%3]  // cycles through priorities
+    }
+
+    func is_special() {
+      return iter%10 == 0  // every 10th record is special
+    }
+  }
+}
+```
+
+**Running the example:**
+
+```bash
+datagenc gen Records.dg -n 12
+```
+
+**Output:**
+
+```shell
+Records{is_active:true  priority:low    is_special:true}
+Records{is_active:false priority:medium is_special:false}
+Records{is_active:true  priority:high   is_special:false}
+Records{is_active:false priority:low    is_special:false}
+Records{is_active:true  priority:medium is_special:false}
+Records{is_active:false priority:high   is_special:false}
+Records{is_active:true  priority:low    is_special:false}
+Records{is_active:false priority:medium is_special:false}
+Records{is_active:true  priority:high   is_special:false}
+Records{is_active:false priority:low    is_special:false}
+Records{is_active:true  priority:medium is_special:true}
+Records{is_active:false priority:high   is_special:false}
+```
+
+### Conditional Logic
+
+```go title="Records.dg"
+model Records {
+  fields {
+    tier() string
+    discount() float64
+  }
+  gens {
+    func tier() {
+      if iter < 10 {
+        return "premium"  // first 10 records
+      } else if iter < 50 {
+        return "standard"  // next 40 records
+      } else {
+        return "basic"  // remaining records
+      }
+    }
+
+    func discount() {
+      if iter%5 == 0 {
+        return 20.0  // every 5th record gets 20% discount
+      }
+      return 0.0
+    }
+  }
+}
+```
+
+**Running the example:**
+
+```bash
+datagenc gen Records.dg -n 60
+```
+
+**Output (showing key records):**
+
+```shell
+Records{tier:premium  discount:20}  # iter=0
+Records{tier:premium  discount:0}   # iter=5
+Records{tier:premium  discount:20}  # iter=10
+Records{tier:standard discount:0}   # iter=12
+Records{tier:standard discount:20}  # iter=45
+Records{tier:basic    discount:0}   # iter=51
+Records{tier:basic    discount:20}  # iter=55
 ```
 
 ## Advanced Techniques
