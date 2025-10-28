@@ -14,7 +14,7 @@ type plainHandler struct {
     leveler slog.Leveler
 }
 
-func __datagen_NewPlainHandler(w io.Writer, opts *slog.HandlerOptions) *plainHandler {
+func NewPlainHandler(w io.Writer, opts *slog.HandlerOptions) *plainHandler {
     if opts == nil {
         opts = &slog.HandlerOptions{}
     }
@@ -48,7 +48,7 @@ func InitLogger(verbose bool) {
     if verbose {
         logLevel = slog.LevelDebug
     }
-    slog.SetDefault(slog.New(__datagen_NewPlainHandler(os.Stdout, &slog.HandlerOptions{
+    slog.SetDefault(slog.New(NewPlainHandler(os.Stdout, &slog.HandlerOptions{
             Level: logLevel,
     })))
 }
