@@ -96,7 +96,7 @@ func (c *Config) Validate(models map[string]RecordGenerator) error {
 		if s.SinkName == "" {
 			return errors.New("sink_name cannot be empty")
 		}
-		if _, ok := modelsSet[s.SinkName]; ok {
+		if _, ok := sinksSet[s.SinkName]; ok {
 			return fmt.Errorf("duplicate sink_name: %s", s.SinkName)
 		}
 		sinksSet[s.SinkName] = struct{}{}
@@ -110,14 +110,6 @@ func (c *Config) Validate(models map[string]RecordGenerator) error {
 			}
 			if err := sc.Validate(); err != nil {
 				return fmt.Errorf("sink %q (mysql): %w", s.SinkName, err)
-			}
-		case SinkTypeKafka:
-			var sc KafkaConfig
-			if err := s.ConfigInto(&sc); err != nil {
-				return fmt.Errorf("sink %q (kafka): %w", s.SinkName, err)
-			}
-			if err := sc.Validate(); err != nil {
-				return fmt.Errorf("sink %q (kafka): %w", s.SinkName, err)
 			}
 		default:
 			return fmt.Errorf("sink %q: unsupported sink_type %q", s.SinkName, s.SinkType)
