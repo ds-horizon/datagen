@@ -44,6 +44,7 @@ func fetchMissingGens(d *codegen.DatagenParsed, genSet map[string]struct{}) []st
 	}
 	return missingGens
 }
+
 func fetchDuplicateAndFieldSet(d *codegen.DatagenParsed) ([]string, map[string]struct{}) {
 	fieldSet := map[string]struct{}{}
 	if d == nil || d.Fields == nil || d.Fields.List == nil {
@@ -68,11 +69,11 @@ func fetchDuplicateAndFieldSet(d *codegen.DatagenParsed) ([]string, map[string]s
 			} else {
 				seen[field] = struct{}{}
 			}
-
 		}
 	}
 	return duplicates, fieldSet
 }
+
 func fetchFieldFuncTypes(d *codegen.DatagenParsed) map[string]*ast.FuncType {
 	fieldFuncTypes := map[string]*ast.FuncType{}
 	if d == nil || d.Fields == nil || d.Fields.List == nil {
@@ -90,7 +91,6 @@ func fetchFieldFuncTypes(d *codegen.DatagenParsed) map[string]*ast.FuncType {
 			if ft, ok := f.Type.(*ast.FuncType); ok {
 				fieldFuncTypes[field] = ft
 			}
-
 		}
 	}
 	return fieldFuncTypes

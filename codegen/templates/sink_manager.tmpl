@@ -21,7 +21,7 @@ func orchestrateSinks(topologicallySorted []string, allData map[string][]Record,
 func clearAllData(topologicallySorted []string, allData map[string][]Record, cfg *Config) error {
 	reversedTopologicallySorted := slices.Clone(topologicallySorted)
 	slices.Reverse(reversedTopologicallySorted)
-	slog.Debug("clearing data in reverse topological order", "models", reversedTopologicallySorted)
+slog.Debug(fmt.Sprintf("clearing data in reverse topological order: %v", reversedTopologicallySorted))
 	for _, name := range reversedTopologicallySorted {
 		if _, ok := allData[name]; !ok {
 		       continue
@@ -36,7 +36,7 @@ func clearAllData(topologicallySorted []string, allData map[string][]Record, cfg
 }
 
 func loadAllData(topologicallySorted []string, allData map[string][]Record, cfg *Config) error {
-     slog.Debug("loading data in topological order", "models", topologicallySorted)
+    slog.Debug(fmt.Sprintf("loading data in topological order: %v", topologicallySorted))
      for _, name := range topologicallySorted {
      	    	records, ok := allData[name]
 		if !ok {
@@ -58,7 +58,7 @@ func clearModelSinks(modelName string, records []Record, cfg *Config) error {
 		return fmt.Errorf("error while getting sink specs for model %s: %w", modelName, err)
 	}
 
-	slog.Debug("clearing model from sinks", "model", modelName, "sink_count", len(sinks))
+slog.Debug(fmt.Sprintf("clearing %s from %d sinks", modelName, len(sinks)))
 	for _, s := range sinks {
 		switch s.SinkType {
     		case SinkTypeMySQL:
@@ -80,7 +80,7 @@ func loadModelSinks(modelName string, records []Record, cfg *Config) error {
 		return fmt.Errorf("error while getting sink specs for model %s: %w", modelName, err)
 	}
 
-	slog.Debug("loading model to sinks", "model", modelName, "sink_count", len(sinks), "record_count", len(records))
+slog.Debug(fmt.Sprintf("loading %s to %d sinks with %d records", modelName, len(sinks), len(records)))
 	for _, s := range sinks {
 		switch s.SinkType {
     		case SinkTypeMySQL:

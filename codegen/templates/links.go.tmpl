@@ -53,7 +53,7 @@ func (l *Links) TopologicalSort() ([]string, error) {
 
 	sort.Strings(allModels)
 
-	slog.Debug("performing topological sort", "model_count", len(allModels))
+slog.Debug(fmt.Sprintf("performing topological sort for %d models", len(allModels)))
 	finalStack := &Stack{}
 	curStack := &Stack{}
 	visited := map[string]struct{}{}
@@ -77,7 +77,7 @@ func (l *Links) TopologicalSort() ([]string, error) {
 		}
 	}
 
-	slog.Debug("topological sort completed", "sorted_models", finalStack.data)
+slog.Debug(fmt.Sprintf("topological sort completed: %v", finalStack.data))
 	return finalStack.data, nil
 }
 
@@ -107,7 +107,7 @@ func (l *Links) dfs(curStack *Stack, visited map[string]struct{}) error {
 func (l *Links) StartGen(model string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	slog.Debug("starting generation tracking", "model", model)
+slog.Debug(fmt.Sprintf("starting generation tracking for %s", model))
 	l.curModel = model
 	if _, ok := l.data[l.curModel]; !ok {
 		l.data[l.curModel] = map[string]struct{}{}
@@ -117,7 +117,7 @@ func (l *Links) StartGen(model string) {
 func (l *Links) EndGen(model string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	slog.Debug("ending generation tracking", "model", model)
+slog.Debug(fmt.Sprintf("ending generation tracking for %s", model))
 	l.curModel = ""
 }
 
@@ -125,7 +125,7 @@ func (l *Links) AcceptSignal(model string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	slog.Debug("recording model dependency", "from", l.curModel, "to", model)
+slog.Debug(fmt.Sprintf("recording dependency from %s to %s", l.curModel, model))
 	if _, ok := l.data[l.curModel]; !ok {
 		l.data[l.curModel] = map[string]struct{}{}
 	}
