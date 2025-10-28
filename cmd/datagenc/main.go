@@ -5,9 +5,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/ds-horizon/datagen/runner"
 	"github.com/ds-horizon/datagen/utils"
-	"github.com/spf13/cobra"
 )
 
 var (

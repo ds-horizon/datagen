@@ -10,11 +10,12 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/ds-horizon/datagen/codegen"
 	"github.com/ds-horizon/datagen/parser"
 	"github.com/ds-horizon/datagen/utils"
 	"github.com/ds-horizon/datagen/validators"
-	"github.com/spf13/cobra"
 )
 
 func BuildAndRunGen(cmd *cobra.Command, args []string) error {

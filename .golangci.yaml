@@ -1,17 +1,9 @@
-version: 2
+version: "2"
 
 run:
   timeout: 5m
   tests: true
   allow-parallel-runners: true
-  skip-dirs:
-    - vendor
-    - testdata
-
-output:
-  sort-results: true
-  print-issued-lines: true
-  print-linter-name: true
 
 linters:
   enable:
@@ -34,6 +26,20 @@ linters:
     misspell:
       locale: US
 
+  exclusions:
+    paths:
+      - ^vendor/
+      - ^testdata/
+
+output:
+  formats:
+    text:
+      print-issued-lines: true
+      print-linter-name: true
+  sort-order:
+    - linter
+    - file
+
 formatters:
   enable:
     - gofumpt
@@ -43,6 +49,4 @@ formatters:
       extra-rules: true
     goimports:
       local-prefixes:
-        - github.com/yourorg/yourrepo
-
-
+        - github.com/ds-horizon/datagen
