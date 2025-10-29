@@ -18,7 +18,7 @@ model user_profile {
     id() int
     name() string
     is_active() bool
-    rating() float32
+    rating() float64
     created_at() time.Time
   }
 
@@ -59,7 +59,7 @@ $ cat user_profile.csv
 ```
 ```csv
 id,name,is_active,rating,created_at
-1,Agnes Romaguera,true,2.44,2025-10-01 16:06:54.390193 +0530 IST m=+0.003886084
-2,Danielle Doyle,true,1.12,2025-10-01 16:06:54.390194 +0530 IST m=+0.003887042
-3,Joannie Pacocha,true,4.39,2025-10-01 16:06:54.390195 +0530 IST m=+0.003887917
+1,Estrella Donnelly,true,4.4,2025-10-29 13:05:08.297628 +0530 IST m=+0.026148126
+2,Stone Mosciski,false,3.62,2025-10-29 13:05:08.29763 +0530 IST m=+0.026150210
+3,Bessie Gutkowski,false,1.05,2025-10-29 13:05:08.297631 +0530 IST m=+0.026151668
 ```

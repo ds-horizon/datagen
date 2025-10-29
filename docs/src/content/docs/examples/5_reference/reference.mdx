@@ -40,11 +40,11 @@ model orders {
 
   gens {
     func user_id() {
-      return self.datagen.Users().id(iter)
+      return self.datagen.users().id(iter)
     }
 
     func user_name() {
-      return self.datagen.Users().name(iter)
+      return self.datagen.users().name(iter)
     }
 
     func order_count() {
@@ -56,9 +56,10 @@ model orders {
 
 
 ### How to Run
+ Assuming both .dg files are inside the same directory:
 
 ```shell
-$ datagenc gen ./examples/5_reference -f csv -n 3
+$ datagenc gen /path/to/models/ -f csv -n 3
 ```
 
 ### Output

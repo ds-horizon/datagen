@@ -54,23 +54,23 @@ model Product {
     price(min float64, max float64) float64  // Parameterized field
     discounted_price() float64
   }
-  
+
   gens {
     func id() {
       return iter + 1
     }
-    
+
     // Generation logic: how to create a price
     func price(min float64, max float64) {
       return FloatBetween(min, max)
     }
-    
+
     func discounted_price() {
       // Access: retrieve the generated price value
       return self.price(iter) * 0.9
     }
   }
-  
+
   // Parameter values: configure the price range
   calls {
     price(10.0, 100.0)
@@ -127,11 +127,11 @@ datagenc gen Order.dg -n 5
 **Output:**
 
 ```shell
-Order{id:1 base_amount:377.41 tax_amount:30.19 total_amount:407.60}
-Order{id:2 base_amount:441.55 tax_amount:35.32 total_amount:476.87}
-Order{id:3 base_amount:303.28 tax_amount:24.26 total_amount:327.54}
-Order{id:4 base_amount:153.99 tax_amount:12.32 total_amount:166.31}
-Order{id:5 base_amount:218.52 tax_amount:17.48 total_amount:236.00}
+Order{id:1 base_amount:152.76 tax_amount:12.220799999999999 total_amount:164.9808}
+Order{id:2 base_amount:477.97 tax_amount:38.2376 total_amount:516.2076000000001}
+Order{id:3 base_amount:350.43 tax_amount:28.0344 total_amount:378.4644}
+Order{id:4 base_amount:80.09 tax_amount:6.4072000000000005 total_amount:86.4972}
+Order{id:5 base_amount:170.45 tax_amount:13.636 total_amount:184.08599999999998}
 ```
 
 ## Cross-Model References
@@ -156,7 +156,7 @@ model Author {
     }
     
     func name() {
-      return FullName()
+      return Name()
     }
     
     func country() {
@@ -258,19 +258,19 @@ model Order {
   fields {
     id() int
     customer_id() int
-    discount() float64
-    total() float64
+    discount() float32
+    total() float32
   }
-  
+
   gens {
     func id() {
       return iter + 1
     }
-    
+
     func customer_id() {
       return self.datagen.Customer().id(IntBetween(0, 999))
     }
-    
+
     func discount() {
       // Get customer tier and apply discount
       tier := self.datagen.Customer().tier(iter)
@@ -281,9 +281,9 @@ model Order {
       }
       return 2.0
     }
-    
+
     func total() {
-      base := FloatBetween(100.0, 500.0)
+      base := Float32Between(100.0, 500.0)
       discount := self.discount(iter)
       return base * (1.0 - discount/100.0)
     }
@@ -303,13 +303,13 @@ datagenc gen ./orders -n 5
 Customer{id:1 tier:standard}
 Customer{id:2 tier:standard}
 Customer{id:3 tier:standard}
-Customer{id:4 tier:premium}
-Customer{id:5 tier:standard}
-Order{id:1 customer_id:208 discount:2.0 total:382.70}
-Order{id:2 customer_id:208 discount:2.0 total:366.23}
-Order{id:3 customer_id:798 discount:2.0 total:213.29}
-Order{id:4 customer_id:4 discount:20.0 total:169.98}
-Order{id:5 customer_id:397 discount:2.0 total:311.95}
+Customer{id:4 tier:standard}
+Customer{id:5 tier:premium}
+Order{id:1 customer_id:444 discount:2 total:288.7864}
+Order{id:2 customer_id:519 discount:2 total:397.6546}
+Order{id:3 customer_id:519 discount:2 total:378.1134}
+Order{id:4 customer_id:563 discount:2 total:337.071}
+Order{id:5 customer_id:693 discount:20 total:265.168}
 ```
 
 ## Common Patterns

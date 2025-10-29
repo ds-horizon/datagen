@@ -98,7 +98,7 @@ model Product {
       return categories[IntBetween(0, len(categories)-1)]
     }
     
-    func priceForCategory(cat Category) float64 {
+    func priceForCategory(cat Category) float32 {
       switch cat {
       case Electronics:
         return FloatBetween(50.0, 2000.0)
@@ -118,7 +118,7 @@ model Product {
     id() int
     name() string
     category() string
-    price() float64
+    price() float32
   }
   
   gens {
