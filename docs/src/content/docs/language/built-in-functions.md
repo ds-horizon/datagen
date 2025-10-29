@@ -24,7 +24,8 @@ datagen provides a comprehensive set of built-in functions for common data gener
 | **Text**            | `Text(int)`                         | `string`                 | Random text of specified length                |
 |                     | `Sentence(int)`                           | `string`                 | Random sentence                                |
 | **Numbers**         | `IntBetween(int, int)`              | `int`                    | Random integer in range                        |
-|                     | `FloatBetween(float64, float64)`    | `float32`                | Random float in range                          |
+|                     | `FloatBetween(float64, float64)`    | `float64`                | Random float64 in range                        |
+|                     | `Float32Between(float32, float32)`  | `float32`                | Random float32 in range                        |
 |                     | `Boolean()`                         | `bool`                   | Random boolean                                 |
 | **Dates**           | `DateBetween(time.Time, time.Time)` | `time.Time`              | Random date in range                           |
 |                     | `DateBetweenStr(string, string)`    | `string`                 | Random date string                             |

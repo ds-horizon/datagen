@@ -126,8 +126,13 @@ func UUID() string {
 	return gofakeit.UUID()
 }
 
-func FloatBetween(min, max float64) float32 {
+func FloatBetween(min, max float64) float64 {
 	value := min + rand.Float64()*(max-min)
+	return math.Round(value*100) / 100
+}
+
+func Float32Between(min, max float32) float32 {
+	value := float64(min) + rand.Float64()*(float64(max)-float64(min))
 	rounded := math.Round(value*100) / 100
 	return float32(rounded)
 }
