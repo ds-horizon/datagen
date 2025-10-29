@@ -34,6 +34,24 @@ model Session {
 }
 ```
 
+**Running the example:**
+
+```bash
+datagenc gen Session.dg -n 3
+```
+
+**Output:**
+
+```shell
+Session{created_at:{wall:205915000 ext:63892967191 loc:0x10140eb40}}
+Session{created_at:{wall:205915000 ext:63884181274 loc:0x10140eb40}}
+Session{created_at:{wall:205915000 ext:63890140992 loc:0x10140eb40}}
+```
+
+:::note
+The `time.Time` values are displayed as internal Go structs.
+:::
+
 ## How It Works
 
 ### Argument Evaluation
