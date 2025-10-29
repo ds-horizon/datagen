@@ -60,9 +60,6 @@ datagenc gen user.dg -n 1000 -f csv -o ./data
 # Filter models by tags in a directory
 datagenc gen ./models -t "service=auth,team=platform"
 
-# Output to stdout for piping
-datagenc gen user.dg -f stdout -n 10 | jq '.'
-
 # Deterministic output with seed
 datagenc gen user.dg -n 10 -s 12345
 

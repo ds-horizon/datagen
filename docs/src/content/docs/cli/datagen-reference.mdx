@@ -60,9 +60,6 @@ datagen gen -t "service=auth,environment=prod"
 # Generate and save as CSV
 datagen gen -n 1000 -f csv -o ./data
 
-# Output to stdout for piping
-datagen gen -f stdout -n 10 | jq '.'
-
 # Deterministic output with seed
 datagen gen -n 10 -s 12345
 
