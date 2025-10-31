@@ -8,6 +8,8 @@ description: Using the iter variable for sequential data generation
 
 ### Model
 
+Create a file named `users.dg`:
+
 ```go title="users.dg"
 model users {
     fields {
@@ -27,7 +29,6 @@ model users {
 }
 ```
 
-
 ### Key Points
 
 - `iter` starts at 0 and increases by 1 for each record.
@@ -36,7 +37,7 @@ model users {
 ### How to Run
 
 ```shell
-$ datagenc gen ./examples/4_iter -n 3
+$ datagenc gen . -n 3
 ```
 
 ### Output

@@ -8,6 +8,8 @@ The `calls` section passes initialization arguments to field wrappers. Each line
 
 ### Model
 
+Create a file named `session.dg`:
+
 ```go title="session.dg"
 model session {
   fields {
@@ -31,7 +33,6 @@ model session {
 }
 ```
 
-
 ### Usage Highlights
 
 - Arguments in `calls { ... }` must be valid Go expressions.
@@ -40,7 +41,7 @@ model session {
 ### How to Run
 
 ```shell
-$ datagenc gen ./examples/2_calls -f csv -n 3
+$ datagenc gen . -f csv -n 3
 ```
 
 ### Output

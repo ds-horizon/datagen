@@ -6,6 +6,8 @@ description: Setting default record counts with metadata
 
 ### Model
 
+Create a file named `orders.dg`:
+
 ```go title="orders.dg"
 model orders {
   metadata {
@@ -29,13 +31,12 @@ model orders {
 }
 ```
 
-
 ### Usage Examples
 
 #### 1. Use model default (metadata.count)
 
 ```shell
-$ datagenc gen ./examples/6_metadata/count
+$ datagenc gen .
 ```
 
 **Output:**
@@ -50,7 +51,7 @@ orders{id:9ea7896d-f2ef-42aa-8f8c-38f5b40ce47a amount:153.98}
 #### 2. Override default for all models
 
 ```shell
-$ datagenc gen ./examples/6_metadata/count -n 3
+$ datagenc gen . -n 3
 ```
 
 **Output:**

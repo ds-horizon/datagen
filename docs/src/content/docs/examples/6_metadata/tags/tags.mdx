@@ -6,6 +6,8 @@ description: Organizing models with tags for selective generation
 
 ### Model: Orders
 
+Create a file named `orders.dg`:
+
 ```go title="orders.dg"
 model orders {
   metadata {
@@ -37,8 +39,9 @@ model orders {
 }
 ```
 
-
 ### Model: Users
+
+Create a file named `users.dg` in the same directory:
 
 ```go title="users.dg"
 model users {
@@ -71,13 +74,14 @@ model users {
 }
 ```
 
-
 ### Usage Examples
+
+With both `.dg` files in the current directory:
 
 #### 1. Filter by single tag (selects orders model)
 
 ```shell
-$ datagenc gen ./examples/6_metadata/tags -t service=delivery
+$ datagenc gen . -t service=delivery
 ```
 
 **Output:**
@@ -88,7 +92,7 @@ orders{order_id:89847c16-cb80-40f6-9b44-2170de1bd765 rider_id:387 item:sushi}
 #### 2. Filter by single tag (selects both models with team=Slytherin)
 
 ```shell
-$ datagenc gen ./examples/6_metadata/tags -t team=Slytherin
+$ datagenc gen . -t team=Slytherin
 ```
 
 **Output:**
@@ -100,7 +104,7 @@ users{id:1 name:Laverne Carter email:ashlyhartmann@kris.info}
 #### 3. Filter by multiple tags (selects only users model)
 
 ```shell
-$ datagenc gen ./examples/6_metadata/tags -t service=user,team=Slytherin
+$ datagenc gen . -t service=user,team=Slytherin
 ```
 
 **Output:**
@@ -111,7 +115,7 @@ users{id:1 name:Catherine Kiehn email:lonniekautzer@kautzer.com}
 #### 4. Filter by multiple tags (selects no models)
 
 ```shell
-$ datagenc gen ./examples/6_metadata/tags -t service=delivery,team=user
+$ datagenc gen . -t service=delivery,team=user
 ```
 
 **Output:** 
