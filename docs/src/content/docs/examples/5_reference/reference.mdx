@@ -8,6 +8,8 @@ Shows how you can use `iter` to refer to any arbitrary row of any arbitrary colu
 
 ### Model: Users
 
+Create a file named `users.dg`:
+
 ```go title="users.dg"
 model users {
   fields {
@@ -27,8 +29,9 @@ model users {
 }
 ```
 
-
 ### Model: Orders
+
+Create a file named `orders.dg` in the same directory:
 
 ```go title="orders.dg"
 model orders {
@@ -54,12 +57,12 @@ model orders {
 }
 ```
 
-
 ### How to Run
- Assuming both .dg files are inside the same directory:
+
+With both `.dg` files in the current directory:
 
 ```shell
-$ datagenc gen /path/to/models/ -f csv -n 3
+$ datagenc gen . -f csv -n 3
 ```
 
 ### Output

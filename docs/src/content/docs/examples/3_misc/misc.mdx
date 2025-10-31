@@ -5,7 +5,9 @@ description: Constants, custom types, and helper functions in datagen
 
 The `misc` section allows you to inject arbitrary Go code into the generated package. Use it to define constants, custom types, and helper functions that your generators can reuse.
 
-## Example
+## Model
+
+Create a file named `Product.dg`:
 
 ```go title="Product.dg"
 model Product {
@@ -85,10 +87,10 @@ model Product {
 - **Helper Functions**: `generateSKU()` to create product codes
 - **Using misc in gens**: All constants, types, and functions are accessible in generation logic
 
-## Running the Example
+## How to Run
 
-```bash
-datagenc gen Product.dg -n 10
+```shell
+$ datagenc gen . -n 10
 ```
 
 ## Output

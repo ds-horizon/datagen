@@ -12,6 +12,8 @@ Notice how `iter` is used to generate sequential IDs starting from 1. This is a 
 
 ### Model
 
+Create a file named `user_profile.dg`:
+
 ```go title="user_profile.dg"
 model user_profile {
   fields {
@@ -46,11 +48,10 @@ model user_profile {
 }
 ```
 
-
 ### How to Run
 
 ```shell
-$ datagenc gen /path/to/user_profile.dg -f csv -n 3
+$ datagenc gen . -f csv -n 3
 ```
 
 ### Output

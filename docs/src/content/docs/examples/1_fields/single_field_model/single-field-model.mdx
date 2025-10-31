@@ -12,6 +12,8 @@ This is the most basic datagen model structure. In real-world scenarios, you wou
 
 ### Model
 
+Create a file named `users.dg`:
+
 ```go title="users.dg"
 model users {
     fields {
@@ -26,11 +28,10 @@ model users {
 }
 ```
 
-
 ### How to Run
 
 ```shell
-$ datagenc gen ./examples/1_fields/single_field_model -f csv -n 3
+$ datagenc gen . -f csv -n 3
 ```
 
 ### Output
