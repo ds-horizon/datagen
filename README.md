@@ -3,6 +3,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.24.0-blue.svg)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ds-horizon/datagen)](https://goreportcard.com/report/github.com/ds-horizon/datagen)
+[![Join our Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?logo=discord&logoColor=white)](https://discord.gg/cvMa8HrN)
 
 datagen is a tool to generate coherent, synthetic data generation from models expressed in a simple, declarative DSL.
 
@@ -19,26 +20,61 @@ Salient features:
 
 There are various ways of installing datagen.
 
-### Precompiled binaries
+### Option 1: Install via Go
 
-Precompiled binaries for released versions are available in the [releases](https://github.com/ds-horizon/datagen/releases) section. Using the latest production release binary is the recommended way of installing datagen.
-
-### Building from source
-
-To build DataGen from source code, you need Go 1.24.0 or later.
-
-Start by cloning the repository:
+Check your `$PATH`, and choose a directory you would like to place the `datagenc` compiler in.
 
 ```bash
-git clone https://github.com/ds-horizon/datagen.git
-cd datagen
+echo $PATH
+/Users/username/go/bin:/opt/homebrew/bin:/opt/homebrew/sbin
 ```
 
-You can use `make` to build the `datagen` binary:
+Say, you wish to place the binary in `/opt/homebrew/bin`;
+
+```bash
+export GOBIN=/opt/homebrew/bin
+go install github.com/ds-horizon/datagen/cmd/datagenc@latest
+```
+
+##### Verify installation
+
+```bash
+datagenc --help
+```
+
+### Option 2: Install from Source
+
+##### Clone the repository
+
+```bash
+git clone github.com/ds-horizon/datagen
+```
+
+##### Build the compiler
 
 ```bash
 make build-compiler
-./datagen --help
+```
+
+For permanent access on Mac/Unix, add the binary to your path, or add the current directory to your path:
+
+```bash
+echo 'export PATH=$PATH:$(pwd)' >> ~/.bashrc  # for bash
+echo 'export PATH=$PATH:$(pwd)' >> ~/.zshrc   # for zsh
+```
+
+For permanent access on Windows, add to your shell profile:
+
+```powershell
+echo '$env:PATH += ";C:\path\to\datagen"' >> $PROFILE
+```
+
+Now, source the `rc` files or fire up a new terminal window for the changes to take effect.
+
+##### Verify installation
+
+```bash
+datagenc --help
 ```
 
 ## Usage
@@ -62,10 +98,10 @@ model user {
 EOF
 
 # Generate data
-./datagen gen user.dg -f csv -o ./output
+datagenc gen user.dg -f csv -o ./output
 ```
 
-datagen will now generate a `user.csv` file in `output` directory with 100 user records.
+this will generate a `user.csv` file in `output` directory with 100 user records.
 
 ## More information
 

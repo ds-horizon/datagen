@@ -19,6 +19,11 @@ export default defineConfig({
           label: 'GitHub',
           href: 'https://github.com/ds-horizon/datagen',
         },
+        {
+          icon: 'discord',
+          label: 'Discord',
+          href: 'https://discord.gg/cvMa8HrN',
+        },
       ],
       sidebar: [
         {
