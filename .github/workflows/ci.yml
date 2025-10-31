@@ -27,6 +27,3 @@ jobs:
 
       - name: Download Go modules
         run: go mod download
-
-      - name: Run tests
-        run: go test -v ./...

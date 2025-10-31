@@ -1,0 +1,53 @@
+name: Go Tests and Coverage
+on:
+  push:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  MIN_COVERAGE: "5"
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run tests with coverage
+        run: |
+          go test -race -covermode=atomic -coverprofile=coverage.out ./...
+          details=$(go tool cover -func=coverage.out)
+          echo "$details"
+          total=$(printf "%s\n" "$details" | awk '/^total:/ {gsub("%", "", $3); print $3}')
+          echo "COVERAGE_TOTAL=$total" >> $GITHUB_ENV
+          {
+            echo "COVERAGE_DETAILS<<EOF"
+            printf "%s\n" "$details"
+            echo "EOF"
+          } >> $GITHUB_ENV
+
+      - name: Comment coverage
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/post_coverage_comment.js
+
+      - name: Enforce minimum coverage
+        run: |
+          if [ -z "$COVERAGE_TOTAL" ]; then
+            echo "COVERAGE_TOTAL is not set; cannot enforce minimum coverage."
+            exit 1
+          fi
+          total="$COVERAGE_TOTAL"
+          min="${MIN_COVERAGE:-0}"
+          echo "Total coverage: ${total}% (min: ${min}%)"
+          awk -v t="$total" -v m="$min" 'BEGIN{ exit (t+0 >= m+0) ? 0 : 1 }'
