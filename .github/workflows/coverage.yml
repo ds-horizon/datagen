@@ -39,7 +39,8 @@ jobs:
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/post_coverage_comment.js
+        run: |
+          python3 scripts/post_coverage_comment.py
 
       - name: Enforce minimum coverage
         run: |
