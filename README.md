@@ -7,6 +7,14 @@
 
 datagen is a tool to generate coherent, synthetic data generation from models expressed in a simple, declarative DSL.
 
+## Watch the Demo
+
+<div align="center">
+
+[![Watch the video](https://img.youtube.com/vi/ly0DfzTup28/maxresdefault.jpg)](https://www.youtube.com/watch?v=ly0DfzTup28)
+
+</div>
+
 Salient features:
 * A **declarative DSL** for defining data models with Go-like syntax
 * **High performance** through transpilation to native Go code
