@@ -68,55 +68,7 @@ def make_body(details: str) -> str:
     else:
         body = f"{marker}\n**Coverage**: unavailable (tests failed before coverage generation)"
 
-    table = ""
-    try:
-        rows = []
-        for raw in (details or "").splitlines():
-            line = (raw or "").strip()
-            if not line:
-                continue
-            if line.startswith("total:"):
-                continue
-            if "%" not in line:
-                continue
-            m_pct = re.search(r"([0-9]+(?:\\.[0-9]+)?)%\\s*$", line)
-            if not m_pct:
-                continue
-            pct = m_pct.group(1) + "%"
-            left = re.sub(r"\\s*[0-9]+(?:\\.[0-9]+)?%\\s*$", "", line).strip()
-
-            file = ""
-            fn = ""
-            m = re.match(r"^(.+?):(?:\\d+:)?\\s*(.+)$", left)
-            if m:
-                file = m.group(1).strip()
-                fn = (m.group(2) or "").strip()
-            else:
-                idx = left.find(":")
-                if idx != -1:
-                    file = left[:idx].strip()
-                    fn = left[idx + 1 :].strip()
-            fn = re.sub(r"\\s+\\d+$", "", fn)
-            fn = re.sub(r":$", "", fn)
-            if not file or not fn:
-                continue
-            rows.append((file, fn, pct))
-
-        if rows:
-            max_rows = 300
-            slice_rows = rows[:max_rows]
-            table_lines = ["| File | Function | Coverage |", "| --- | --- | ---: |"]
-            table_lines.extend([f"| {f} | {fn} | {p} |" for f, fn, p in slice_rows])
-            if len(rows) > max_rows:
-                table_lines.append("| … | … | … |")
-            table = "\n".join(table_lines)
-    except Exception:
-        table = ""
-
-    if table:
-        body += f"\n\n<details>\n<summary>Coverage details</summary>\n\n{table}\n</details>"
-    else:
-        body += f"\n\n<details>\n<summary>Coverage details</summary>\n\n```\n{details}\n```\n</details>"
+    body += f"\n\n<details>\n<summary>Coverage details</summary>\n\n```\n{details}\n```\n</details>"
     return body
 
 
