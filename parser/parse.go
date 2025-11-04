@@ -8,7 +8,8 @@ import (
 	"strings"
 )
 
-// parseWrappedExpr wraps the input in a specific syntax and parses it as an expression
+type wrapperFunc func(input string, wrapper func(string) string) (ast.Expr, error)
+
 func parseWrappedExpr(input string, wrapper func(string) string) (ast.Expr, error) {
 	wrappedCode := wrapper(input)
 	expr, err := parser.ParseExpr(wrappedCode)
@@ -20,8 +21,8 @@ func parseWrappedExpr(input string, wrapper func(string) string) (ast.Expr, erro
 
 // parseFieldList parses a string containing field definitions into an *ast.FieldList.
 // The input string should be in the format of Go interface methods.
-func parseFieldList(input string) (*ast.FieldList, error) {
-	expr, err := parseWrappedExpr(input, func(s string) string {
+func parseFieldList(input string, wrapperFunc wrapperFunc) (*ast.FieldList, error) {
+	expr, err := wrapperFunc(input, func(s string) string {
 		return fmt.Sprintf("interface {\n %s \n}", s)
 	})
 	if err != nil {
@@ -39,8 +40,8 @@ func parseFieldList(input string) (*ast.FieldList, error) {
 
 // parseFunctionBlock parses a string containing arbitrary Go code into an *ast.BlockStmt.
 // The input string should be valid Go code that can be wrapped in a function body.
-func parseFunctionBlock(input string) (*ast.BlockStmt, error) {
-	expr, err := parseWrappedExpr(input, func(s string) string {
+func parseFunctionBlock(input string, wrapperFunc wrapperFunc) (*ast.BlockStmt, error) {
+	expr, err := wrapperFunc(input, func(s string) string {
 		return fmt.Sprintf("func() {\n%s\n}", s)
 	})
 	if err != nil {
@@ -67,14 +68,18 @@ func parseFunctionBlock(input string) (*ast.BlockStmt, error) {
 //
 //	id(1, 1)
 //	created_at(time.Now(), time.Now())
-func parseCallList(input string) ([]*ast.CallExpr, error) {
+func parseCallList(input string, wrapperFunc wrapperFunc) ([]*ast.CallExpr, error) {
 	// Wrap the input in a block statement
-	block, err := parseFunctionBlock(input)
+	block, err := parseFunctionBlock(input, wrapperFunc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse call list: %w", err)
 	}
 
 	// Extract call expressions from the block
+	return processCallBlock(block)
+}
+
+func processCallBlock(block *ast.BlockStmt) ([]*ast.CallExpr, error) {
 	calls := make([]*ast.CallExpr, 0, len(block.List))
 	for _, stmt := range block.List {
 		// Each statement should be an expression statement
@@ -151,9 +156,9 @@ func removeLineComments(s string) string {
 //	''
 //	start time.Time
 //	a, b, c int
-func parseParamList(input string) (*ast.CallExpr, error) {
+func parseParamList(input string, wrapperFunc wrapperFunc) (*ast.CallExpr, error) {
 	// Wrap the input in a function type
-	expr, err := parseWrappedExpr(input, func(s string) string {
+	expr, err := wrapperFunc(input, func(s string) string {
 		return fmt.Sprintf("func ( %s )", s)
 	})
 	if err != nil {
