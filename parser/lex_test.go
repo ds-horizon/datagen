@@ -3,9 +3,10 @@ package parser
 import (
 	"testing"
 
-	"github.com/ds-horizon/datagen/codegen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ds-horizon/datagen/codegen"
 )
 
 func TestDitchSpaces(t *testing.T) {
@@ -111,7 +112,7 @@ func TestConsumeString(t *testing.T) {
 }
 
 func TestParse(t *testing.T) {
-	var testExpr = []struct {
+	testExpr := []struct {
 		name     string
 		input    string
 		expected *codegen.DatagenParsed

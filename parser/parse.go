@@ -120,7 +120,6 @@ func parseTags(input string, wrapperFunc wrapperFunc) (map[string]string, error)
 	expr, err := wrapperFunc(trimmed, func(s string) string {
 		return fmt.Sprintf("map[string]string{\n%s,\n}", s)
 	})
-
 	if err != nil {
 		return nil, err
 	}
