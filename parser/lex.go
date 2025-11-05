@@ -398,7 +398,7 @@ func (l *lex) parse_misc(s string) string {
 }
 
 func (l *lex) parse_tags(s string) map[string]string {
-	tags, err := parseTags(s)
+	tags, err := parseTags(s, parseWrappedExpr)
 	if err != nil {
 		l.error("could not parse tags: %s", err)
 	}

@@ -4,9 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
+	"go/parser"
+	"go/token"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var testWrapperExpr = func(t *testing.T, expected string, wantErr error, wantRes ast.Expr) wrapperFunc {
@@ -307,4 +310,149 @@ func TestProcessCallBlock(t *testing.T) {
 			assert.Len(t, got, tt.wantCallsLen, "unexpected number of calls")
 		})
 	}
+}
+
+func TestParseTags(t *testing.T) {
+	// empty string is handled
+	got, err := parseTags("", testWrapperExpr(t, "", nil, nil))
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{}, got)
+
+	// only whitespace string is handled
+	got, err = parseTags("   \t \n", testWrapperExpr(t, "", nil, nil))
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{}, got)
+
+	// trailing comma is handled
+	got, err = parseTags(`"k": "v", `, testWrapperExpr(t, "", nil, nil))
+	require.Error(t, err)
+	require.Nil(t, got)
+	assert.Contains(t, err.Error(), "trailing comma is not allowed")
+
+	// invalid data
+	got, err = parseTags(`++`, testWrapperExpr(t, `map[string]string{
+++,
+}`, errors.New("invalid map"), nil))
+	require.Error(t, err)
+	assert.Nil(t, got)
+
+	// happy path
+	got, err = parseTags(`"a": "b"`, testWrapperExpr(t, `map[string]string{
+"a": "b",
+}`, nil, mustParseExpr(t, `map[string]string{"a":"b"}`)))
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"a": "b"}, got)
+}
+
+func mustParseExpr(t *testing.T, src string) ast.Expr {
+	t.Helper()
+	expr, err := parser.ParseExpr(src)
+	if err != nil {
+		t.Fatalf("parse error for %q: %v", src, err)
+	}
+	return expr
+}
+
+func TestProcessTagExpr(t *testing.T) {
+	type tc struct {
+		name      string
+		expr      ast.Expr
+		want      map[string]string
+		wantErr   bool
+		errSubstr string
+	}
+
+	tests := []tc{
+		{
+			name: "simple map",
+			expr: mustParseExpr(t, `map[string]string{"a":"1","b":"2"}`),
+			want: map[string]string{"a": "1", "b": "2"},
+		},
+		{
+			name: "simple map with url",
+			expr: mustParseExpr(t, `map[string]string{"a":"http://example.com"}`),
+			want: map[string]string{"a": "http://example.com"},
+		},
+		{
+			name: "empty map",
+			expr: mustParseExpr(t, `map[string]string{}`),
+			want: map[string]string{},
+		},
+		{
+			name: "escapes are unquoted",
+			expr: mustParseExpr(t, `map[string]string{"key\"with\"quotes":"line\nbreak"}`),
+			want: map[string]string{`key"with"quotes`: "line\nbreak"},
+		},
+		{
+			name:      "not a CompositeLit",
+			expr:      mustParseExpr(t, `someIdent`),
+			wantErr:   true,
+			errSubstr: "expected CompositeLit",
+		},
+		{
+			name:      "composite is not a map",
+			expr:      mustParseExpr(t, `[]string{"a"}`),
+			wantErr:   true,
+			errSubstr: "expected map literal",
+		},
+		{
+			name:      "key is not a string literal",
+			expr:      mustParseExpr(t, `map[string]string{1:"x"}`),
+			wantErr:   true,
+			errSubstr: "map key must be a string literal",
+		},
+		{
+			name:      "value is not a string literal",
+			expr:      mustParseExpr(t, `map[string]string{"a": 1}`),
+			wantErr:   true,
+			errSubstr: "map value must be a string literal",
+		},
+		{
+			name: "duplicate keys keep last value",
+			expr: mustParseExpr(t, `map[string]string{"a":"first","b":"ok","a":"last"}`),
+			want: map[string]string{"a": "last", "b": "ok"},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := processTagExpr(tt.expr)
+
+			if tt.wantErr {
+				require.Error(t, err, "expected error but got none")
+
+				if tt.errSubstr != "" {
+					assert.Contains(t, err.Error(), tt.errSubstr,
+						"error message should contain expected substring")
+				}
+				return
+			}
+
+			require.NoError(t, err, "unexpected error")
+			assert.Equal(t, tt.want, got, "result mismatch")
+		})
+	}
+}
+
+func TestParseWrappedExpr(t *testing.T) {
+	// invalid go code
+	wrapper := func(string) string { return "this is not valid go code" }
+
+	expr, err := parseWrappedExpr("ignored", wrapper)
+	require.Error(t, err)
+	assert.Nil(t, expr)
+	assert.Contains(t, err.Error(), "failed to parse expression")
+
+	// happy path
+	wrapper = func(s string) string { return "(" + s + ")" }
+	expr, err = parseWrappedExpr("1 + 2", wrapper)
+	require.NoError(t, err)
+	require.NotNil(t, expr)
+	require.IsType(t, &ast.ParenExpr{}, expr)
+
+	pe := expr.(*ast.ParenExpr)
+	be, ok := pe.X.(*ast.BinaryExpr)
+	require.True(t, ok, "inner expr should be a BinaryExpr")
+	assert.Equal(t, token.ADD, be.Op)
 }
