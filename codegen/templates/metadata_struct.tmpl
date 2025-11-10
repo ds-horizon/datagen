@@ -1,4 +1,4 @@
-var {{ .FullyQualifiedModelName }}Metadata Metadata = Metadata{
+var {{ .FullyQualifiedModelName }}Metadata __dgi_Metadata = __dgi_Metadata{
 	Count: {{ .Metadata.Count }},
 	Tags: {{ if .Metadata.Tags }}map[string]string{
 		{{- range $k, $v := .Metadata.Tags }}
@@ -7,6 +7,6 @@ var {{ .FullyQualifiedModelName }}Metadata Metadata = Metadata{
 	}{{ else }}map[string]string{}{{ end }},
 }
 
-func (cg *__datagen_{{.FullyQualifiedModelName}}Generator) Metadata() Metadata {
+func (cg *__datagen_{{.FullyQualifiedModelName}}Generator) Metadata() __dgi_Metadata {
      return {{ .FullyQualifiedModelName }}Metadata
 }

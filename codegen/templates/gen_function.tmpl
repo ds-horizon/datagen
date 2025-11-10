@@ -1,4 +1,4 @@
-func (cg *__datagen_{{.FullyQualifiedModelName}}Generator) Gen(iter int) Record {
+func (cg *__datagen_{{.FullyQualifiedModelName}}Generator) Gen(iter int) __dgi_Record {
 	return &__datagen_{{.FullyQualifiedModelName}}{
 {{- range .Fields}}
 		{{.Name}}: cg.{{.Name}}(iter),
