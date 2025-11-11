@@ -66,7 +66,7 @@ func BuildAndRunGen(cmd *cobra.Command, args []string) error {
 }
 
 func invokeGen(outDir string, count int, tags, output, format string, seed int64, inputPath string, verbose bool) error {
-	binaryPath, _ := buildTranspiledBinary(filepath.Join(outDir, "datagen"))
+	binaryPath, _ := buildTranspiledBinary(filepath.Join(outDir, utils.DatagenDirName))
 	args := []string{"gen", inputPath}
 	args = append(args, "-n", fmt.Sprintf("%d", count))
 	if strings.TrimSpace(tags) != "" {
@@ -124,7 +124,7 @@ func BuildAndRunExecute(cmd *cobra.Command, args []string) error {
 }
 
 func invokeExecute(outDir, output, config, inputPath string, verbose bool) error {
-	binaryPath, err := buildTranspiledBinary(filepath.Join(outDir, "datagen"))
+	binaryPath, err := buildTranspiledBinary(filepath.Clean(filepath.Join(outDir, utils.DatagenDirName)))
 	if err != nil {
 		return nil
 	}
@@ -166,12 +166,9 @@ func findAndTranspileDatagenModels(outDir, inputPath string) error {
 		return fmt.Errorf("failed to process directory data\n  input_path: %s\n  cause: %w", inputPath, err)
 	}
 
-	genDir := filepath.Join(outDir, "datagen")
-	if _, statErr := os.Stat(genDir); statErr == nil {
-		slog.Debug(fmt.Sprintf("removing existing generated directory %s", genDir))
-		if rmErr := os.RemoveAll(genDir); rmErr != nil {
-			return fmt.Errorf("failed to remove existing generated directory\n  path: %s\n  cause: %w", genDir, rmErr)
-		}
+	genDir := filepath.Join(outDir, utils.DatagenDirName)
+	if err := removeDirIfExists(genDir); err != nil {
+		return err
 	}
 
 	slog.Debug(fmt.Sprintf("generating code for %d models into %s", len(parsedAll), genDir))
@@ -226,6 +223,16 @@ func transpile(dgDirData *utils.DgDir) ([]*codegen.DatagenParsed, error) {
 	}
 
 	return parsedResults, nil
+}
+
+func removeDirIfExists(dirPath string) error {
+	if _, statErr := os.Stat(dirPath); statErr == nil {
+		slog.Debug(fmt.Sprintf("removing existing generated directory %s", dirPath))
+		if rmErr := os.RemoveAll(dirPath); rmErr != nil {
+			return fmt.Errorf("failed to remove existing generated directory\n  path: %s\n  cause: %w", dirPath, rmErr)
+		}
+	}
+	return nil
 }
 
 func buildTranspiledBinary(outDir string) (string, error) {
