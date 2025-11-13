@@ -7,8 +7,8 @@ import (
     "strings"
 )
 
-// __dgi_Load___datagen_{{.FullyQualifiedModelName}}_mysql executes a single batch of records using the provided transaction.
-func __dgi_Load___datagen_{{.FullyQualifiedModelName}}_mysql(records []*__datagen_{{.FullyQualifiedModelName}}, tx *sql.Tx) error {
+// Load___datagen_{{.FullyQualifiedModelName}}_mysql executes a single batch of records using the provided transaction.
+func Load___datagen_{{.FullyQualifiedModelName}}_mysql(records []*__datagen_{{.FullyQualifiedModelName}}, tx *sql.Tx) error {
     if len(records) == 0 {
         return nil
     }
@@ -49,8 +49,8 @@ func __dgi_Load___datagen_{{.FullyQualifiedModelName}}_mysql(records []*__datage
 }
 
 
-// __dgi_Truncate___datagen_{{.FullyQualifiedModelName}}_mysql() truncates the model's table using the shared connection.
-func __dgi_Truncate___datagen_{{.FullyQualifiedModelName}}_mysql(tx *sql.Tx) error {
+// Truncate___datagen_{{.FullyQualifiedModelName}}_mysql() truncates the model's table using the shared connection.
+func Truncate___datagen_{{.FullyQualifiedModelName}}_mysql(tx *sql.Tx) error {
      ctx := context.Background()
      if _, err := tx.ExecContext(ctx, "DELETE FROM {{.ModelName}};" ); err != nil {
          return fmt.Errorf("delete failed with error : %w", err)

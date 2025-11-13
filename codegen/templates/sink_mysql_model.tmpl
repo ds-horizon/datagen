@@ -58,7 +58,7 @@ func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, re
 		batch := records[i:end]
 
         slog.Debug(fmt.Sprintf("loading batch starting at %d of size %d for %s into MySQL", i, len(batch), modelName))
-        if err := __dgi_Load___datagen_{{.FullyQualifiedModelName}}_mysql(batch, tx); err != nil {
+        if err := Load___datagen_{{.FullyQualifiedModelName}}_mysql(batch, tx); err != nil {
 			return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: %d/%d\n   └─ Error: %v\n",
                              				modelName, totalInserted, len(records), err)
 		}
@@ -107,7 +107,7 @@ func Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, c
 	return fmt.Errorf("beginning transaction for clearing model %s: %w", modelName, err)
     }
 
-    if err := __dgi_Truncate___datagen_{{.FullyQualifiedModelName}}_mysql(tx); err != nil {
+    if err := Truncate___datagen_{{.FullyQualifiedModelName}}_mysql(tx); err != nil {
 			return fmt.Errorf("failed to truncate table for model %s: %w", modelName, err)
 	}
 

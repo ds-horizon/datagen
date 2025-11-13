@@ -1,4 +1,4 @@
-func (e *__datagen_{{.FullyQualifiedModelName}}) __dgi_ToXML() string {
+func (e *__datagen_{{.FullyQualifiedModelName}}) ToXML() string {
     type __dgi_xmlAlias struct {
         XMLName xml.Name `xml:"{{.ModelName}}"`
         {{- range .Fields}}

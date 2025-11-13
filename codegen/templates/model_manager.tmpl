@@ -42,14 +42,14 @@ type __dgi_Metadata struct {
 {{- range .SanitisedModelNames}}
 func __dgi_{{ .}}Func(model *__datagen_{{ .}}Generator, tail string) func() *__datagen_{{ .}}Generator {
      return func() *__datagen_{{ .}}Generator {
-            model.datagen.__links.__dgi_AcceptSignal(tail)
+            model.datagen.__links.AcceptSignal(tail)
 	    return model
      }
 }
 {{- end}}
 
 
-func __dgi_initGeneratorsAndModels() (*__dgi_DataGenGenerators, map[string]func(i int) __dgi_Record) {
+func __dgi_initGeneratorsAndModels() (*__dgi_DataGenGenerators, map[string]__dgi_RecordGenerator) {
 	{{- range .SanitisedModelNames}}
 	{{ .}}Generator := __init___datagen_{{.}}Generator()
 	{{- end}}
@@ -90,7 +90,7 @@ func __dgi_initGeneratorsAndModels() (*__dgi_DataGenGenerators, map[string]func(
 	{{- end}}
 
 	// model registry
-    models := map[string]func(i int) __dgi_Record{
+    models := map[string]__dgi_RecordGenerator{
 		{{- range .SanitisedModelNames}}
         "{{ dot . }}": {{.}}Generator.Gen,
 		{{- end}}

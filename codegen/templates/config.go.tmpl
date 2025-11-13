@@ -48,7 +48,7 @@ func __dgi_LoadConfigFile(path string) (*__dgi_Config, error) {
     return &cfg, nil
 }
 
-func (c *__dgi_Config) Validate(models map[string]func(i int) __dgi_Record) error {
+func (c *__dgi_Config) Validate(models map[string]__dgi_RecordGenerator) error {
 	var missingModels []string
 	for _, m := range c.Models {
 		if _, ok := models[m.ModelName]; !ok {
@@ -118,7 +118,7 @@ func (c *__dgi_Config) Validate(models map[string]func(i int) __dgi_Record) erro
 
     for _, m := range c.Models {
 		for _, sinkName := range m.TargetSinks {
-            if c.__dgi_findSinkByName(sinkName) == nil {
+            if c.findSinkByName(sinkName) == nil {
 				return fmt.Errorf("model %q references unknown sink %q", m.ModelName, sinkName)
 			}
 		}
@@ -131,7 +131,7 @@ func (c *__dgi_Config) SinkSpecsForModel(modelName string) ([]*__dgi_SinkSpec, e
 		if m.ModelName == modelName {
             out := make([]*__dgi_SinkSpec, 0, len(m.TargetSinks))
             for _, sn := range m.TargetSinks {
-                if s := c.__dgi_findSinkByName(sn); s != nil {
+                if s := c.findSinkByName(sn); s != nil {
 					out = append(out, s)
 				}
 			}
@@ -141,7 +141,7 @@ func (c *__dgi_Config) SinkSpecsForModel(modelName string) ([]*__dgi_SinkSpec, e
 	return nil, fmt.Errorf("unknown model %q", modelName)
 }
 
-func (c *__dgi_Config) __dgi_findSinkByName(name string) *__dgi_SinkSpec {
+func (c *__dgi_Config) findSinkByName(name string) *__dgi_SinkSpec {
 	for i := range c.Sinks {
 		if c.Sinks[i].SinkName == name {
             return &c.Sinks[i]

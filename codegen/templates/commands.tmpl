@@ -146,7 +146,7 @@ func __dgi_runExecuteCommand(flagConfig, flagOutput string) error {
 			continue
 		}
 
-        datagen.__links.__dgi_StartGen(name)
+        datagen.__links.StartGen(name)
 
         slog.Debug(fmt.Sprintf("generating %d records for %s for sink loading", count, name))
 		records := make([]__dgi_Record, 0, count)
@@ -156,11 +156,11 @@ func __dgi_runExecuteCommand(flagConfig, flagOutput string) error {
 
 		allData[name] = records
 
-        datagen.__links.__dgi_EndGen(name)
+        datagen.__links.EndGen(name)
         slog.Debug(fmt.Sprintf("generated %d records for %s for sink loading", len(records), name))
 	}
 
-    topologicallySorted, err := datagen.__links.__dgi_TopologicalSort()
+    topologicallySorted, err := datagen.__links.TopologicalSort()
     if err != nil {
         slog.Warn(fmt.Sprintf("cannot perform topological sort, loading anyway: %s", err.Error()))
     } else {

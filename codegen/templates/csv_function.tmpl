@@ -1,4 +1,4 @@
-func (e *__datagen_{{.FullyQualifiedModelName}}) __dgi_ToCSV() []string {
+func (e *__datagen_{{.FullyQualifiedModelName}}) ToCSV() []string {
 	return []string{
 		{{- range .Fields}}
 		fmt.Sprintf("%v", e.{{.Name}}),
@@ -6,7 +6,7 @@ func (e *__datagen_{{.FullyQualifiedModelName}}) __dgi_ToCSV() []string {
 	}
 }
 
-func (e *__datagen_{{.FullyQualifiedModelName}}) __dgi_CSVHeaders() []string {
+func (e *__datagen_{{.FullyQualifiedModelName}}) CSVHeaders() []string {
 	return []string{
 		{{- range .Fields}}
 		"{{.Name}}",

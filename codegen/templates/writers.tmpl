@@ -21,10 +21,10 @@ const (
 )
 
 type __dgi_Record interface {
-    __dgi_ToCSV() []string
-    __dgi_CSVHeaders() []string
-    __dgi_ToJSON() string
-    __dgi_ToXML() string
+    ToCSV() []string
+    CSVHeaders() []string
+    ToJSON() string
+    ToXML() string
 }
 
 type __dgi_RecordGenerator func(i int) __dgi_Record
@@ -76,9 +76,9 @@ func __dgi_writeCSV(name string, records []__dgi_Record, outPath string) error {
 
     headersWritten := false
     for _, record := range records {
-        row := record.__dgi_ToCSV()
+        row := record.ToCSV()
         if !headersWritten {
-            if err := writer.Write(record.__dgi_CSVHeaders()); err != nil {
+            if err := writer.Write(record.CSVHeaders()); err != nil {
 				return fmt.Errorf("error writing CSV headers for %s: %w", name, err)
 			}
 			headersWritten = true
@@ -100,7 +100,7 @@ func __dgi_writeJSON(name string, records []__dgi_Record, outPath string) error 
 	jsonWriter := bufio.NewWriter(jsonFile)
 	defer jsonWriter.Flush()
     for _, record := range records {
-        jsonRow := record.__dgi_ToJSON()
+        jsonRow := record.ToJSON()
 		fmt.Fprintln(jsonWriter, jsonRow)
 	}
     slog.Info(fmt.Sprintf("generated JSON file %s with %d records", jsonFile.Name(), len(records)))
@@ -116,7 +116,7 @@ func __dgi_writeXML(name string, records []__dgi_Record, outPath string) error {
 	xmlWriter := bufio.NewWriter(xmlFile)
 	defer xmlWriter.Flush()
     for _, record := range records {
-        xmlRow := record.__dgi_ToXML()
+        xmlRow := record.ToXML()
 		fmt.Fprintln(xmlWriter, xmlRow)
 	}
     slog.Info(fmt.Sprintf("generated XML file %s with %d records", xmlFile.Name(), len(records)))
