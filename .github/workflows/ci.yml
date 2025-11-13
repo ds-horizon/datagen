@@ -31,5 +31,22 @@ jobs:
       - name: Run tests
         run: go test -v ./... -coverprofile=coverage.txt
 
+      - name: Check coverage threshold
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.txt | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Current coverage: ${COVERAGE}%"
+          COVERAGE_INT=$(echo "$COVERAGE" | awk -F. '{print $1}')
+          if [ "$COVERAGE_INT" -lt 50 ]; then
+            echo "Coverage ${COVERAGE}% is below the required 50% threshold"
+            exit 1
+          fi
+          echo "Coverage ${COVERAGE}% meets the required 50% threshold"
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.txt
+          flags: unittests
+          name: codecov-umbrella
