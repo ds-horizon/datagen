@@ -1,7 +1,6 @@
 name: Go Lint
 
 on:
-  push:
   pull_request:
 
 permissions:
