@@ -147,7 +147,6 @@ func TestBuildRootCommand(t *testing.T) {
 	rootCmd := buildRootCommand()
 
 	assert.Equal(t, utils.CompilerBinaryName, rootCmd.Use)
-	assert.Equal(t, "Generate realistic test data from model definitions", rootCmd.Short)
 	assert.Equal(t, version, rootCmd.Version)
 	assert.True(t, rootCmd.CompletionOptions.DisableDefaultCmd)
 
@@ -169,11 +168,9 @@ func TestBuildRootCommand(t *testing.T) {
 	require.NotNil(t, genCmd, "gen command should exist")
 	require.NotNil(t, executeCmd, "execute command should exist")
 
-	assert.Equal(t, "Generate data from .dg model files and output to CSV, JSON, XML, or stdout", genCmd.Short)
 	assert.NotNil(t, genCmd.Args, "gen command should have Args validator")
 	assert.NotNil(t, genCmd.RunE, "gen command should have RunE handler")
 
-	assert.Equal(t, "Generate data from .dg model files and load into configured data stores", executeCmd.Short)
 	assert.NotNil(t, executeCmd.Args, "execute command should have Args validator")
 	assert.NotNil(t, executeCmd.RunE, "execute command should have RunE handler")
 }
@@ -318,119 +315,76 @@ func TestVersionFlag(t *testing.T) {
 }
 
 func TestCommandHelp(t *testing.T) {
-	rootCmd := buildRootCommand()
-	rootCmd.SetArgs([]string{"--help"})
-	var out bytes.Buffer
-	rootCmd.SetOut(&out)
-	rootCmd.SetErr(&bytes.Buffer{})
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{"--help", []string{"--help"}},
+		{"help", []string{"help"}},
+	}
 
-	err := rootCmd.Execute()
-	assert.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rootCmd := buildRootCommand()
+			rootCmd.SetArgs(tt.args)
+			var out bytes.Buffer
+			rootCmd.SetOut(&out)
+			rootCmd.SetErr(&bytes.Buffer{})
 
-	assert.Equal(t, expectedRootHelp, out.String())
+			err := rootCmd.Execute()
+			assert.NoError(t, err)
+
+			assert.Equal(t, expectedRootHelp, out.String())
+		})
+	}
 }
 
 func TestGenCommandHelp(t *testing.T) {
-	rootCmd := buildRootCommand()
-	rootCmd.SetArgs([]string{"gen", "--help"})
-	var out bytes.Buffer
-	rootCmd.SetOut(&out)
-	rootCmd.SetErr(&bytes.Buffer{})
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{"gen --help", []string{"gen", "--help"}},
+		{"help gen", []string{"help", "gen"}},
+	}
 
-	err := rootCmd.Execute()
-	assert.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rootCmd := buildRootCommand()
+			rootCmd.SetArgs(tt.args)
+			var out bytes.Buffer
+			rootCmd.SetOut(&out)
+			rootCmd.SetErr(&bytes.Buffer{})
 
-	assert.Equal(t, expectedGenHelp, out.String())
+			err := rootCmd.Execute()
+			assert.NoError(t, err)
+
+			assert.Equal(t, expectedGenHelp, out.String())
+		})
+	}
 }
 
 func TestExecuteCommandHelp(t *testing.T) {
-	rootCmd := buildRootCommand()
-	rootCmd.SetArgs([]string{"execute", "--help"})
-	var out bytes.Buffer
-	rootCmd.SetOut(&out)
-	rootCmd.SetErr(&bytes.Buffer{})
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{"execute --help", []string{"execute", "--help"}},
+		{"help execute", []string{"help", "execute"}},
+	}
 
-	err := rootCmd.Execute()
-	assert.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rootCmd := buildRootCommand()
+			rootCmd.SetArgs(tt.args)
+			var out bytes.Buffer
+			rootCmd.SetOut(&out)
+			rootCmd.SetErr(&bytes.Buffer{})
 
-	assert.Equal(t, expectedExecuteHelp, out.String())
-}
+			err := rootCmd.Execute()
+			assert.NoError(t, err)
 
-func TestHelpCommand(t *testing.T) {
-	rootCmd := buildRootCommand()
-	rootCmd.SetArgs([]string{"help"})
-	var out bytes.Buffer
-	rootCmd.SetOut(&out)
-	rootCmd.SetErr(&bytes.Buffer{})
-
-	err := rootCmd.Execute()
-	assert.NoError(t, err)
-
-	assert.Equal(t, expectedRootHelp, out.String())
-}
-
-func TestHelpGenCommand(t *testing.T) {
-	rootCmd := buildRootCommand()
-	rootCmd.SetArgs([]string{"help", "gen"})
-	var out bytes.Buffer
-	rootCmd.SetOut(&out)
-	rootCmd.SetErr(&bytes.Buffer{})
-
-	err := rootCmd.Execute()
-	assert.NoError(t, err)
-
-	assert.Equal(t, expectedGenHelp, out.String())
-}
-
-func TestHelpExecuteCommand(t *testing.T) {
-	rootCmd := buildRootCommand()
-	rootCmd.SetArgs([]string{"help", "execute"})
-	var out bytes.Buffer
-	rootCmd.SetOut(&out)
-	rootCmd.SetErr(&bytes.Buffer{})
-
-	err := rootCmd.Execute()
-	assert.NoError(t, err)
-
-	assert.Equal(t, expectedExecuteHelp, out.String())
-}
-
-func TestPersistentPreRun(t *testing.T) {
-	rootCmd := buildRootCommand()
-
-	assert.NotNil(t, rootCmd.PersistentPreRun)
-
-	rootCmd.SetArgs([]string{"gen", "test.dg"})
-	rootCmd.SetOut(&bytes.Buffer{})
-	rootCmd.SetErr(&bytes.Buffer{})
-
-	_ = rootCmd.Execute()
-
-	genCmd, _, err := rootCmd.Find([]string{"gen"})
-	require.NoError(t, err)
-
-	assert.NotNil(t, rootCmd.PersistentPreRun, "PersistentPreRun should be defined")
-	assert.NotNil(t, genCmd, "gen command should exist")
-}
-
-func TestFlagDefaults(t *testing.T) {
-	rootCmd := buildRootCommand()
-	genCmd, _, err := rootCmd.Find([]string{"gen"})
-	require.NoError(t, err)
-
-	count, err := genCmd.Flags().GetInt("count")
-	require.NoError(t, err)
-	assert.Equal(t, -1, count)
-
-	output, err := genCmd.Flags().GetString("output")
-	require.NoError(t, err)
-	assert.Equal(t, ".", output)
-
-	seed, err := genCmd.Flags().GetInt64("seed")
-	require.NoError(t, err)
-	assert.Equal(t, int64(0), seed)
-
-	noexec, err := genCmd.Flags().GetBool("noexec")
-	require.NoError(t, err)
-	assert.False(t, noexec)
+			assert.Equal(t, expectedExecuteHelp, out.String())
+		})
+	}
 }

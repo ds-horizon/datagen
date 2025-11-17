@@ -36,11 +36,11 @@ jobs:
           COVERAGE=$(go tool cover -func=coverage.txt | grep total | awk '{print $3}' | sed 's/%//')
           echo "Current coverage: ${COVERAGE}%"
           COVERAGE_INT=$(echo "$COVERAGE" | awk -F. '{print $1}')
-          if [ "$COVERAGE_INT" -lt 5 ]; then
-            echo "Coverage ${COVERAGE}% is below the required 5% threshold"
+          if [ "$COVERAGE_INT" -lt 70 ]; then
+            echo "Coverage ${COVERAGE}% is below the required 70% threshold"
             exit 1
           fi
-          echo "Coverage ${COVERAGE}% meets the required 5% threshold"
+          echo "Coverage ${COVERAGE}% meets the required 70% threshold"
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
