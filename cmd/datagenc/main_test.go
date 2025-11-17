@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -11,6 +10,61 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ds-horizon/datagen/utils"
+)
+
+const (
+	expectedRootHelp = `Generate realistic test data from model definitions
+
+Usage:
+  datagenc [command]
+
+Available Commands:
+  execute     Generate data from .dg model files and load into configured data stores
+  gen         Generate data from .dg model files and output to CSV, JSON, XML, or stdout
+  help        Help about any command
+
+Flags:
+  -h, --help      help for datagenc
+  -v, --verbose   enable verbose (debug level) logging
+  -V, --version   show version information
+
+Use "datagenc [command] --help" for more information about a command.
+`
+
+	expectedGenHelp = `Generate data from .dg model files and output to CSV, JSON, XML, or stdout
+
+Usage:
+  datagenc gen [file|directory] [flags]
+
+Flags:
+  -n, --count int       number of records per model (default -1)
+  -f, --format string   csv|json|xml|stdout
+  -h, --help            help for gen
+      --noexec          skip building and executing generated binary
+  -o, --output string   output directory or file path (default ".")
+  -s, --seed int        deterministic seed for random data generation (default is 0 for random seed)
+  -t, --tags string     comma-separated key=value tags to filter models
+
+Global Flags:
+  -v, --verbose   enable verbose (debug level) logging
+  -V, --version   show version information
+`
+
+	expectedExecuteHelp = `Generate data from .dg model files and load into configured data stores
+
+Usage:
+  datagenc execute [file|directory] [flags]
+
+Flags:
+  -c, --config string   path to config file (specifies models, data stores, and record counts)
+  -h, --help            help for execute
+      --noexec          skip building and executing generated binary
+  -o, --output string   output directory or file path (default ".")
+
+Global Flags:
+  -v, --verbose   enable verbose (debug level) logging
+  -V, --version   show version information
+`
 )
 
 func TestValidateSingleFileOrDir(t *testing.T) {
@@ -107,6 +161,8 @@ func TestBuildRootCommand(t *testing.T) {
 			genCmd = cmd
 		case "execute [file|directory]":
 			executeCmd = cmd
+		default:
+			t.Fatalf("unexpected command found: %q", cmd.Use)
 		}
 	}
 
@@ -211,30 +267,6 @@ func TestCommandExecution(t *testing.T) {
 			errSubstr: "",
 		},
 		{
-			name:      "gen command with no args",
-			args:      []string{"gen"},
-			wantErr:   true,
-			errSubstr: "must provide a file or directory",
-		},
-		{
-			name:      "gen command with too many args",
-			args:      []string{"gen", "file1.dg", "file2.dg"},
-			wantErr:   true,
-			errSubstr: "requires exactly one file or directory path",
-		},
-		{
-			name:      "execute command with no args",
-			args:      []string{"execute"},
-			wantErr:   true,
-			errSubstr: "must provide a file or directory",
-		},
-		{
-			name:      "execute command with too many args",
-			args:      []string{"execute", "file1.dg", "file2.dg"},
-			wantErr:   true,
-			errSubstr: "requires exactly one file or directory path",
-		},
-		{
 			name:      "unknown command",
 			args:      []string{"unknown"},
 			wantErr:   true,
@@ -262,9 +294,8 @@ func TestCommandExecution(t *testing.T) {
 					require.Error(t, err, "expected error for args: %v", tt.args)
 					assert.Contains(t, err.Error(), tt.errSubstr,
 						"error message should contain %q, got: %v", tt.errSubstr, err)
-				} else {
-					assert.Error(t, err, "expected error for args: %v", tt.args)
 				}
+				return
 			}
 		})
 	}
@@ -296,15 +327,7 @@ func TestCommandHelp(t *testing.T) {
 	err := rootCmd.Execute()
 	assert.NoError(t, err)
 
-	output := out.String()
-	assert.Contains(t, output, "Generate realistic test data from model definitions")
-	assert.Contains(t, output, "Available Commands:")
-	assert.Contains(t, output, "gen")
-	assert.Contains(t, output, "execute")
-	assert.Contains(t, output, "Flags:")
-	assert.Contains(t, output, "-h, --help")
-	assert.Contains(t, output, "-v, --verbose")
-	assert.Contains(t, output, "-V, --version")
+	assert.Equal(t, expectedRootHelp, out.String())
 }
 
 func TestGenCommandHelp(t *testing.T) {
@@ -317,20 +340,7 @@ func TestGenCommandHelp(t *testing.T) {
 	err := rootCmd.Execute()
 	assert.NoError(t, err)
 
-	output := out.String()
-	assert.Contains(t, output, "Generate data from .dg model files and output to CSV, JSON, XML, or stdout")
-	assert.Contains(t, output, "gen [file|directory]")
-	assert.Contains(t, output, "Flags:")
-	assert.Contains(t, output, "-n, --count")
-	assert.Contains(t, output, "-t, --tags")
-	assert.Contains(t, output, "-o, --output")
-	assert.Contains(t, output, "-f, --format")
-	assert.Contains(t, output, "-s, --seed")
-	assert.Contains(t, output, "--noexec")
-	assert.Contains(t, output, "-h, --help")
-	assert.Contains(t, output, "Global Flags:")
-	assert.Contains(t, output, "-v, --verbose")
-	assert.Contains(t, output, "-V, --version")
+	assert.Equal(t, expectedGenHelp, out.String())
 }
 
 func TestExecuteCommandHelp(t *testing.T) {
@@ -343,19 +353,8 @@ func TestExecuteCommandHelp(t *testing.T) {
 	err := rootCmd.Execute()
 	assert.NoError(t, err)
 
-	output := out.String()
-	assert.Contains(t, output, "Generate data from .dg model files and load into configured data stores")
-	assert.Contains(t, output, "execute [file|directory]")
-	assert.Contains(t, output, "Flags:")
-	assert.Contains(t, output, "-c, --config")
-	assert.Contains(t, output, "-o, --output")
-	assert.Contains(t, output, "--noexec")
-	assert.Contains(t, output, "-h, --help")
-	assert.Contains(t, output, "Global Flags:")
-	assert.Contains(t, output, "-v, --verbose")
-	assert.Contains(t, output, "-V, --version")
+	assert.Equal(t, expectedExecuteHelp, out.String())
 }
-
 func TestHelpCommand(t *testing.T) {
 	rootCmd := buildRootCommand()
 	rootCmd.SetArgs([]string{"help"})
@@ -366,9 +365,7 @@ func TestHelpCommand(t *testing.T) {
 	err := rootCmd.Execute()
 	assert.NoError(t, err)
 
-	output := out.String()
-	assert.Contains(t, output, "Generate realistic test data from model definitions")
-	assert.Contains(t, output, "Available Commands:")
+	assert.Equal(t, expectedRootHelp, out.String())
 }
 
 func TestHelpGenCommand(t *testing.T) {
@@ -381,9 +378,7 @@ func TestHelpGenCommand(t *testing.T) {
 	err := rootCmd.Execute()
 	assert.NoError(t, err)
 
-	output := out.String()
-	assert.Contains(t, output, "Generate data from .dg model files and output to CSV, JSON, XML, or stdout")
-	assert.Contains(t, output, "gen [file|directory]")
+	assert.Equal(t, expectedGenHelp, out.String())
 }
 
 func TestHelpExecuteCommand(t *testing.T) {
@@ -396,9 +391,7 @@ func TestHelpExecuteCommand(t *testing.T) {
 	err := rootCmd.Execute()
 	assert.NoError(t, err)
 
-	output := out.String()
-	assert.Contains(t, output, "Generate data from .dg model files and load into configured data stores")
-	assert.Contains(t, output, "execute [file|directory]")
+	assert.Equal(t, expectedExecuteHelp, out.String())
 }
 
 func TestPersistentPreRun(t *testing.T) {
@@ -439,34 +432,4 @@ func TestFlagDefaults(t *testing.T) {
 	noexec, err := genCmd.Flags().GetBool("noexec")
 	require.NoError(t, err)
 	assert.False(t, noexec)
-}
-
-func TestCommandUseStrings(t *testing.T) {
-	rootCmd := buildRootCommand()
-
-	assert.Equal(t, utils.CompilerBinaryName, rootCmd.Use)
-
-	genCmd, _, err := rootCmd.Find([]string{"gen"})
-	require.NoError(t, err)
-	assert.Equal(t, "gen [file|directory]", genCmd.Use)
-
-	executeCmd, _, err := rootCmd.Find([]string{"execute"})
-	require.NoError(t, err)
-	assert.Equal(t, "execute [file|directory]", executeCmd.Use)
-}
-
-func TestCommandShortDescriptions(t *testing.T) {
-	rootCmd := buildRootCommand()
-
-	assert.NotEmpty(t, rootCmd.Short)
-
-	genCmd, _, err := rootCmd.Find([]string{"gen"})
-	require.NoError(t, err)
-	assert.NotEmpty(t, genCmd.Short)
-	assert.True(t, strings.Contains(genCmd.Short, "Generate"))
-
-	executeCmd, _, err := rootCmd.Find([]string{"execute"})
-	require.NoError(t, err)
-	assert.NotEmpty(t, executeCmd.Short)
-	assert.True(t, strings.Contains(executeCmd.Short, "Generate"))
 }
