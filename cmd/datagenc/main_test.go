@@ -355,6 +355,7 @@ func TestExecuteCommandHelp(t *testing.T) {
 
 	assert.Equal(t, expectedExecuteHelp, out.String())
 }
+
 func TestHelpCommand(t *testing.T) {
 	rootCmd := buildRootCommand()
 	rootCmd.SetArgs([]string{"help"})
