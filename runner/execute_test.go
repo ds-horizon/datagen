@@ -336,7 +336,7 @@ func TestFindAndTranspileDatagenModels(t *testing.T) {
 		}
 	}
 }`)
-				err := os.WriteFile(file, content, 0644)
+				err := os.WriteFile(file, content, 0600)
 				require.NoError(t, err)
 
 				return tmpDir, outDir
@@ -351,7 +351,7 @@ func TestFindAndTranspileDatagenModels(t *testing.T) {
 
 				// Create some non-.dg files
 				file := filepath.Join(tmpDir, "readme.txt")
-				err := os.WriteFile(file, []byte("Not a dg file"), 0644)
+				err := os.WriteFile(file, []byte("Not a dg file"), 0600)
 				require.NoError(t, err)
 
 				return tmpDir, outDir
@@ -400,7 +400,7 @@ func TestBuildAndRunGenFlagParsing(t *testing.T) {
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
 				tmpDir := t.TempDir()
 				file := filepath.Join(tmpDir, "Test.dg")
-				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0644)
+				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0600)
 				require.NoError(t, err)
 
 				cmd := &cobra.Command{}
@@ -447,11 +447,11 @@ func TestBuildAndRunExecuteFlagParsing(t *testing.T) {
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
 				tmpDir := t.TempDir()
 				file := filepath.Join(tmpDir, "Test.dg")
-				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0644)
+				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0600)
 				require.NoError(t, err)
 
 				configFile := filepath.Join(tmpDir, "config.yaml")
-				err = os.WriteFile(configFile, []byte("config: test"), 0644)
+				err = os.WriteFile(configFile, []byte("config: test"), 0600)
 				require.NoError(t, err)
 
 				cmd := &cobra.Command{}
@@ -484,57 +484,6 @@ func TestBuildAndRunExecuteFlagParsing(t *testing.T) {
 		})
 	}
 }
-
-// func TestInvokeGenCommandConstruction(t *testing.T) {
-// 	// This test validates the command construction logic without actually executing
-// 	t.Run("command construction with all flags", func(t *testing.T) {
-// 		outDir := t.TempDir()
-// 		inputPath := "/test/input.dg"
-//
-// 		// We can't easily test invokeGen without mocking, but we can test
-// 		// the command would be constructed correctly by examining the logic
-// 		tags := "tag1,tag2"
-// 		output := "/test/output"
-// 		format := "csv"
-// 		seed := int64(12345)
-// 		verbose := true
-//
-// 		// The function would construct args like:
-// 		expectedArgs := []string{"gen", inputPath, "-n", "100", "-t", "tag1,tag2", "-o", "/test/output", "-f", "csv", "--seed", "12345", "-v"}
-//
-// 		// Simulate what invokeGen does
-// 		args := []string{"gen", inputPath}
-// 		args = append(args, "-n", "100")
-// 		if tags != "" {
-// 			args = append(args, "-t", tags)
-// 		}
-// 		if output != "" {
-// 			args = append(args, "-o", output)
-// 		}
-// 		if format != "" {
-// 			args = append(args, "-f", format)
-// 		}
-// 		if seed != 0 {
-// 			args = append(args, "--seed", "12345")
-// 		}
-// 		if verbose {
-// 			args = append(args, "-v")
-// 		}
-//
-// 		assert.Equal(t, expectedArgs, args)
-// 		_ = outDir // Use the variable
-// 	})
-//
-// 	t.Run("command construction with minimal flags", func(t *testing.T) {
-// 		inputPath := "/test/input.dg"
-//
-// 		args := []string{"gen", inputPath}
-// 		args = append(args, "-n", "10")
-//
-// 		expectedArgs := []string{"gen", inputPath, "-n", "10"}
-// 		assert.Equal(t, expectedArgs, args)
-// 	})
-// }
 
 func TestLogCapturedOutput(t *testing.T) {
 	// This is a simple test to ensure the function doesn't panic
@@ -580,7 +529,7 @@ func TestBuildAndRunGenErrorCases(t *testing.T) {
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
 				tmpDir := t.TempDir()
 				file := filepath.Join(tmpDir, "Test.dg")
-				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0644)
+				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0600)
 				require.NoError(t, err)
 
 				cmd := &cobra.Command{}
@@ -595,7 +544,7 @@ func TestBuildAndRunGenErrorCases(t *testing.T) {
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
 				tmpDir := t.TempDir()
 				file := filepath.Join(tmpDir, "Bad.dg")
-				err := os.WriteFile(file, []byte(`model Bad { invalid syntax`), 0644)
+				err := os.WriteFile(file, []byte(`model Bad { invalid syntax`), 0600)
 				require.NoError(t, err)
 
 				cmd := &cobra.Command{}
@@ -645,7 +594,7 @@ func TestBuildAndRunExecuteErrorCases(t *testing.T) {
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
 				tmpDir := t.TempDir()
 				file := filepath.Join(tmpDir, "Test.dg")
-				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0644)
+				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0600)
 				require.NoError(t, err)
 
 				cmd := &cobra.Command{}
@@ -661,11 +610,11 @@ func TestBuildAndRunExecuteErrorCases(t *testing.T) {
 				tmpDir := t.TempDir()
 				file := filepath.Join(tmpDir, "Invalid.dg")
 				// Empty model that will fail validation
-				err := os.WriteFile(file, []byte(`model Invalid {}`), 0644)
+				err := os.WriteFile(file, []byte(`model Invalid {}`), 0600)
 				require.NoError(t, err)
 
 				configFile := filepath.Join(tmpDir, "config.yaml")
-				err = os.WriteFile(configFile, []byte("config: test"), 0644)
+				err = os.WriteFile(configFile, []byte("config: test"), 0600)
 				require.NoError(t, err)
 
 				cmd := &cobra.Command{}
@@ -717,7 +666,7 @@ func TestFindAndTranspileDatagenModelsEdgeCases(t *testing.T) {
 		}
 	}
 }`)
-		err := os.WriteFile(file, content, 0644)
+		err := os.WriteFile(file, content, 0600)
 		require.NoError(t, err)
 
 		err = findAndTranspileDatagenModels(outDir, tmpDir)
@@ -731,11 +680,11 @@ func TestFindAndTranspileDatagenModelsEdgeCases(t *testing.T) {
 
 		// Create multiple files, one with error
 		file1 := filepath.Join(tmpDir, "Good.dg")
-		err := os.WriteFile(file1, []byte(`model Good { fields { id() int } gens { func id() { return iter } } }`), 0644)
+		err := os.WriteFile(file1, []byte(`model Good { fields { id() int } gens { func id() { return iter } } }`), 0600)
 		require.NoError(t, err)
 
 		file2 := filepath.Join(tmpDir, "Bad.dg")
-		err = os.WriteFile(file2, []byte(`model Bad { invalid`), 0644)
+		err = os.WriteFile(file2, []byte(`model Bad { invalid`), 0600)
 		require.NoError(t, err)
 
 		err = findAndTranspileDatagenModels(outDir, tmpDir)

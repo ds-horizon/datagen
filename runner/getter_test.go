@@ -25,7 +25,7 @@ func TestGetDgFileStructure(t *testing.T) {
 				tmpDir := t.TempDir()
 				filePath := filepath.Join(tmpDir, "test.dg")
 				content := []byte("model Test { field() string }")
-				err := os.WriteFile(filePath, content, 0644)
+				err := os.WriteFile(filePath, content, 0600)
 				require.NoError(t, err)
 				return filePath, "test.dg"
 			},
@@ -46,7 +46,7 @@ func TestGetDgFileStructure(t *testing.T) {
 				tmpDir := t.TempDir()
 				filePath := filepath.Join(tmpDir, "test.txt")
 				content := []byte("not a dg file")
-				err := os.WriteFile(filePath, content, 0644)
+				err := os.WriteFile(filePath, content, 0600)
 				require.NoError(t, err)
 				return filePath, "test.txt"
 			},
@@ -95,7 +95,7 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 				tmpDir := t.TempDir()
 				filePath := filepath.Join(tmpDir, "model.dg")
 				content := []byte("model Example { id() int }")
-				err := os.WriteFile(filePath, content, 0644)
+				err := os.WriteFile(filePath, content, 0600)
 				require.NoError(t, err)
 				return tmpDir, ""
 			},
@@ -114,9 +114,9 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 				tmpDir := t.TempDir()
 				file1 := filepath.Join(tmpDir, "model1.dg")
 				file2 := filepath.Join(tmpDir, "model2.dg")
-				err := os.WriteFile(file1, []byte("model One {}"), 0644)
+				err := os.WriteFile(file1, []byte("model One {}"), 0600)
 				require.NoError(t, err)
-				err = os.WriteFile(file2, []byte("model Two {}"), 0644)
+				err = os.WriteFile(file2, []byte("model Two {}"), 0600)
 				require.NoError(t, err)
 				return tmpDir, ""
 			},
@@ -133,14 +133,14 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			setupFunc: func(t *testing.T) (string, string) {
 				tmpDir := t.TempDir()
 				subDir := filepath.Join(tmpDir, "subdir")
-				err := os.Mkdir(subDir, 0755)
+				err := os.Mkdir(subDir, 0750)
 				require.NoError(t, err)
 
 				file1 := filepath.Join(tmpDir, "root.dg")
 				file2 := filepath.Join(subDir, "nested.dg")
-				err = os.WriteFile(file1, []byte("model Root {}"), 0644)
+				err = os.WriteFile(file1, []byte("model Root {}"), 0600)
 				require.NoError(t, err)
-				err = os.WriteFile(file2, []byte("model Nested {}"), 0644)
+				err = os.WriteFile(file2, []byte("model Nested {}"), 0600)
 				require.NoError(t, err)
 				return tmpDir, ""
 			},
@@ -160,9 +160,9 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 				tmpDir := t.TempDir()
 				visibleFile := filepath.Join(tmpDir, "visible.dg")
 				hiddenFile := filepath.Join(tmpDir, ".hidden.dg")
-				err := os.WriteFile(visibleFile, []byte("model Visible {}"), 0644)
+				err := os.WriteFile(visibleFile, []byte("model Visible {}"), 0600)
 				require.NoError(t, err)
-				err = os.WriteFile(hiddenFile, []byte("model Hidden {}"), 0644)
+				err = os.WriteFile(hiddenFile, []byte("model Hidden {}"), 0600)
 				require.NoError(t, err)
 				return tmpDir, ""
 			},
@@ -180,9 +180,9 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 				tmpDir := t.TempDir()
 				dgFile := filepath.Join(tmpDir, "model.dg")
 				txtFile := filepath.Join(tmpDir, "readme.txt")
-				err := os.WriteFile(dgFile, []byte("model Test {}"), 0644)
+				err := os.WriteFile(dgFile, []byte("model Test {}"), 0600)
 				require.NoError(t, err)
-				err = os.WriteFile(txtFile, []byte("README"), 0644)
+				err = os.WriteFile(txtFile, []byte("README"), 0600)
 				require.NoError(t, err)
 				return tmpDir, ""
 			},
@@ -211,7 +211,7 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			setupFunc: func(t *testing.T) (string, string) {
 				tmpDir := t.TempDir()
 				subDir := filepath.Join(tmpDir, "bad name")
-				err := os.Mkdir(subDir, 0755)
+				err := os.Mkdir(subDir, 0750)
 				require.NoError(t, err)
 				return tmpDir, ""
 			},
@@ -223,7 +223,7 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			setupFunc: func(t *testing.T) (string, string) {
 				tmpDir := t.TempDir()
 				badFile := filepath.Join(tmpDir, "bad file.dg")
-				err := os.WriteFile(badFile, []byte("model Test {}"), 0644)
+				err := os.WriteFile(badFile, []byte("model Test {}"), 0600)
 				require.NoError(t, err)
 				return tmpDir, ""
 			},
@@ -243,11 +243,11 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			setupFunc: func(t *testing.T) (string, string) {
 				tmpDir := t.TempDir()
 				subDir := filepath.Join(tmpDir, "sub1", "sub2")
-				err := os.MkdirAll(subDir, 0755)
+				err := os.MkdirAll(subDir, 0750)
 				require.NoError(t, err)
 
 				file := filepath.Join(subDir, "nested.dg")
-				err = os.WriteFile(file, []byte("model Nested {}"), 0644)
+				err = os.WriteFile(file, []byte("model Nested {}"), 0600)
 				require.NoError(t, err)
 				return tmpDir, filepath.Join("sub1", "sub2")
 			},
@@ -289,7 +289,7 @@ func TestGetDgDirStructure(t *testing.T) {
 				tmpDir := t.TempDir()
 				filePath := filepath.Join(tmpDir, "single.dg")
 				content := []byte("model Single { id() int }")
-				err := os.WriteFile(filePath, content, 0644)
+				err := os.WriteFile(filePath, content, 0600)
 				require.NoError(t, err)
 				return filePath, ""
 			},
@@ -305,7 +305,7 @@ func TestGetDgDirStructure(t *testing.T) {
 			setupFunc: func(t *testing.T) (string, string) {
 				tmpDir := t.TempDir()
 				file := filepath.Join(tmpDir, "model.dg")
-				err := os.WriteFile(file, []byte("model Test {}"), 0644)
+				err := os.WriteFile(file, []byte("model Test {}"), 0600)
 				require.NoError(t, err)
 				return tmpDir, ""
 			},
@@ -345,11 +345,11 @@ func TestDgDirStructureModelPaths(t *testing.T) {
 	t.Run("model path delimiter conversion", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		subDir := filepath.Join(tmpDir, "models", "users")
-		err := os.MkdirAll(subDir, 0755)
+		err := os.MkdirAll(subDir, 0750)
 		require.NoError(t, err)
 
 		file := filepath.Join(subDir, "User.dg")
-		err = os.WriteFile(file, []byte("model User {}"), 0644)
+		err = os.WriteFile(file, []byte("model User {}"), 0600)
 		require.NoError(t, err)
 
 		result, err := GetDgDirectoryStructure(tmpDir, "")
@@ -374,7 +374,7 @@ func TestDgDirModelCount(t *testing.T) {
 
 		// Create root level file
 		rootFile := filepath.Join(tmpDir, "root.dg")
-		err := os.WriteFile(rootFile, []byte("model Root {}"), 0644)
+		err := os.WriteFile(rootFile, []byte("model Root {}"), 0600)
 		require.NoError(t, err)
 
 		// Create nested directory with files
@@ -388,11 +388,11 @@ func TestDgDirModelCount(t *testing.T) {
 		file1 := filepath.Join(subDir1, "model1.dg")
 		file2 := filepath.Join(subDir2, "model2.dg")
 		file3 := filepath.Join(subDir2, "model3.dg")
-		err = os.WriteFile(file1, []byte("model M1 {}"), 0644)
+		err = os.WriteFile(file1, []byte("model M1 {}"), 0600)
 		require.NoError(t, err)
-		err = os.WriteFile(file2, []byte("model M2 {}"), 0644)
+		err = os.WriteFile(file2, []byte("model M2 {}"), 0600)
 		require.NoError(t, err)
-		err = os.WriteFile(file3, []byte("model M3 {}"), 0644)
+		err = os.WriteFile(file3, []byte("model M3 {}"), 0600)
 		require.NoError(t, err)
 
 		result, err := GetDgDirectoryStructure(tmpDir, "")
@@ -407,9 +407,8 @@ func TestGetDgDirectoryStructureDeepNesting(t *testing.T) {
 	t.Run("deeply nested directory structure", func(t *testing.T) {
 		tmpDir := t.TempDir()
 
-
 		deepPath := filepath.Join(tmpDir, "level1", "level2", "level3", "level4")
-		err := os.MkdirAll(deepPath, 0755)
+		err := os.MkdirAll(deepPath, 0750)
 		require.NoError(t, err)
 
 		for i, level := range []string{
@@ -421,7 +420,7 @@ func TestGetDgDirectoryStructureDeepNesting(t *testing.T) {
 		} {
 			file := filepath.Join(level, "model.dg")
 			content := []byte("model Level {}")
-			err = os.WriteFile(file, content, 0644)
+			err = os.WriteFile(file, content, 0600)
 			require.NoError(t, err)
 			_ = i
 		}
@@ -441,27 +440,27 @@ func TestGetDgDirectoryStructureComplexPaths(t *testing.T) {
 		apiV2 := filepath.Join(tmpDir, "api", "v2")
 		internal := filepath.Join(tmpDir, "internal", "models")
 
-		err := os.MkdirAll(apiV1, 0755)
+		err := os.MkdirAll(apiV1, 0750)
 		require.NoError(t, err)
-		err = os.MkdirAll(apiV2, 0755)
+		err = os.MkdirAll(apiV2, 0750)
 		require.NoError(t, err)
-		err = os.MkdirAll(internal, 0755)
+		err = os.MkdirAll(internal, 0750)
 		require.NoError(t, err)
 
 		// Add multiple models in api/v1
-		err = os.WriteFile(filepath.Join(apiV1, "User.dg"), []byte("model User {}"), 0644)
+		err = os.WriteFile(filepath.Join(apiV1, "User.dg"), []byte("model User {}"), 0600)
 		require.NoError(t, err)
-		err = os.WriteFile(filepath.Join(apiV1, "Order.dg"), []byte("model Order {}"), 0644)
+		err = os.WriteFile(filepath.Join(apiV1, "Order.dg"), []byte("model Order {}"), 0600)
 		require.NoError(t, err)
 
 		// Add models in api/v2
-		err = os.WriteFile(filepath.Join(apiV2, "Product.dg"), []byte("model Product {}"), 0644)
+		err = os.WriteFile(filepath.Join(apiV2, "Product.dg"), []byte("model Product {}"), 0600)
 		require.NoError(t, err)
 
 		// Add models in internal/models
-		err = os.WriteFile(filepath.Join(internal, "Config.dg"), []byte("model Config {}"), 0644)
+		err = os.WriteFile(filepath.Join(internal, "Config.dg"), []byte("model Config {}"), 0600)
 		require.NoError(t, err)
-		err = os.WriteFile(filepath.Join(internal, "Settings.dg"), []byte("model Settings {}"), 0644)
+		err = os.WriteFile(filepath.Join(internal, "Settings.dg"), []byte("model Settings {}"), 0600)
 		require.NoError(t, err)
 
 		result, err := GetDgDirectoryStructure(tmpDir, "")
@@ -475,11 +474,11 @@ func TestGetDgDirectoryStructureComplexPaths(t *testing.T) {
 
 		// Create nested structure
 		nestedPath := filepath.Join(tmpDir, "a", "b", "c")
-		err := os.MkdirAll(nestedPath, 0755)
+		err := os.MkdirAll(nestedPath, 0750)
 		require.NoError(t, err)
 
 		// Add a file in the nested path
-		err = os.WriteFile(filepath.Join(nestedPath, "Deep.dg"), []byte("model Deep {}"), 0644)
+		err = os.WriteFile(filepath.Join(nestedPath, "Deep.dg"), []byte("model Deep {}"), 0600)
 		require.NoError(t, err)
 
 		// Test with cumulated path
@@ -496,7 +495,7 @@ func TestGetDgFileStructureEdgeCases(t *testing.T) {
 
 		// Test with file containing underscore and numbers
 		file := filepath.Join(tmpDir, "Model_v2_test.dg")
-		err := os.WriteFile(file, []byte("model Test {}"), 0644)
+		err := os.WriteFile(file, []byte("model Test {}"), 0600)
 		require.NoError(t, err)
 
 		result, err := GetDgFileStructure(file, "Model_v2_test.dg")
@@ -509,7 +508,7 @@ func TestGetDgFileStructureEdgeCases(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		file := filepath.Join(tmpDir, "Empty.dg")
-		err := os.WriteFile(file, []byte(""), 0644)
+		err := os.WriteFile(file, []byte(""), 0600)
 		require.NoError(t, err)
 
 		result, err := GetDgFileStructure(file, "Empty.dg")
@@ -533,7 +532,7 @@ func TestGetDgFileStructureEdgeCases(t *testing.T) {
 		largeModel += "  }\n}"
 
 		file := filepath.Join(tmpDir, "LargeModel.dg")
-		err := os.WriteFile(file, []byte(largeModel), 0644)
+		err := os.WriteFile(file, []byte(largeModel), 0600)
 		require.NoError(t, err)
 
 		result, err := GetDgFileStructure(file, "LargeModel.dg")
@@ -548,21 +547,21 @@ func TestGetDgDirectoryStructureWithMixedContent(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		// Create root level .dg file
-		err := os.WriteFile(filepath.Join(tmpDir, "Root.dg"), []byte("model Root {}"), 0644)
+		err := os.WriteFile(filepath.Join(tmpDir, "Root.dg"), []byte("model Root {}"), 0600)
 		require.NoError(t, err)
 
 		// Create subdirectory with files
 		subDir := filepath.Join(tmpDir, "subdir")
 		err = os.Mkdir(subDir, 0755)
 		require.NoError(t, err)
-		err = os.WriteFile(filepath.Join(subDir, "Sub.dg"), []byte("model Sub {}"), 0644)
+		err = os.WriteFile(filepath.Join(subDir, "Sub.dg"), []byte("model Sub {}"), 0600)
 		require.NoError(t, err)
 
 		// Create nested subdirectory
 		nestedDir := filepath.Join(subDir, "nested")
 		err = os.Mkdir(nestedDir, 0755)
 		require.NoError(t, err)
-		err = os.WriteFile(filepath.Join(nestedDir, "Nested.dg"), []byte("model Nested {}"), 0644)
+		err = os.WriteFile(filepath.Join(nestedDir, "Nested.dg"), []byte("model Nested {}"), 0600)
 		require.NoError(t, err)
 
 		result, err := GetDgDirectoryStructure(tmpDir, "")
@@ -577,14 +576,14 @@ func TestGetDgDirectoryStructureWithMixedContent(t *testing.T) {
 		tmpDir := t.TempDir()
 
 		// Create visible file
-		err := os.WriteFile(filepath.Join(tmpDir, "Visible.dg"), []byte("model Visible {}"), 0644)
+		err := os.WriteFile(filepath.Join(tmpDir, "Visible.dg"), []byte("model Visible {}"), 0600)
 		require.NoError(t, err)
 
 		// Create hidden directory with files
 		hiddenDir := filepath.Join(tmpDir, ".hidden")
 		err = os.Mkdir(hiddenDir, 0755)
 		require.NoError(t, err)
-		err = os.WriteFile(filepath.Join(hiddenDir, "Hidden.dg"), []byte("model Hidden {}"), 0644)
+		err = os.WriteFile(filepath.Join(hiddenDir, "Hidden.dg"), []byte("model Hidden {}"), 0600)
 		require.NoError(t, err)
 
 		result, err := GetDgDirectoryStructure(tmpDir, "")
@@ -600,7 +599,7 @@ func TestGetDgDirStructureWithBothFileAndDirectory(t *testing.T) {
 
 		// Create a single .dg file
 		file := filepath.Join(tmpDir, "Single.dg")
-		err := os.WriteFile(file, []byte("model Single {}"), 0644)
+		err := os.WriteFile(file, []byte("model Single {}"), 0600)
 		require.NoError(t, err)
 
 		// Test with file path
