@@ -24,7 +24,7 @@ var (
 	version     = "dev"
 )
 
-func main() {
+func buildRootCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:     utils.CompilerBinaryName,
 		Short:   "Generate realistic test data from model definitions",
@@ -71,6 +71,12 @@ func main() {
 	executeCmd.Flags().BoolVar(&flagNoExec, "noexec", false, "skip building and executing generated binary")
 
 	rootCmd.AddCommand(executeCmd)
+
+	return rootCmd
+}
+
+func main() {
+	rootCmd := buildRootCommand()
 
 	if flagVersion {
 		fmt.Printf("datagenc version %s\n", version)
