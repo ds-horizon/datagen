@@ -36,17 +36,18 @@ func TestIntegrationTranspileValidModels(t *testing.T) {
 		goldenFile := filepath.Join(goldenFilesDir, fileName)
 
 		t.Run(fileName, func(t *testing.T) {
-		if _, err := os.Stat(goldenFile); os.IsNotExist(err) {
-			t.Logf("Warning: golden file does not exist: %s", goldenFile)
-			t.Skip("golden file not found")
-			return
-		}
+			_, err := os.Stat(goldenFile)
+			if os.IsNotExist(err) {
+				t.Logf("Warning: golden file does not exist: %s", goldenFile)
+				t.Skip("golden file not found")
+				return
+			}
 
-		generatedContent, err := os.ReadFile(generatedFile) // #nosec G304 -- Test file path constructed from known test directory
-		require.NoError(t, err, "failed to read generated file: %s", generatedFile)
+			generatedContent, err := os.ReadFile(generatedFile) // #nosec G304 -- Test file path constructed from known test directory
+			require.NoError(t, err, "failed to read generated file: %s", generatedFile)
 
-		goldenContent, err := os.ReadFile(goldenFile) // #nosec G304 -- Golden file path constructed from known test directory
-		require.NoError(t, err, "failed to read golden file: %s", goldenFile)
+			goldenContent, err := os.ReadFile(goldenFile) // #nosec G304 -- Golden file path constructed from known test directory
+			require.NoError(t, err, "failed to read golden file: %s", goldenFile)
 
 			assert.Equal(t, goldenContent, generatedContent,
 				"Generated file %s does not match golden file %s", fileName, goldenFile)
@@ -122,16 +123,17 @@ func TestIntegrationTranspileSpecificModel(t *testing.T) {
 					}
 					require.NoError(t, err, "error checking generated file")
 
-				if _, err := os.Stat(goldenFile); os.IsNotExist(err) {
-					t.Skip("golden file not found")
-					return
-				}
+					_, err = os.Stat(goldenFile)
+					if os.IsNotExist(err) {
+						t.Skip("golden file not found")
+						return
+					}
 
-				generatedContent, err := os.ReadFile(generatedFile) // #nosec G304 -- Test file path constructed from known test directory
-				require.NoError(t, err, "failed to read generated file")
+					generatedContent, err := os.ReadFile(generatedFile) // #nosec G304 -- Test file path constructed from known test directory
+					require.NoError(t, err, "failed to read generated file")
 
-				goldenContent, err := os.ReadFile(goldenFile) // #nosec G304 -- Golden file path constructed from known test directory
-				require.NoError(t, err, "failed to read golden file")
+					goldenContent, err := os.ReadFile(goldenFile) // #nosec G304 -- Golden file path constructed from known test directory
+					require.NoError(t, err, "failed to read golden file")
 
 					assert.Equal(t, goldenContent, generatedContent,
 						"Generated file does not match golden file")
@@ -210,7 +212,7 @@ func TestIntegrationUpdateGoldenFiles(t *testing.T) {
 		fileName := filepath.Base(generatedFile)
 		goldenFile := filepath.Join(goldenFilesDir, fileName)
 
-		content, err := os.ReadFile(generatedFile)
+		content, err := os.ReadFile(generatedFile) // #nosec G304 -- Test file path constructed from known test directory
 		require.NoError(t, err)
 
 		err = os.WriteFile(goldenFile, content, 0o600)
