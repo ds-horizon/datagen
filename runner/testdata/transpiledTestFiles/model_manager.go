@@ -24,14 +24,8 @@ type Metadata struct {
 	Tags  map[string]string
 }
 
-func with_conditionalsFunc(model *__datagen_with_conditionalsGenerator, tail string) func() *__datagen_with_conditionalsGenerator {
-	return func() *__datagen_with_conditionalsGenerator {
-		model.datagen.__links.AcceptSignal(tail)
-		return model
-	}
-}
-func with_slicesFunc(model *__datagen_with_slicesGenerator, tail string) func() *__datagen_with_slicesGenerator {
-	return func() *__datagen_with_slicesGenerator {
+func minimalFunc(model *__datagen_minimalGenerator, tail string) func() *__datagen_minimalGenerator {
+	return func() *__datagen_minimalGenerator {
 		model.datagen.__links.AcceptSignal(tail)
 		return model
 	}
@@ -54,6 +48,18 @@ func simpleFunc(model *__datagen_simpleGenerator, tail string) func() *__datagen
 		return model
 	}
 }
+func with_builtin_functionsFunc(model *__datagen_with_builtin_functionsGenerator, tail string) func() *__datagen_with_builtin_functionsGenerator {
+	return func() *__datagen_with_builtin_functionsGenerator {
+		model.datagen.__links.AcceptSignal(tail)
+		return model
+	}
+}
+func with_conditionalsFunc(model *__datagen_with_conditionalsGenerator, tail string) func() *__datagen_with_conditionalsGenerator {
+	return func() *__datagen_with_conditionalsGenerator {
+		model.datagen.__links.AcceptSignal(tail)
+		return model
+	}
+}
 func with_mapsFunc(model *__datagen_with_mapsGenerator, tail string) func() *__datagen_with_mapsGenerator {
 	return func() *__datagen_with_mapsGenerator {
 		model.datagen.__links.AcceptSignal(tail)
@@ -72,30 +78,24 @@ func with_miscFunc(model *__datagen_with_miscGenerator, tail string) func() *__d
 		return model
 	}
 }
-func minimalFunc(model *__datagen_minimalGenerator, tail string) func() *__datagen_minimalGenerator {
-	return func() *__datagen_minimalGenerator {
-		model.datagen.__links.AcceptSignal(tail)
-		return model
-	}
-}
-func with_builtin_functionsFunc(model *__datagen_with_builtin_functionsGenerator, tail string) func() *__datagen_with_builtin_functionsGenerator {
-	return func() *__datagen_with_builtin_functionsGenerator {
+func with_slicesFunc(model *__datagen_with_slicesGenerator, tail string) func() *__datagen_with_slicesGenerator {
+	return func() *__datagen_with_slicesGenerator {
 		model.datagen.__links.AcceptSignal(tail)
 		return model
 	}
 }
 
 func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) {
-	with_conditionalsGenerator := __init___datagen_with_conditionalsGenerator()
-	with_slicesGenerator := __init___datagen_with_slicesGenerator()
+	minimalGenerator := __init___datagen_minimalGenerator()
 	multiple_typesGenerator := __init___datagen_multiple_typesGenerator()
 	nestedGenerator := __init___datagen_nestedGenerator()
 	simpleGenerator := __init___datagen_simpleGenerator()
+	with_builtin_functionsGenerator := __init___datagen_with_builtin_functionsGenerator()
+	with_conditionalsGenerator := __init___datagen_with_conditionalsGenerator()
 	with_mapsGenerator := __init___datagen_with_mapsGenerator()
 	with_metadataGenerator := __init___datagen_with_metadataGenerator()
 	with_miscGenerator := __init___datagen_with_miscGenerator()
-	minimalGenerator := __init___datagen_minimalGenerator()
-	with_builtin_functionsGenerator := __init___datagen_with_builtin_functionsGenerator()
+	with_slicesGenerator := __init___datagen_with_slicesGenerator()
 
 	// Construct directory instances bottom-up so children are available
 
@@ -116,29 +116,29 @@ func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) 
 			data: map[string]map[string]struct{}{},
 		},
 	}
-	with_conditionalsGenerator.datagen = datagen
-	with_slicesGenerator.datagen = datagen
+	minimalGenerator.datagen = datagen
 	multiple_typesGenerator.datagen = datagen
 	nestedGenerator.datagen = datagen
 	simpleGenerator.datagen = datagen
+	with_builtin_functionsGenerator.datagen = datagen
+	with_conditionalsGenerator.datagen = datagen
 	with_mapsGenerator.datagen = datagen
 	with_metadataGenerator.datagen = datagen
 	with_miscGenerator.datagen = datagen
-	minimalGenerator.datagen = datagen
-	with_builtin_functionsGenerator.datagen = datagen
+	with_slicesGenerator.datagen = datagen
 
 	// model registry
 	models := map[string]RecordGenerator{
-		"with_conditionals":      with_conditionalsGenerator.Gen,
-		"with_slices":            with_slicesGenerator.Gen,
+		"minimal":                minimalGenerator.Gen,
 		"multiple_types":         multiple_typesGenerator.Gen,
 		"nested":                 nestedGenerator.Gen,
 		"simple":                 simpleGenerator.Gen,
+		"with_builtin_functions": with_builtin_functionsGenerator.Gen,
+		"with_conditionals":      with_conditionalsGenerator.Gen,
 		"with_maps":              with_mapsGenerator.Gen,
 		"with_metadata":          with_metadataGenerator.Gen,
 		"with_misc":              with_miscGenerator.Gen,
-		"minimal":                minimalGenerator.Gen,
-		"with_builtin_functions": with_builtin_functionsGenerator.Gen,
+		"with_slices":            with_slicesGenerator.Gen,
 	}
 
 	return datagen, models

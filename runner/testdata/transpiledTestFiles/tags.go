@@ -37,11 +37,8 @@ func parseTags(tagsStr string) (map[string]string, error) {
 
 func getModelsMetadata(datagen *DataGenGenerators) map[string]Metadata {
 	out := make(map[string]Metadata)
-	if datagen.with_conditionals != nil {
-		out["with_conditionals"] = datagen.with_conditionals().Metadata()
-	}
-	if datagen.with_slices != nil {
-		out["with_slices"] = datagen.with_slices().Metadata()
+	if datagen.minimal != nil {
+		out["minimal"] = datagen.minimal().Metadata()
 	}
 	if datagen.multiple_types != nil {
 		out["multiple_types"] = datagen.multiple_types().Metadata()
@@ -52,6 +49,12 @@ func getModelsMetadata(datagen *DataGenGenerators) map[string]Metadata {
 	if datagen.simple != nil {
 		out["simple"] = datagen.simple().Metadata()
 	}
+	if datagen.with_builtin_functions != nil {
+		out["with_builtin_functions"] = datagen.with_builtin_functions().Metadata()
+	}
+	if datagen.with_conditionals != nil {
+		out["with_conditionals"] = datagen.with_conditionals().Metadata()
+	}
 	if datagen.with_maps != nil {
 		out["with_maps"] = datagen.with_maps().Metadata()
 	}
@@ -61,11 +64,8 @@ func getModelsMetadata(datagen *DataGenGenerators) map[string]Metadata {
 	if datagen.with_misc != nil {
 		out["with_misc"] = datagen.with_misc().Metadata()
 	}
-	if datagen.minimal != nil {
-		out["minimal"] = datagen.minimal().Metadata()
-	}
-	if datagen.with_builtin_functions != nil {
-		out["with_builtin_functions"] = datagen.with_builtin_functions().Metadata()
+	if datagen.with_slices != nil {
+		out["with_slices"] = datagen.with_slices().Metadata()
 	}
 	return out
 }

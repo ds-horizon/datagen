@@ -106,20 +106,13 @@ func loadMysqlSink(sinkSpec *SinkSpec, modelName string, records []Record) error
 	}
 
 	switch modelName {
-	case "with_conditionals":
-		typed := make([]*__datagen_with_conditionals, 0, len(records))
+	case "minimal":
+		typed := make([]*__datagen_minimal, 0, len(records))
 		for _, r := range records {
-			typed = append(typed, r.(*__datagen_with_conditionals))
+			typed = append(typed, r.(*__datagen_minimal))
 		}
 
-		return Sink_mysql___datagen_with_conditionals_data(modelName, typed, &sc)
-	case "with_slices":
-		typed := make([]*__datagen_with_slices, 0, len(records))
-		for _, r := range records {
-			typed = append(typed, r.(*__datagen_with_slices))
-		}
-
-		return Sink_mysql___datagen_with_slices_data(modelName, typed, &sc)
+		return Sink_mysql___datagen_minimal_data(modelName, typed, &sc)
 	case "multiple_types":
 		typed := make([]*__datagen_multiple_types, 0, len(records))
 		for _, r := range records {
@@ -141,6 +134,20 @@ func loadMysqlSink(sinkSpec *SinkSpec, modelName string, records []Record) error
 		}
 
 		return Sink_mysql___datagen_simple_data(modelName, typed, &sc)
+	case "with_builtin_functions":
+		typed := make([]*__datagen_with_builtin_functions, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_with_builtin_functions))
+		}
+
+		return Sink_mysql___datagen_with_builtin_functions_data(modelName, typed, &sc)
+	case "with_conditionals":
+		typed := make([]*__datagen_with_conditionals, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_with_conditionals))
+		}
+
+		return Sink_mysql___datagen_with_conditionals_data(modelName, typed, &sc)
 	case "with_maps":
 		typed := make([]*__datagen_with_maps, 0, len(records))
 		for _, r := range records {
@@ -162,20 +169,13 @@ func loadMysqlSink(sinkSpec *SinkSpec, modelName string, records []Record) error
 		}
 
 		return Sink_mysql___datagen_with_misc_data(modelName, typed, &sc)
-	case "minimal":
-		typed := make([]*__datagen_minimal, 0, len(records))
+	case "with_slices":
+		typed := make([]*__datagen_with_slices, 0, len(records))
 		for _, r := range records {
-			typed = append(typed, r.(*__datagen_minimal))
+			typed = append(typed, r.(*__datagen_with_slices))
 		}
 
-		return Sink_mysql___datagen_minimal_data(modelName, typed, &sc)
-	case "with_builtin_functions":
-		typed := make([]*__datagen_with_builtin_functions, 0, len(records))
-		for _, r := range records {
-			typed = append(typed, r.(*__datagen_with_builtin_functions))
-		}
-
-		return Sink_mysql___datagen_with_builtin_functions_data(modelName, typed, &sc)
+		return Sink_mysql___datagen_with_slices_data(modelName, typed, &sc)
 	default:
 		return fmt.Errorf("mysql sink not implemented for model %q", modelName)
 	}
@@ -188,26 +188,26 @@ func clearMysqlSink(sinkSpec *SinkSpec, modelName string) error {
 	}
 
 	switch modelName {
-	case "with_conditionals":
-		return Clear_mysql___datagen_with_conditionals_data(modelName, &sc)
-	case "with_slices":
-		return Clear_mysql___datagen_with_slices_data(modelName, &sc)
+	case "minimal":
+		return Clear_mysql___datagen_minimal_data(modelName, &sc)
 	case "multiple_types":
 		return Clear_mysql___datagen_multiple_types_data(modelName, &sc)
 	case "nested":
 		return Clear_mysql___datagen_nested_data(modelName, &sc)
 	case "simple":
 		return Clear_mysql___datagen_simple_data(modelName, &sc)
+	case "with_builtin_functions":
+		return Clear_mysql___datagen_with_builtin_functions_data(modelName, &sc)
+	case "with_conditionals":
+		return Clear_mysql___datagen_with_conditionals_data(modelName, &sc)
 	case "with_maps":
 		return Clear_mysql___datagen_with_maps_data(modelName, &sc)
 	case "with_metadata":
 		return Clear_mysql___datagen_with_metadata_data(modelName, &sc)
 	case "with_misc":
 		return Clear_mysql___datagen_with_misc_data(modelName, &sc)
-	case "minimal":
-		return Clear_mysql___datagen_minimal_data(modelName, &sc)
-	case "with_builtin_functions":
-		return Clear_mysql___datagen_with_builtin_functions_data(modelName, &sc)
+	case "with_slices":
+		return Clear_mysql___datagen_with_slices_data(modelName, &sc)
 	default:
 		return fmt.Errorf("mysql sink not implemented for model %q", modelName)
 	}
