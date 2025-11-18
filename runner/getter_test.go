@@ -34,9 +34,10 @@ func TestGetDgFileStructure(t *testing.T) {
 			validate: func(t *testing.T, result *utils.DgDir) {
 				assert.NotNil(t, result)
 				assert.Equal(t, "test.dg", result.Name)
-				assert.Equal(t, 1, len(result.Models))
-				assert.Contains(t, result.Models, "test")
-				assert.Equal(t, []byte("model Test { field() string }"), result.Models["test"])
+				assert.Equal(t, 1, result.Models.Len())
+				value, exists := result.Models.Get("test")
+				assert.True(t, exists, "key 'test' should exist")
+				assert.Equal(t, []byte("model Test { field() string }"), value)
 				assert.Equal(t, 0, len(result.Children))
 			},
 		},
@@ -103,8 +104,9 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			validate: func(t *testing.T, result *utils.DgDir) {
 				assert.NotNil(t, result)
 				assert.Equal(t, "", result.Name)
-				assert.Equal(t, 1, len(result.Models))
-				assert.Contains(t, result.Models, "model")
+				assert.Equal(t, 1, result.Models.Len())
+				_, exists := result.Models.Get("model")
+				assert.True(t, exists, "key 'model' should exist")
 				assert.Equal(t, 0, len(result.Children))
 			},
 		},
@@ -123,9 +125,11 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			expectedError: false,
 			validate: func(t *testing.T, result *utils.DgDir) {
 				assert.NotNil(t, result)
-				assert.Equal(t, 2, len(result.Models))
-				assert.Contains(t, result.Models, "model1")
-				assert.Contains(t, result.Models, "model2")
+				assert.Equal(t, 2, result.Models.Len())
+				_, exists := result.Models.Get("model1")
+				assert.True(t, exists, "key 'model1' should exist")
+				_, exists = result.Models.Get("model2")
+				assert.True(t, exists, "key 'model2' should exist")
 			},
 		},
 		{
@@ -147,11 +151,12 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			expectedError: false,
 			validate: func(t *testing.T, result *utils.DgDir) {
 				assert.NotNil(t, result)
-				assert.Equal(t, 1, len(result.Models))
-				assert.Contains(t, result.Models, "root")
+				assert.Equal(t, 1, result.Models.Len())
+				_, exists := result.Models.Get("root")
+				assert.True(t, exists, "key 'root' should exist")
 				assert.Equal(t, 1, len(result.Children))
 				assert.Equal(t, "subdir", result.Children[0].Name)
-				assert.Equal(t, 1, len(result.Children[0].Models))
+				assert.Equal(t, 1, result.Children[0].Models.Len())
 			},
 		},
 		{
@@ -169,9 +174,11 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			expectedError: false,
 			validate: func(t *testing.T, result *utils.DgDir) {
 				assert.NotNil(t, result)
-				assert.Equal(t, 1, len(result.Models))
-				assert.Contains(t, result.Models, "visible")
-				assert.NotContains(t, result.Models, "hidden")
+				assert.Equal(t, 1, result.Models.Len())
+				_, exists := result.Models.Get("visible")
+				assert.True(t, exists, "key 'visible' should exist")
+				_, exists = result.Models.Get("hidden")
+				assert.False(t, exists, "key 'hidden' should not exist")
 			},
 		},
 		{
@@ -189,8 +196,9 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			expectedError: false,
 			validate: func(t *testing.T, result *utils.DgDir) {
 				assert.NotNil(t, result)
-				assert.Equal(t, 1, len(result.Models))
-				assert.Contains(t, result.Models, "model")
+				assert.Equal(t, 1, result.Models.Len())
+				_, exists := result.Models.Get("model")
+				assert.True(t, exists, "key 'model' should exist")
 			},
 		},
 		{
@@ -202,7 +210,7 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			expectedError: false,
 			validate: func(t *testing.T, result *utils.DgDir) {
 				assert.NotNil(t, result)
-				assert.Equal(t, 0, len(result.Models))
+				assert.Equal(t, 0, result.Models.Len())
 				assert.Equal(t, 0, len(result.Children))
 			},
 		},
@@ -255,7 +263,7 @@ func TestGetDgDirectoryStructure(t *testing.T) {
 			validate: func(t *testing.T, result *utils.DgDir) {
 				assert.NotNil(t, result)
 				assert.Equal(t, filepath.Join("sub1", "sub2"), result.Name)
-				assert.Equal(t, 1, len(result.Models))
+				assert.Equal(t, 1, result.Models.Len())
 			},
 		},
 	}
@@ -296,8 +304,9 @@ func TestGetDgDirStructure(t *testing.T) {
 			expectedError: false,
 			validate: func(t *testing.T, result *utils.DgDir) {
 				assert.NotNil(t, result)
-				assert.Equal(t, 1, len(result.Models))
-				assert.Contains(t, result.Models, "single")
+				assert.Equal(t, 1, result.Models.Len())
+				_, exists := result.Models.Get("single")
+				assert.True(t, exists, "key 'single' should exist")
 			},
 		},
 		{
@@ -312,7 +321,7 @@ func TestGetDgDirStructure(t *testing.T) {
 			expectedError: false,
 			validate: func(t *testing.T, result *utils.DgDir) {
 				assert.NotNil(t, result)
-				assert.Equal(t, 1, len(result.Models))
+				assert.Equal(t, 1, result.Models.Len())
 			},
 		},
 		{
@@ -358,7 +367,7 @@ func TestDgDirStructureModelPaths(t *testing.T) {
 		// Check that the file system path is properly converted to use DgDirDelimeter
 		found := false
 		expectedKey := "models" + utils.DgDirDelimeter + "users" + utils.DgDirDelimeter + "User"
-		for key := range result.Children[0].Children[0].Models {
+		for key := range result.Children[0].Children[0].Models.AllFromFront() {
 			if key == expectedKey {
 				found = true
 				break
@@ -501,7 +510,8 @@ func TestGetDgFileStructureEdgeCases(t *testing.T) {
 		result, err := GetDgFileStructure(file, "Model_v2_test.dg")
 		require.NoError(t, err)
 		assert.NotNil(t, result)
-		assert.Contains(t, result.Models, "Model_v2_test")
+		_, exists := result.Models.Get("Model_v2_test")
+		assert.True(t, exists, "key 'Model_v2_test' should exist")
 	})
 
 	t.Run("empty .dg file", func(t *testing.T) {
@@ -514,7 +524,9 @@ func TestGetDgFileStructureEdgeCases(t *testing.T) {
 		result, err := GetDgFileStructure(file, "Empty.dg")
 		require.NoError(t, err)
 		assert.NotNil(t, result)
-		assert.Equal(t, []byte(""), result.Models["Empty"])
+		value, exists := result.Models.Get("Empty")
+		assert.True(t, exists, "key 'Empty' should exist")
+		assert.Equal(t, []byte(""), value)
 	})
 
 	t.Run("large .dg file", func(t *testing.T) {
@@ -538,7 +550,9 @@ func TestGetDgFileStructureEdgeCases(t *testing.T) {
 		result, err := GetDgFileStructure(file, "LargeModel.dg")
 		require.NoError(t, err)
 		assert.NotNil(t, result)
-		assert.True(t, len(result.Models["LargeModel"]) > 1000)
+		value, exists := result.Models.Get("LargeModel")
+		assert.True(t, exists, "key 'LargeModel' should exist")
+		assert.True(t, len(value) > 1000)
 	})
 }
 
@@ -567,7 +581,7 @@ func TestGetDgDirectoryStructureWithMixedContent(t *testing.T) {
 		result, err := GetDgDirectoryStructure(tmpDir, "")
 		require.NoError(t, err)
 		assert.Equal(t, 3, result.ModelCount())
-		assert.Equal(t, 1, len(result.Models))               // Root level has 1 model
+		assert.Equal(t, 1, result.Models.Len())               // Root level has 1 model
 		assert.Equal(t, 1, len(result.Children))             // One subdirectory
 		assert.Equal(t, 1, len(result.Children[0].Children)) // Nested subdirectory
 	})

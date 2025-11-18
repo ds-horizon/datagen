@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/elliotchance/orderedmap/v3"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -136,17 +137,19 @@ func TestProcessDgDirData(t *testing.T) {
 
 func TestProcessDgDirDataWithInvalidModel(t *testing.T) {
 	t.Run("should error on invalid model in nested structure", func(t *testing.T) {
+		rootModels := orderedmap.NewOrderedMap[string, []byte]()
+		rootModels.Set("ValidModel", []byte(`model ValidModel { fields { id() int } gens { func id() { return iter } } }`))
+
+		childModels := orderedmap.NewOrderedMap[string, []byte]()
+		childModels.Set("InvalidModel", []byte(`model InvalidModel { invalid syntax`))
+
 		dgDir := &utils.DgDir{
-			Name: "root",
-			Models: map[string][]byte{
-				"ValidModel": []byte(`model ValidModel { fields { id() int } gens { func id() { return iter } } }`),
-			},
+			Name:   "root",
+			Models: rootModels,
 			Children: []*utils.DgDir{
 				{
-					Name: "child",
-					Models: map[string][]byte{
-						"InvalidModel": []byte(`model InvalidModel { invalid syntax`),
-					},
+					Name:     "child",
+					Models:   childModels,
 					Children: []*utils.DgDir{},
 				},
 			},
