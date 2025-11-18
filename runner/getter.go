@@ -7,8 +7,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/ds-horizon/datagen/utils"
 	"github.com/elliotchance/orderedmap/v3"
+
+	"github.com/ds-horizon/datagen/utils"
 )
 
 func GetDgDirStructure(inputDir, cumulatedPath string) (*utils.DgDir, error) {
