@@ -578,12 +578,12 @@ func TestGetDgDirectoryStructureWithMixedContent(t *testing.T) {
 		err = os.WriteFile(filepath.Join(nestedDir, "Nested.dg"), []byte("model Nested {}"), 0o600)
 		require.NoError(t, err)
 
-        result, err := GetDgDirectoryStructure(tmpDir, "")
-        require.NoError(t, err)
-        assert.Equal(t, 3, result.ModelCount())
-        assert.Equal(t, 1, result.Models.Len())              // Root level has 1 model
-        assert.Equal(t, 1, len(result.Children))             // One subdirectory
-        assert.Equal(t, 1, len(result.Children[0].Children)) // Nested subdirectory
+		result, err := GetDgDirectoryStructure(tmpDir, "")
+		require.NoError(t, err)
+		assert.Equal(t, 3, result.ModelCount())
+		assert.Equal(t, 1, result.Models.Len())              // Root level has 1 model
+		assert.Equal(t, 1, len(result.Children))             // One subdirectory
+		assert.Equal(t, 1, len(result.Children[0].Children)) // Nested subdirectory
 	})
 
 	t.Run("hidden directories should be ignored", func(t *testing.T) {
