@@ -14,265 +14,110 @@ import (
 	"github.com/ds-horizon/datagen/utils"
 )
 
-func TestTranspile(t *testing.T) {
-	tests := []struct {
-		name          string
-		setupFunc     func(t *testing.T) *utils.DgDir
-		expectedError bool
-		validate      func(t *testing.T, result []*codegen.DatagenParsed, err error)
-	}{
-		{
-			name: "valid single model",
-			setupFunc: func(t *testing.T) *utils.DgDir {
-				return &utils.DgDir{
-					Name: "test",
-					Models: map[string][]byte{
-						"TestModel": []byte(`model TestModel {
-	fields {
-		id() int
-	}
-	gens {
-		func id() {
-			return iter
-		}
-	}
-}`),
-					},
-					Children: []*utils.DgDir{},
-				}
-			},
-			expectedError: false,
-			validate: func(t *testing.T, result []*codegen.DatagenParsed, err error) {
-				assert.NoError(t, err)
-				assert.Equal(t, 1, len(result))
-				assert.Equal(t, "TestModel", result[0].ModelName)
-			},
-		},
-		{
-			name: "multiple models",
-			setupFunc: func(t *testing.T) *utils.DgDir {
-				return &utils.DgDir{
-					Name: "test",
-					Models: map[string][]byte{
-						"Model1": []byte(`model Model1 {
-	fields {
-		field1() string
-	}
-	gens {
-		func field1() {
-			return "test"
-		}
-	}
-}`),
-						"Model2": []byte(`model Model2 {
-	fields {
-		field2() int
-	}
-	gens {
-		func field2() {
-			return iter
-		}
-	}
-}`),
-					},
-					Children: []*utils.DgDir{},
-				}
-			},
-			expectedError: false,
-			validate: func(t *testing.T, result []*codegen.DatagenParsed, err error) {
-				assert.NoError(t, err)
-				assert.Equal(t, 2, len(result))
-			},
-		},
-		{
-			name: "invalid syntax",
-			setupFunc: func(t *testing.T) *utils.DgDir {
-				return &utils.DgDir{
-					Name: "test",
-					Models: map[string][]byte{
-						"BadModel": []byte(`model BadModel { invalid syntax here`),
-					},
-					Children: []*utils.DgDir{},
-				}
-			},
-			expectedError: true,
-			validate: func(t *testing.T, result []*codegen.DatagenParsed, err error) {
-				assert.Error(t, err)
-				assert.Nil(t, result)
-			},
-		},
-		{
-			name: "empty model (should error)",
-			setupFunc: func(t *testing.T) *utils.DgDir {
-				return &utils.DgDir{
-					Name: "test",
-					Models: map[string][]byte{
-						"EmptyModel": []byte(`model EmptyModel {}`),
-					},
-					Children: []*utils.DgDir{},
-				}
-			},
-			expectedError: true,
-			validate: func(t *testing.T, result []*codegen.DatagenParsed, err error) {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "model has no fields section")
-			},
-		},
-		{
-			name: "model with metadata",
-			setupFunc: func(t *testing.T) *utils.DgDir {
-				return &utils.DgDir{
-					Name: "test",
-					Models: map[string][]byte{
-						"MetadataModel": []byte(`model MetadataModel {
-	metadata {
-		count: 5
-	}
-	fields {
-		id() int
-	}
-	gens {
-		func id() {
-			return iter
-		}
-	}
-}`),
-					},
-					Children: []*utils.DgDir{},
-				}
-			},
-			expectedError: false,
-			validate: func(t *testing.T, result []*codegen.DatagenParsed, err error) {
-				assert.NoError(t, err)
-				assert.Equal(t, 1, len(result))
-				assert.Equal(t, "MetadataModel", result[0].ModelName)
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dgDir := tt.setupFunc(t)
-			result, err := transpile(dgDir)
-			tt.validate(t, result, err)
-		})
-	}
-}
-
 func TestProcessDgDirData(t *testing.T) {
 	tests := []struct {
-		name          string
-		setupFunc     func(t *testing.T) *utils.DgDir
-		expectedError bool
-		expectedCount int
+		name           string
+		inputPath      string
+		expectedError  bool
+		expectedCount  int
+		validateModels func(t *testing.T, result []*codegen.DatagenParsed)
 	}{
 		{
-			name: "single level with one model",
-			setupFunc: func(t *testing.T) *utils.DgDir {
-				return &utils.DgDir{
-					Name: "root",
-					Models: map[string][]byte{
-						"Model1": []byte(`model Model1 { fields { id() int } gens { func id() { return iter } } }`),
-					},
-					Children: []*utils.DgDir{},
+			name:          "valid models directory",
+			inputPath:     filepath.Join("testdata", "valid"),
+			expectedError: false,
+			expectedCount: 10,
+			validateModels: func(t *testing.T, result []*codegen.DatagenParsed) {
+				modelNames := make(map[string]bool)
+				for _, parsed := range result {
+					modelNames[parsed.ModelName] = true
+				}
+				// Check that expected models are present
+				expectedModels := []string{
+					"simple", "minimal", "multiple_types", "with_metadata",
+					"with_misc", "with_builtin_functions", "nested", "with_conditionals",
+					"with_slices", "with_maps",
+				}
+				for _, expected := range expectedModels {
+					assert.True(t, modelNames[expected], "expected model %s to be parsed", expected)
 				}
 			},
+		},
+		{
+			name:          "single valid file",
+			inputPath:     filepath.Join("testdata", "valid", "simple.dg"),
 			expectedError: false,
 			expectedCount: 1,
+			validateModels: func(t *testing.T, result []*codegen.DatagenParsed) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "simple", result[0].ModelName)
+				assert.NotNil(t, result[0].Fields)
+				assert.Equal(t, 2, len(result[0].Fields.List))
+				assert.Equal(t, 2, len(result[0].GenFuns))
+			},
 		},
 		{
-			name: "nested structure with multiple models",
-			setupFunc: func(t *testing.T) *utils.DgDir {
-				return &utils.DgDir{
-					Name: "root",
-					Models: map[string][]byte{
-						"RootModel": []byte(`model RootModel { fields { id() int } gens { func id() { return iter } } }`),
-					},
-					Children: []*utils.DgDir{
-						{
-							Name: "child1",
-							Models: map[string][]byte{
-								"ChildModel1": []byte(`model ChildModel1 { fields { name() string } gens { func name() { return "test" } } }`),
-							},
-							Children: []*utils.DgDir{},
-						},
-						{
-							Name: "child2",
-							Models: map[string][]byte{
-								"ChildModel2": []byte(`model ChildModel2 { fields { age() int } gens { func age() { return iter } } }`),
-							},
-							Children: []*utils.DgDir{},
-						},
-					},
-				}
-			},
+			name:          "minimal model",
+			inputPath:     filepath.Join("testdata", "valid", "minimal.dg"),
 			expectedError: false,
-			expectedCount: 3,
+			expectedCount: 1,
+			validateModels: func(t *testing.T, result []*codegen.DatagenParsed) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "minimal", result[0].ModelName)
+				assert.NotNil(t, result[0].Fields)
+				assert.Equal(t, 1, len(result[0].Fields.List))
+				assert.Equal(t, 1, len(result[0].GenFuns))
+			},
 		},
 		{
-			name: "deeply nested structure",
-			setupFunc: func(t *testing.T) *utils.DgDir {
-				return &utils.DgDir{
-					Name: "root",
-					Models: map[string][]byte{
-						"L0": []byte(`model L0 { fields { id() int } gens { func id() { return iter } } }`),
-					},
-					Children: []*utils.DgDir{
-						{
-							Name: "level1",
-							Models: map[string][]byte{
-								"L1": []byte(`model L1 { fields { id() int } gens { func id() { return iter } } }`),
-							},
-							Children: []*utils.DgDir{
-								{
-									Name: "level2",
-									Models: map[string][]byte{
-										"L2": []byte(`model L2 { fields { id() int } gens { func id() { return iter } } }`),
-									},
-									Children: []*utils.DgDir{
-										{
-											Name: "level3",
-											Models: map[string][]byte{
-												"L3": []byte(`model L3 { fields { id() int } gens { func id() { return iter } } }`),
-											},
-											Children: []*utils.DgDir{},
-										},
-									},
-								},
-							},
-						},
-					},
-				}
-			},
+			name:          "model with metadata",
+			inputPath:     filepath.Join("testdata", "valid", "with_metadata.dg"),
 			expectedError: false,
-			expectedCount: 4,
+			expectedCount: 1,
+			validateModels: func(t *testing.T, result []*codegen.DatagenParsed) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "with_metadata", result[0].ModelName)
+				assert.NotNil(t, result[0].Metadata)
+				assert.Equal(t, 100, result[0].Metadata.Count)
+				assert.NotNil(t, result[0].Metadata.Tags)
+				assert.Equal(t, "test", result[0].Metadata.Tags["env"])
+			},
 		},
 		{
-			name: "nil directory",
-			setupFunc: func(t *testing.T) *utils.DgDir {
-				return nil
+			name:          "model with misc section",
+			inputPath:     filepath.Join("testdata", "valid", "with_misc.dg"),
+			expectedError: false,
+			expectedCount: 1,
+			validateModels: func(t *testing.T, result []*codegen.DatagenParsed) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "with_misc", result[0].ModelName)
+				assert.NotEmpty(t, result[0].Misc)
 			},
+		},
+		{
+			name:          "nil directory",
+			inputPath:     "",
 			expectedError: false,
 			expectedCount: 0,
-		},
-		{
-			name: "empty directory structure",
-			setupFunc: func(t *testing.T) *utils.DgDir {
-				return &utils.DgDir{
-					Name:     "empty",
-					Models:   map[string][]byte{},
-					Children: []*utils.DgDir{},
-				}
+			validateModels: func(t *testing.T, result []*codegen.DatagenParsed) {
+				assert.Empty(t, result)
 			},
-			expectedError: false,
-			expectedCount: 0,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			dgDir := tt.setupFunc(t)
 			outDir := t.TempDir()
+
+			var dgDir *utils.DgDir
+			var err error
+
+			if tt.inputPath != "" {
+				dgDir, err = GetDgDirStructure(tt.inputPath, "")
+				if err != nil && !tt.expectedError {
+					t.Fatalf("failed to get DgDir structure: %v", err)
+				}
+			}
 
 			result, err := processDgDirData(dgDir, outDir, []*codegen.DatagenParsed{})
 
@@ -280,7 +125,10 @@ func TestProcessDgDirData(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedCount, len(result))
+				assert.Equal(t, tt.expectedCount, len(result), "expected %d models, got %d", tt.expectedCount, len(result))
+				if tt.validateModels != nil {
+					tt.validateModels(t, result)
+				}
 			}
 		})
 	}
@@ -315,56 +163,36 @@ func TestProcessDgDirDataWithInvalidModel(t *testing.T) {
 func TestFindAndTranspileDatagenModels(t *testing.T) {
 	tests := []struct {
 		name          string
-		setupFunc     func(t *testing.T) (string, string)
+		inputPath     string
+		setupFunc     func(t *testing.T) string
 		expectedError bool
 		errorContains string
 	}{
 		{
-			name: "valid directory with models",
-			setupFunc: func(t *testing.T) (string, string) {
-				tmpDir := t.TempDir()
-				outDir := t.TempDir()
-
-				file := filepath.Join(tmpDir, "Test.dg")
-				content := []byte(`model Test {
-	fields {
-		id() int
-	}
-	gens {
-		func id() {
-			return iter
-		}
-	}
-}`)
-				err := os.WriteFile(file, content, 0o600)
-				require.NoError(t, err)
-
-				return tmpDir, outDir
-			},
+			name:          "valid directory with models",
+			inputPath:     filepath.Join("testdata", "valid"),
+			expectedError: false,
+		},
+		{
+			name:          "valid single file",
+			inputPath:     filepath.Join("testdata", "valid", "simple.dg"),
 			expectedError: false,
 		},
 		{
 			name: "no .dg files found",
-			setupFunc: func(t *testing.T) (string, string) {
+			setupFunc: func(t *testing.T) string {
 				tmpDir := t.TempDir()
-				outDir := t.TempDir()
-
-				// Create some non-.dg files
 				file := filepath.Join(tmpDir, "readme.txt")
 				err := os.WriteFile(file, []byte("Not a dg file"), 0o600)
 				require.NoError(t, err)
-
-				return tmpDir, outDir
+				return tmpDir
 			},
 			expectedError: true,
 			errorContains: "no .dg files found",
 		},
 		{
-			name: "non-existent input directory",
-			setupFunc: func(t *testing.T) (string, string) {
-				outDir := t.TempDir()
-				return "/non/existent/path", outDir
-			},
+			name:          "non-existent input directory",
+			inputPath:     "/non/existent/path",
 			expectedError: true,
 			errorContains: "failed to read input",
 		},
@@ -372,7 +200,12 @@ func TestFindAndTranspileDatagenModels(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			inputPath, outDir := tt.setupFunc(t)
+			outDir := t.TempDir()
+
+			inputPath := tt.inputPath
+			if tt.setupFunc != nil {
+				inputPath = tt.setupFunc(t)
+			}
 
 			err := findAndTranspileDatagenModels(outDir, inputPath)
 
@@ -399,9 +232,7 @@ func TestBuildAndRunGenFlagParsing(t *testing.T) {
 			name: "valid flags with noexec",
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
 				tmpDir := t.TempDir()
-				file := filepath.Join(tmpDir, "Test.dg")
-				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0o600)
-				require.NoError(t, err)
+				file := filepath.Join("testdata", "valid", "minimal.dg")
 
 				cmd := &cobra.Command{}
 				cmd.Flags().Int("count", 10, "")
@@ -446,12 +277,10 @@ func TestBuildAndRunExecuteFlagParsing(t *testing.T) {
 			name: "valid flags with noexec",
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
 				tmpDir := t.TempDir()
-				file := filepath.Join(tmpDir, "Test.dg")
-				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0o600)
-				require.NoError(t, err)
+				file := filepath.Join("testdata", "valid", "minimal.dg")
 
 				configFile := filepath.Join(tmpDir, "config.yaml")
-				err = os.WriteFile(configFile, []byte("config: test"), 0o600)
+				err := os.WriteFile(configFile, []byte("config: test"), 0o600)
 				require.NoError(t, err)
 
 				cmd := &cobra.Command{}
@@ -527,10 +356,7 @@ func TestBuildAndRunGenErrorCases(t *testing.T) {
 		{
 			name: "invalid count flag type",
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
-				tmpDir := t.TempDir()
-				file := filepath.Join(tmpDir, "Test.dg")
-				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0o600)
-				require.NoError(t, err)
+				file := filepath.Join("testdata", "valid", "simple.dg")
 
 				cmd := &cobra.Command{}
 				// Intentionally not setting up flags to test error paths
@@ -543,9 +369,7 @@ func TestBuildAndRunGenErrorCases(t *testing.T) {
 			name: "file with syntax error",
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
 				tmpDir := t.TempDir()
-				file := filepath.Join(tmpDir, "Bad.dg")
-				err := os.WriteFile(file, []byte(`model Bad { invalid syntax`), 0o600)
-				require.NoError(t, err)
+				file := filepath.Join("testdata", "invalid", "invalid_syntax.dg")
 
 				cmd := &cobra.Command{}
 				cmd.Flags().Int("count", 10, "")
@@ -592,10 +416,7 @@ func TestBuildAndRunExecuteErrorCases(t *testing.T) {
 		{
 			name: "invalid config flag type",
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
-				tmpDir := t.TempDir()
-				file := filepath.Join(tmpDir, "Test.dg")
-				err := os.WriteFile(file, []byte(`model Test { fields { id() int } gens { func id() { return iter } } }`), 0o600)
-				require.NoError(t, err)
+				file := filepath.Join("testdata", "valid", "simple.dg")
 
 				cmd := &cobra.Command{}
 				// Intentionally not setting up flags to test error paths
@@ -608,13 +429,10 @@ func TestBuildAndRunExecuteErrorCases(t *testing.T) {
 			name: "file with validation error",
 			setupFunc: func(t *testing.T) (*cobra.Command, []string) {
 				tmpDir := t.TempDir()
-				file := filepath.Join(tmpDir, "Invalid.dg")
-				// Empty model that will fail validation
-				err := os.WriteFile(file, []byte(`model Invalid {}`), 0o600)
-				require.NoError(t, err)
+				file := filepath.Join("testdata", "invalid", "empty_model.dg")
 
 				configFile := filepath.Join(tmpDir, "config.yaml")
-				err = os.WriteFile(configFile, []byte("config: test"), 0o600)
+				err := os.WriteFile(configFile, []byte("config: test"), 0o600)
 				require.NoError(t, err)
 
 				cmd := &cobra.Command{}
@@ -654,7 +472,7 @@ func TestFindAndTranspileDatagenModelsEdgeCases(t *testing.T) {
 		tmpDir := t.TempDir()
 		outDir := t.TempDir()
 
-		// Model name doesn't match filename
+		// Model name doesn't match filename - need to create this dynamically
 		file := filepath.Join(tmpDir, "Wrong.dg")
 		content := []byte(`model DifferentName {
 	fields {
@@ -674,20 +492,11 @@ func TestFindAndTranspileDatagenModelsEdgeCases(t *testing.T) {
 		assert.Contains(t, err.Error(), "should be in file named")
 	})
 
-	t.Run("multiple models with errors", func(t *testing.T) {
-		tmpDir := t.TempDir()
+	t.Run("directory with invalid model", func(t *testing.T) {
 		outDir := t.TempDir()
+		inputPath := filepath.Join("testdata", "invalid")
 
-		// Create multiple files, one with error
-		file1 := filepath.Join(tmpDir, "Good.dg")
-		err := os.WriteFile(file1, []byte(`model Good { fields { id() int } gens { func id() { return iter } } }`), 0o600)
-		require.NoError(t, err)
-
-		file2 := filepath.Join(tmpDir, "Bad.dg")
-		err = os.WriteFile(file2, []byte(`model Bad { invalid`), 0o600)
-		require.NoError(t, err)
-
-		err = findAndTranspileDatagenModels(outDir, tmpDir)
+		err := findAndTranspileDatagenModels(outDir, inputPath)
 		assert.Error(t, err)
 	})
 }
@@ -697,7 +506,6 @@ func TestInvokeGenArguments(t *testing.T) {
 		outDir := t.TempDir()
 		inputPath := "/test/input.dg"
 
-		// Test with all flags including verbose
 		count := 100
 		tags := "prod,test"
 		output := "/output"
@@ -705,7 +513,6 @@ func TestInvokeGenArguments(t *testing.T) {
 		seed := int64(999)
 		verbose := true
 
-		// Construct expected args
 		args := []string{"gen", inputPath}
 		args = append(args, "-n", "100")
 		if tags != "" {
@@ -734,10 +541,8 @@ func TestInvokeGenArguments(t *testing.T) {
 	t.Run("without optional flags", func(t *testing.T) {
 		inputPath := "/test/input.dg"
 
-		// Test with minimal flags
 		args := []string{"gen", inputPath}
 		args = append(args, "-n", "1")
-		// No tags, output, format, seed, or verbose
 
 		expectedArgs := []string{"gen", inputPath, "-n", "1"}
 		assert.Equal(t, expectedArgs, args)

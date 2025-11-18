@@ -1,0 +1,159 @@
+package main
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"sort"
+	"strings"
+)
+
+type SinkType string
+
+const (
+	SinkTypeMySQL SinkType = "mysql"
+	SinkTypeKafka SinkType = "kafka"
+)
+
+type Config struct {
+	ClearData bool        `json:"clear_data,omitempty"`
+	Models    []ModelSpec `json:"models"`
+	Sinks     []SinkSpec  `json:"sinks"`
+	Seed      int64       `json:"seed,omitempty"`
+}
+
+type ModelSpec struct {
+	ModelName   string   `json:"model_name"`
+	TargetSinks []string `json:"target_sinks"`
+	Count       *int     `json:"count,omitempty"`
+}
+
+type SinkSpec struct {
+	SinkName string          `json:"sink_name"`
+	SinkType SinkType        `json:"sink_type"`
+	Config   json.RawMessage `json:"config"`
+}
+
+func LoadConfigFile(path string) (*Config, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("open config: %w", err)
+	}
+	var cfg Config
+	if err := json.Unmarshal(b, &cfg); err != nil {
+		return nil, fmt.Errorf("decode config: %w", err)
+	}
+	return &cfg, nil
+}
+
+func (c *Config) Validate(models map[string]RecordGenerator) error {
+	var missingModels []string
+	for _, m := range c.Models {
+		if _, ok := models[m.ModelName]; !ok {
+			missingModels = append(missingModels, m.ModelName)
+		}
+	}
+
+	if len(missingModels) > 0 {
+		availableModels := make([]string, 0, len(models))
+		for modelName := range models {
+			availableModels = append(availableModels, modelName)
+		}
+		sort.Strings(availableModels)
+
+		var b strings.Builder
+		b.WriteString("configuration validation failed\n")
+		b.WriteString("The following models specified in config.json do not exist in the binary:\n")
+		for i, model := range missingModels {
+			_, _ = fmt.Fprintf(&b, "    %d. %s\n", i+1, model)
+		}
+		b.WriteString("Available models in this binary:\n")
+		if len(availableModels) == 0 {
+			b.WriteString("(no models available)\n")
+		} else {
+			for i, model := range availableModels {
+				_, _ = fmt.Fprintf(&b, "    %d. %s\n", i+1, model)
+			}
+		}
+
+		return fmt.Errorf(b.String())
+	}
+
+	modelsSet := make(map[string]struct{})
+	for _, m := range c.Models {
+		if m.ModelName == "" {
+			return errors.New("model_name cannot be empty")
+		}
+		if _, ok := modelsSet[m.ModelName]; ok {
+			return fmt.Errorf("duplicate model_name: %s", m.ModelName)
+		}
+		modelsSet[m.ModelName] = struct{}{}
+	}
+	sinksSet := make(map[string]struct{})
+	for _, s := range c.Sinks {
+		if s.SinkName == "" {
+			return errors.New("sink_name cannot be empty")
+		}
+		if _, ok := sinksSet[s.SinkName]; ok {
+			return fmt.Errorf("duplicate sink_name: %s", s.SinkName)
+		}
+		sinksSet[s.SinkName] = struct{}{}
+	}
+	for _, s := range c.Sinks {
+		switch s.SinkType {
+		case SinkTypeMySQL:
+			var sc MySQLConfig
+			if err := s.ConfigInto(&sc); err != nil {
+				return fmt.Errorf("sink %q (mysql): %w", s.SinkName, err)
+			}
+			if err := sc.Validate(); err != nil {
+				return fmt.Errorf("sink %q (mysql): %w", s.SinkName, err)
+			}
+		default:
+			return fmt.Errorf("sink %q: unsupported sink_type %q", s.SinkName, s.SinkType)
+		}
+	}
+
+	for _, m := range c.Models {
+		for _, sinkName := range m.TargetSinks {
+			if c.findSinkByName(sinkName) == nil {
+				return fmt.Errorf("model %q references unknown sink %q", m.ModelName, sinkName)
+			}
+		}
+	}
+	return nil
+}
+
+func (c *Config) SinkSpecsForModel(modelName string) ([]*SinkSpec, error) {
+	for _, m := range c.Models {
+		if m.ModelName == modelName {
+			out := make([]*SinkSpec, 0, len(m.TargetSinks))
+			for _, sn := range m.TargetSinks {
+				if s := c.findSinkByName(sn); s != nil {
+					out = append(out, s)
+				}
+			}
+			return out, nil
+		}
+	}
+	return nil, fmt.Errorf("unknown model %q", modelName)
+}
+
+func (c *Config) findSinkByName(name string) *SinkSpec {
+	for i := range c.Sinks {
+		if c.Sinks[i].SinkName == name {
+			return &c.Sinks[i]
+		}
+	}
+	return nil
+}
+
+func (s *SinkSpec) ConfigInto(dst interface{}) error {
+	// Expand environment variables like ${FOO}
+	expanded := os.ExpandEnv(string(s.Config))
+	if err := json.Unmarshal([]byte(expanded), dst); err != nil {
+		return fmt.Errorf("unmarshal sink %q config: %w", s.SinkName, err)
+	}
+	return nil
+}
