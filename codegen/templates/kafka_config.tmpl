@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-type KafkaConfig struct {
+type __dgi_KafkaConfig struct {
 	Topic               string   `json:"topic"`
 	Key                 string   `json:"key,omitempty"`
 	IncludeKeyInMessage string   `json:"include_key_in_message,omitempty"`
@@ -15,7 +15,7 @@ type KafkaConfig struct {
 	Throttle          int      `json:"throttle,omitempty"`
 }
 
-func (c *KafkaConfig) Validate() error {
+func (c *__dgi_KafkaConfig) Validate() error {
 	if c.Topic == "" || len(c.BootstrapServers) == 0 {
 		return errors.New("kafka: topic and bootstrap_servers are required")
 	}
