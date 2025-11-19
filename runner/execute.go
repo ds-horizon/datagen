@@ -66,7 +66,7 @@ func BuildAndRunGen(cmd *cobra.Command, args []string) error {
 }
 
 func invokeGen(outDir string, count int, tags, output, format string, seed int64, inputPath string, verbose bool) error {
-	binaryPath, _ := buildTranspiledBinary(filepath.Join(outDir, utils.DatagenDirName))
+	binaryPath, _ := buildTranspiledBinary(filepath.Clean(filepath.Join(outDir, utils.DatagenDirName)))
 	args := []string{"gen", inputPath}
 	args = append(args, "-n", fmt.Sprintf("%d", count))
 	if strings.TrimSpace(tags) != "" {
@@ -166,8 +166,8 @@ func findAndTranspileDatagenModels(outDir, inputPath string) error {
 		return fmt.Errorf("failed to process directory data\n  input_path: %s\n  cause: %w", inputPath, err)
 	}
 
-	genDir := filepath.Join(outDir, utils.DatagenDirName)
-	if err := removeDirIfExists(genDir); err != nil {
+	genDir := filepath.Clean(filepath.Join(outDir, utils.DatagenDirName))
+	if err := utils.RemoveDirIfExists(genDir); err != nil {
 		return err
 	}
 
@@ -223,16 +223,6 @@ func transpile(dgDirData *utils.DgDir) ([]*codegen.DatagenParsed, error) {
 	}
 
 	return parsedResults, nil
-}
-
-func removeDirIfExists(dirPath string) error {
-	if _, statErr := os.Stat(dirPath); statErr == nil {
-		slog.Debug(fmt.Sprintf("removing existing generated directory %s", dirPath))
-		if rmErr := os.RemoveAll(dirPath); rmErr != nil {
-			return fmt.Errorf("failed to remove existing generated directory\n  path: %s\n  cause: %w", dirPath, rmErr)
-		}
-	}
-	return nil
 }
 
 func buildTranspiledBinary(outDir string) (string, error) {
