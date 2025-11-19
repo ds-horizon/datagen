@@ -40,7 +40,7 @@ type __dgi_Metadata struct {
 }
 
 {{- range .SanitisedModelNames}}
-func __dgi_{{ .}}Func(model *__datagen_{{ .}}Generator, tail string) func() *__datagen_{{ .}}Generator {
+func {{ .}}Func(model *__datagen_{{ .}}Generator, tail string) func() *__datagen_{{ .}}Generator {
      return func() *__datagen_{{ .}}Generator {
             model.datagen.__links.AcceptSignal(tail)
 	    return model
@@ -61,7 +61,7 @@ func __dgi_initGeneratorsAndModels() (*__dgi_DataGenGenerators, map[string]__dgi
 	{{- end }}
     {{ dirName . }}Dir := &__dgi_{{ dirName . }}Dir{
 		{{- range models . }}
-        {{ last . }}: __dgi_{{ .}}Func({{ .}}Generator, "{{ dot . }}"),
+        {{ last . }}: {{ .}}Func({{ .}}Generator, "{{ dot . }}"),
 		{{- end }}
 		{{- range children . }}
 		{{ dirName . }}: {{ dirName . }}Dir,
@@ -74,7 +74,7 @@ func __dgi_initGeneratorsAndModels() (*__dgi_DataGenGenerators, map[string]__dgi
 
     datagen := &__dgi_DataGenGenerators{
 		{{- range models .DgDir }}
-        {{ last . }}: __dgi_{{ .}}Func({{ last .}}Generator, "{{ dot . }}"),
+        {{ last . }}: {{ .}}Func({{ last .}}Generator, "{{ dot . }}"),
 		{{- end }}
 		{{- range children .DgDir }}
 		{{ dirName . }}: {{ dirName . }}Dir,
