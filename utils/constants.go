@@ -7,6 +7,7 @@ const (
 	DefaultMetadataCount = 1
 	EncodedBinaryName    = "datagen"
 	CompilerBinaryName   = "datagenc"
+	DatagenDirName       = "datagen"
 )
 
 type DgDir struct {
