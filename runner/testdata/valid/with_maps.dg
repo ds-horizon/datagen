@@ -1,0 +1,20 @@
+model with_maps {
+  fields {
+    id() int
+    metadata() map[string]string
+  }
+
+  gens {
+    func id() {
+      return iter
+    }
+
+    func metadata() {
+      return map[string]string{
+        "key1": "value1",
+        "key2": fmt.Sprintf("value_%d", iter),
+      }
+    }
+  }
+}
+

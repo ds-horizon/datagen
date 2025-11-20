@@ -1,0 +1,22 @@
+model with_builtin_functions {
+  fields {
+    id() int
+    random_int() int
+    random_float() float64
+  }
+
+  gens {
+    func id() {
+      return iter
+    }
+
+    func random_int() {
+      return IntBetween(1, 1000)
+    }
+
+    func random_float() {
+      return FloatBetween(0.0, 100.0)
+    }
+  }
+}
+

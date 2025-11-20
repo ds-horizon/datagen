@@ -197,9 +197,9 @@ func processDgDirData(d *utils.DgDir, outDir string, accumulatedParsed []*codege
 }
 
 func transpile(dgDirData *utils.DgDir) ([]*codegen.DatagenParsed, error) {
-	parsedResults := make([]*codegen.DatagenParsed, 0, len(dgDirData.Models))
+	parsedResults := make([]*codegen.DatagenParsed, 0, dgDirData.Models.Len())
 
-	for path, src := range dgDirData.Models {
+	for path, src := range dgDirData.Models.AllFromFront() {
 		slog.Debug(fmt.Sprintf("parsing model file %s", path))
 
 		result, err := parser.Parse(src, path)

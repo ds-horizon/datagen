@@ -1,0 +1,29 @@
+model with_conditionals {
+  fields {
+    id() int
+    category() string
+    value() int
+  }
+
+  gens {
+    func id() {
+      return iter
+    }
+
+    func category() {
+      if iter%3 == 0 {
+        return "type_a"
+      } else if iter%3 == 1 {
+        return "type_b"
+      }
+      return "type_c"
+    }
+
+    func value() {
+      if iter < 50 {
+        return iter * 10
+      }
+      return iter * 20
+    }
+  }
+}

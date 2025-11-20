@@ -1,0 +1,11 @@
+model minimal {
+  fields {
+    id() int
+  }
+
+  gens {
+    func id() {
+      return iter
+    }
+  }
+}

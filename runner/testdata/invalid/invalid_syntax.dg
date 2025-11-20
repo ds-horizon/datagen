@@ -1,0 +1,7 @@
+model invalid_syntax { 
+  fields {
+    id() int
+  
+  gens {
+    func id() {
+      return iter

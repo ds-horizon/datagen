@@ -1,0 +1,26 @@
+model with_misc {
+  misc {
+    const MaxValue = 1000
+    const Prefix = "item"
+  }
+
+  fields {
+    id() int
+    label() string
+    count() int
+  }
+
+  gens {
+    func id() {
+      return iter
+    }
+
+    func label() {
+      return fmt.Sprintf("%s_%d", Prefix, iter)
+    }
+
+    func count() {
+      return IntBetween(1, MaxValue)
+    }
+  }
+}

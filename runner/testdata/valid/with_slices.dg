@@ -1,0 +1,22 @@
+model with_slices {
+  fields {
+    id() int
+    tags() []string
+    scores() []int
+  }
+
+  gens {
+    func id() {
+      return iter
+    }
+
+    func tags() {
+      return []string{"tag1", "tag2", "tag3"}
+    }
+
+    func scores() {
+      return []int{iter, iter * 2, iter * 3}
+    }
+  }
+}
+

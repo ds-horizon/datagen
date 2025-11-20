@@ -1,0 +1,27 @@
+model nested {
+  misc {
+    type UserInfo struct {
+      Name  string
+      Email string
+    }
+  }
+
+  fields {
+    id() int
+    user() UserInfo
+  }
+
+  gens {
+    func id() {
+      return iter
+    }
+
+    func user() {
+      return UserInfo{
+        Name:  fmt.Sprintf("user%d", iter),
+        Email: fmt.Sprintf("user%d@test.com", iter),
+      }
+    }
+  }
+}
+
