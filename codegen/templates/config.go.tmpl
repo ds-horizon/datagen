@@ -13,6 +13,7 @@ type SinkType string
 
 const (
 	SinkTypeMySQL SinkType = "mysql"
+	SinkTypePostgres SinkType = "postgres"
 	SinkTypeKafka SinkType = "kafka"
 )
 
@@ -110,6 +111,14 @@ func (c *Config) Validate(models map[string]RecordGenerator) error {
 			}
 			if err := sc.Validate(); err != nil {
 				return fmt.Errorf("sink %q (mysql): %w", s.SinkName, err)
+			}
+		case SinkTypePostgres:
+			var sc PostgresConfig
+			if err := s.ConfigInto(&sc); err != nil {
+				return fmt.Errorf("sink %q (postgres): %w", s.SinkName, err)
+			}
+			if err := sc.Validate(); err != nil {
+				return fmt.Errorf("sink %q (postgres): %w", s.SinkName, err)
 			}
 		default:
 			return fmt.Errorf("sink %q: unsupported sink_type %q", s.SinkName, s.SinkType)

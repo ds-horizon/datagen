@@ -1,0 +1,69 @@
+package main
+
+import (
+    "context"
+    "database/sql"
+    "fmt"
+    "strings"
+)
+
+// Load___datagen_{{.FullyQualifiedModelName}}_postgres executes a single batch of records using the provided transaction.
+func Load___datagen_{{.FullyQualifiedModelName}}_postgres(records []*__datagen_{{.FullyQualifiedModelName}}, tx *sql.Tx) error {
+    if len(records) == 0 {
+        return nil
+    }
+
+    ctx := context.Background()
+
+    var b strings.Builder
+    columns := []string{
+        {{- range .Fields }}
+        "{{.Name}}",
+        {{- end }}
+    }
+    b.WriteString("INSERT INTO {{.ModelName}} (")
+    b.WriteString(strings.Join(columns, ","))
+    b.WriteString(") VALUES ")
+    
+    {{ $numCols := len .Fields }}
+    // Build placeholders for Postgres ($1, $2, ... format)
+    placeholderCount := 0
+    for i := range records {
+        if i > 0 {
+            b.WriteString(",")
+        }
+        b.WriteString("(")
+        for j := 0; j < {{$numCols}}; j++ {
+            if j > 0 {
+                b.WriteString(",")
+            }
+            placeholderCount++
+            b.WriteString(fmt.Sprintf("$%d", placeholderCount))
+        }
+        b.WriteString(")")
+    }
+    sqlStmt := b.String()
+
+    var args []interface{}
+    for _, record := range records {
+        {{ range $k, $f := .Fields }}args = append(args, record.{{$f.Name}})
+	{{ end }}
+    }
+
+    if _, err := tx.ExecContext(ctx, sqlStmt, args...); err != nil {
+        return fmt.Errorf("insertion failed with error : %w", err)
+    }
+    
+    return nil
+}
+
+
+// Truncate___datagen_{{.FullyQualifiedModelName}}_postgres() truncates the model's table using the shared connection.
+func Truncate___datagen_{{.FullyQualifiedModelName}}_postgres(tx *sql.Tx) error {
+     ctx := context.Background()
+     if _, err := tx.ExecContext(ctx, "DELETE FROM {{.ModelName}};" ); err != nil {
+         return fmt.Errorf("delete failed with error : %w", err)
+     }
+     return nil
+ }
+
