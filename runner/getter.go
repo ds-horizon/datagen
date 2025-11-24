@@ -7,6 +7,8 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/elliotchance/orderedmap/v3"
+
 	"github.com/ds-horizon/datagen/utils"
 )
 
@@ -31,11 +33,11 @@ func GetDgFileStructure(filePath, cumulatedPath string) (*utils.DgDir, error) {
 	}
 
 	fileName := strings.TrimSuffix(filepath.Base(filePath), ".dg")
+	orderedMap := orderedmap.NewOrderedMap[string, []byte]()
+	orderedMap.Set(fileName, content)
 	dgDir := &utils.DgDir{
-		Name: cumulatedPath,
-		Models: map[string][]byte{
-			fileName: content,
-		},
+		Name:     cumulatedPath,
+		Models:   orderedMap,
 		Children: []*utils.DgDir{},
 	}
 	return dgDir, nil
@@ -44,7 +46,7 @@ func GetDgFileStructure(filePath, cumulatedPath string) (*utils.DgDir, error) {
 func GetDgDirectoryStructure(inputDir, cumulatedPath string) (*utils.DgDir, error) {
 	dgDir := &utils.DgDir{
 		Name:     cumulatedPath,
-		Models:   make(map[string][]byte),
+		Models:   orderedmap.NewOrderedMap[string, []byte](),
 		Children: []*utils.DgDir{},
 	}
 
@@ -85,7 +87,7 @@ func GetDgDirectoryStructure(inputDir, cumulatedPath string) (*utils.DgDir, erro
 			if cumulatedPath == "" {
 				ent = strings.TrimSuffix(entry.Name(), ".dg")
 			}
-			dgDir.Models[ent] = content
+			dgDir.Models.Set(ent, content)
 		}
 	}
 	return dgDir, nil

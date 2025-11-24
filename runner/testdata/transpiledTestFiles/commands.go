@@ -1,0 +1,175 @@
+package main
+
+import (
+	"fmt"
+	"github.com/brianvoe/gofakeit/v7"
+	"log/slog"
+	"math/rand"
+	"sort"
+	"strings"
+)
+
+func getModelGenCount(metadata Metadata, flagCount int) int {
+	if flagCount != -1 {
+		return flagCount
+	}
+	return metadata.Count
+}
+
+func runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string, flagSeed int64) error {
+	if flagSeed != 0 {
+		if err := setDatagenSeed(flagSeed); err != nil {
+			return fmt.Errorf("error setting seed: %v", err)
+		}
+	}
+
+	datagen, models := initGeneratorsAndModels()
+	allMetadata := getModelsMetadata(datagen)
+
+	selected := make(map[string]int)
+	if strings.TrimSpace(flagTags) != "" {
+		tags, err := parseTags(flagTags)
+		if err != nil {
+			return fmt.Errorf("error parsing tags: %v", err)
+		}
+		matchedModels := getMatchingModels(allMetadata, tags)
+		if len(matchedModels) == 0 {
+			slog.Warn(fmt.Sprintf("no models found matching the specified tags: %s", flagTags))
+			return nil
+		}
+		slog.Debug(fmt.Sprintf("filtered %d models by tags: %s", len(matchedModels), flagTags))
+		for _, model := range matchedModels {
+			selected[model] = getModelGenCount(allMetadata[model], flagCount)
+		}
+	} else {
+		for model := range models {
+			selected[model] = getModelGenCount(allMetadata[model], flagCount)
+		}
+	}
+
+	writers := map[string]OutputWriter{
+		FormatCSV:    writeCSV,
+		FormatJSON:   writeJSON,
+		FormatXML:    writeXML,
+		FormatStdout: writeStdout,
+	}
+
+	if flagFormat == "" {
+		flagFormat = FormatStdout
+	}
+
+	w, ok := writers[flagFormat]
+	if !ok {
+		return fmt.Errorf("--format must be one of %s", strings.Join([]string{FormatCSV, FormatJSON, FormatXML, FormatStdout}, ", "))
+	}
+	writeFn := func(name string, records []Record) error { return w(name, records, flagOutput) }
+
+	selectedNames := make([]string, 0, len(selected))
+	for name := range selected {
+		selectedNames = append(selectedNames, name)
+	}
+
+	sort.Strings(selectedNames)
+
+	slog.Info(fmt.Sprintf("generating data for %d models in %s format", len(selectedNames), flagFormat))
+
+	for _, name := range selectedNames {
+		count, _ := selected[name]
+		gen, ok := models[name]
+		if !ok {
+			return fmt.Errorf("unknown model: %s", name)
+		}
+
+		slog.Debug(fmt.Sprintf("generating %d records for %s", count, name))
+		records := make([]Record, 0, count)
+		for i := 0; i < count; i++ {
+			records = append(records, gen(i))
+		}
+
+		if err := writeFn(name, records); err != nil {
+			return fmt.Errorf("error in writing records for model %s: %w", name, err)
+		}
+		slog.Info(fmt.Sprintf("generated and wrote %d records for %s", count, name))
+	}
+	return nil
+}
+
+func runExecuteCommand(flagConfig, flagOutput string) error {
+	if strings.TrimSpace(flagConfig) == "" {
+		return fmt.Errorf("config file path not provided")
+	}
+
+	slog.Debug(fmt.Sprintf("loading configuration from %s", flagConfig))
+	datagen, models := initGeneratorsAndModels()
+	var modelsToLoad []string
+	allMetadata := getModelsMetadata(datagen)
+
+	cfg, err := LoadConfigFile(flagConfig)
+	if err != nil {
+		return fmt.Errorf("loading config file: %w", err)
+	}
+
+	if cfg.Seed != 0 {
+		slog.Debug(fmt.Sprintf("setting deterministic seed: %d", cfg.Seed))
+		if err := setDatagenSeed(cfg.Seed); err != nil {
+			return fmt.Errorf("error setting seed: %v", err)
+		}
+	}
+
+	if err := cfg.Validate(models); err != nil {
+		return fmt.Errorf("error validating config file: %v", err)
+	}
+	slog.Debug("configuration validated successfully")
+
+	for _, m := range cfg.Models {
+		if _, ok := models[m.ModelName]; ok {
+			sinks, err := cfg.SinkSpecsForModel(m.ModelName)
+			if err != nil {
+				return fmt.Errorf("error getting sink specs for model %s: %w", m.ModelName, err)
+			}
+			if len(sinks) > 0 {
+				modelsToLoad = append(modelsToLoad, m.ModelName)
+			}
+		}
+	}
+
+	slog.Info(fmt.Sprintf("preparing to load data into sinks for %d models", len(modelsToLoad)))
+	allData := map[string][]Record{}
+
+	for _, name := range modelsToLoad {
+		gen := models[name]
+
+		count := getRecordCount(cfg, name, allMetadata[name])
+
+		if count == 0 {
+			slog.Info(fmt.Sprintf("skipping %s with zero count", name))
+			continue
+		}
+
+		datagen.__links.StartGen(name)
+
+		slog.Debug(fmt.Sprintf("generating %d records for %s for sink loading", count, name))
+		records := make([]Record, 0, count)
+		for i := 0; i < count; i++ {
+			records = append(records, gen(i))
+		}
+
+		allData[name] = records
+
+		datagen.__links.EndGen(name)
+		slog.Debug(fmt.Sprintf("generated %d records for %s for sink loading", len(records), name))
+	}
+
+	topologicallySorted, err := datagen.__links.TopologicalSort()
+	if err != nil {
+		slog.Warn(fmt.Sprintf("cannot perform topological sort, loading anyway: %s", err.Error()))
+	} else {
+		slog.Debug(fmt.Sprintf("topological sort completed: %v", topologicallySorted))
+	}
+	return orchestrateSinks(topologicallySorted, allData, cfg)
+}
+
+func setDatagenSeed(seed int64) error {
+	rand.Seed(seed)
+	return gofakeit.Seed(seed)
+}

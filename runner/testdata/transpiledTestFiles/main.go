@@ -1,0 +1,83 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/spf13/cobra"
+)
+
+var (
+	version     = "v0.1.0"
+	flagVerbose bool
+	flagVersion bool
+)
+
+func main() {
+	rootCmd := &cobra.Command{
+		Use:     "datagen",
+		Short:   "Generate mock data records",
+		Version: version,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			verbose, _ := cmd.Flags().GetBool("verbose")
+			InitLogger(verbose)
+			// Silence usage for all commands by default
+			// Usage will only be shown for flag-related errors
+			cmd.SilenceUsage = true
+		},
+	}
+
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
+
+	rootCmd.PersistentFlags().BoolVarP(&flagVerbose, "verbose", "v", false, "enable verbose (debug level) logging")
+	rootCmd.PersistentFlags().BoolVarP(&flagVersion, "version", "V", false, "show version information")
+
+	var (
+		flagCount  int
+		flagTags   string
+		flagOutput string
+		flagFormat string
+		flagSeed   int64
+		flagConfig string
+	)
+
+	genCmd := &cobra.Command{
+		Use:   "gen [dirs...]",
+		Short: "Generate data for models",
+		Args:  cobra.ArbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runGenCommand(flagCount, flagTags, flagOutput, flagFormat, flagSeed)
+		},
+	}
+
+	executeCmd := &cobra.Command{
+		Use:   "execute",
+		Short: "Load data to relevant sinks",
+		Args:  cobra.ArbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runExecuteCommand(flagConfig, flagOutput)
+		},
+	}
+
+	genCmd.Flags().IntVarP(&flagCount, "count", "n", -1, "number of records to generate for all the models")
+	genCmd.Flags().StringVarP(&flagTags, "tags", "t", "", "comma-separated key=value tags to filter models")
+	genCmd.Flags().StringVarP(&flagOutput, "output", "o", ".", "output directory or file path")
+	genCmd.Flags().StringVarP(&flagFormat, "format", "f", "", strings.Join([]string{FormatCSV, FormatJSON, FormatXML, FormatStdout}, "|"))
+	genCmd.Flags().Int64VarP(&flagSeed, "seed", "s", 0, "deterministic seed for random data generation (0=non-deterministic)")
+
+	executeCmd.Flags().StringVarP(&flagConfig, "config", "c", "config.json", "path to config file")
+	executeCmd.Flags().StringVarP(&flagOutput, "output", "o", ".", "output directory or file path")
+
+	rootCmd.AddCommand(genCmd)
+	rootCmd.AddCommand(executeCmd)
+
+	if flagVersion {
+		fmt.Printf("datagen version %s\n", version)
+		os.Exit(0)
+	}
+
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
+}

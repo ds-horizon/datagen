@@ -1,0 +1,24 @@
+package main
+
+import (
+	"errors"
+)
+
+type MySQLConfig struct {
+	Host           string `json:"host"`
+	Database       string `json:"database"`
+	Port           int    `json:"port,omitempty"`
+	Username       string `json:"username"`
+	Password       string `json:"password"`
+	BatchSize      int    `json:"batch_size,omitempty"`
+	Timeout        string `json:"timeout,omitempty"`
+	WriteTimeout   string `json:"write_timeout,omitempty"`
+	Throttle       string `json:"throttle,omitempty"`
+}
+
+func (c *MySQLConfig) Validate() error {
+	if c.Host == "" || c.Database == "" || c.Username == "" || c.Password == "" {
+		return errors.New("mysql: host, database, user and password are required")
+	}
+	return nil
+}

@@ -1,0 +1,27 @@
+model multiple_types {
+  fields {
+    id() int
+    score() float64
+    name() string
+    active() bool
+  }
+
+  gens {
+    func id() {
+      return iter
+    }
+
+    func score() {
+      return FloatBetween(0.0, 100.0)
+    }
+
+    func name() {
+      return fmt.Sprintf("user_%d", iter)
+    }
+
+    func active() {
+      return iter%2 == 0
+    }
+  }
+}
+

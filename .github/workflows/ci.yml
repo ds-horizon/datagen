@@ -33,19 +33,18 @@ jobs:
 
       - name: Check coverage threshold
         run: |
+          DESIRED_THRESHOLD=15
           COVERAGE=$(go tool cover -func=coverage.txt | grep total | awk '{print $3}' | sed 's/%//')
           echo "Current coverage: ${COVERAGE}%"
           COVERAGE_INT=$(echo "$COVERAGE" | awk -F. '{print $1}')
-          if [ "$COVERAGE_INT" -lt 7 ]; then
-            echo "Coverage ${COVERAGE}% is below the required 7% threshold"
+          if [ "$COVERAGE_INT" -lt ${DESIRED_THRESHOLD} ]; then
+            echo "Coverage ${COVERAGE}% is below the required ${DESIRED_THRESHOLD}% threshold"
             exit 1
           fi
-          echo "Coverage ${COVERAGE}% meets the required 7% threshold"
+          echo "Coverage ${COVERAGE}% meets the required ${DESIRED_THRESHOLD}% threshold"
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
-          fail_ci_if_error: true
-          files: ./coverage.txt
-          flags: unittests
-          name: codecov-umbrella
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}

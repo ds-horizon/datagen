@@ -1,0 +1,24 @@
+model with_metadata {
+  metadata {
+    count: 100
+    tags: {
+      "env": "test",
+      "version": "1.0"
+    }
+  }
+
+  fields {
+    id() int
+    value() string
+  }
+
+  gens {
+    func id() {
+      return iter
+    }
+
+    func value() {
+      return fmt.Sprintf("value_%d", iter)
+    }
+  }
+}
