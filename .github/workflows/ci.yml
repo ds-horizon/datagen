@@ -36,7 +36,7 @@ jobs:
           COVERAGE=$(go tool cover -func=coverage.txt | grep total | awk '{print $3}' | sed 's/%//')
           echo "Current coverage: ${COVERAGE}%"
           COVERAGE_INT=$(echo "$COVERAGE" | awk -F. '{print $1}')
-          if [ "$COVERAGE_INT" -lt 7 ]; then
+          if [ "$COVERAGE_INT" -lt 15 ]; then
             echo "Coverage ${COVERAGE}% is below the required 7% threshold"
             exit 1
           fi
