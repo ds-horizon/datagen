@@ -18,10 +18,10 @@ func Load___datagen_{{.FullyQualifiedModelName}}_postgres(records []*__datagen_{
     var b strings.Builder
     columns := []string{
         {{- range .Fields }}
-        "{{.Name}}",
+        "\"{{.Name}}\"",
         {{- end }}
     }
-    b.WriteString("INSERT INTO {{.ModelName}} (")
+    b.WriteString("INSERT INTO \"{{.ModelName}}\" (")
     b.WriteString(strings.Join(columns, ","))
     b.WriteString(") VALUES ")
     
@@ -61,7 +61,7 @@ func Load___datagen_{{.FullyQualifiedModelName}}_postgres(records []*__datagen_{
 // Truncate___datagen_{{.FullyQualifiedModelName}}_postgres() truncates the model's table using the shared connection.
 func Truncate___datagen_{{.FullyQualifiedModelName}}_postgres(tx *sql.Tx) error {
      ctx := context.Background()
-     if _, err := tx.ExecContext(ctx, "DELETE FROM {{.ModelName}};" ); err != nil {
+     if _, err := tx.ExecContext(ctx, "DELETE FROM \"{{.ModelName}}\";" ); err != nil {
          return fmt.Errorf("delete failed with error : %w", err)
      }
      return nil
