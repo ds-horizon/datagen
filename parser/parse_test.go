@@ -137,7 +137,7 @@ return x * 2
 			expectedErr: nil,
 		},
 		{
-			name:  "error in wrapperFunc",
+			name:  "no return statement",
 			input: "foo",
 			expected: `func() {
 foo

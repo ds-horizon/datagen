@@ -113,20 +113,29 @@ func TestConsumeString(t *testing.T) {
 
 func TestParse(t *testing.T) {
 	testExpr := []struct {
-		name     string
-		input    string
-		expected *codegen.DatagenParsed
-		fail     bool
-		errStr   string
+		name              string
+		input             string
+		expectedMetadata  *codegen.Metadata
+		expectedModelName string
+		expectedFilepath  string
+		expectedFields    bool
+		expectedMisc      bool
+		expectedGenFuncs  bool
+		expectedCalls     bool
+		fail              bool
+		errStr            string
 	}{
 		{
-			name:  "empty model",
-			input: "model empty {}",
-			expected: &codegen.DatagenParsed{
-				ModelName: "empty",
-				Filepath:  "test.dg",
-			},
-			fail: false,
+			name:              "empty model",
+			input:             "model empty {}",
+			expectedMetadata:  nil,
+			expectedModelName: "empty",
+			expectedFilepath:  "test.dg",
+			expectedFields:    false,
+			expectedMisc:      false,
+			expectedGenFuncs:  false,
+			expectedCalls:     false,
+			fail:              false,
 		},
 		{
 			name: "model with fields only",
@@ -136,11 +145,14 @@ func TestParse(t *testing.T) {
     age() int
   }
 }`,
-			expected: &codegen.DatagenParsed{
-				ModelName: "user",
-				Filepath:  "test.dg",
-			},
-			fail: false,
+			expectedMetadata:  nil,
+			expectedModelName: "user",
+			expectedFilepath:  "test.dg",
+			expectedFields:    true,
+			expectedMisc:      false,
+			expectedGenFuncs:  false,
+			expectedCalls:     false,
+			fail:              false,
 		},
 		{
 			name: "model with metadata count",
@@ -149,15 +161,17 @@ func TestParse(t *testing.T) {
     count: 100
   }
 }`,
-			expected: &codegen.DatagenParsed{
-				ModelName: "test",
-				Filepath:  "test.dg",
-				Metadata: &codegen.Metadata{
-					Count: 100,
-					Tags:  map[string]string{},
-				},
+			expectedMetadata: &codegen.Metadata{
+				Count: 100,
+				Tags:  map[string]string{},
 			},
-			fail: false,
+			expectedModelName: "test",
+			expectedFilepath:  "test.dg",
+			expectedFields:    false,
+			expectedMisc:      false,
+			expectedGenFuncs:  false,
+			expectedCalls:     false,
+			fail:              false,
 		},
 		{
 			name: "model with metadata tags",
@@ -169,17 +183,19 @@ func TestParse(t *testing.T) {
     }
   }
 }`,
-			expected: &codegen.DatagenParsed{
-				ModelName: "test",
-				Filepath:  "test.dg",
-				Metadata: &codegen.Metadata{
-					Tags: map[string]string{
-						"service": "test",
-						"team":    "backend",
-					},
+			expectedMetadata: &codegen.Metadata{
+				Tags: map[string]string{
+					"service": "test",
+					"team":    "backend",
 				},
 			},
-			fail: false,
+			expectedModelName: "test",
+			expectedFilepath:  "test.dg",
+			expectedFields:    false,
+			expectedMisc:      false,
+			expectedGenFuncs:  false,
+			expectedCalls:     false,
+			fail:              false,
 		},
 		{
 			name: "model with misc section",
@@ -191,11 +207,14 @@ func TestParse(t *testing.T) {
     }
   }
 }`,
-			expected: &codegen.DatagenParsed{
-				ModelName: "test",
-				Filepath:  "test.dg",
-			},
-			fail: false,
+			expectedMetadata:  nil,
+			expectedModelName: "test",
+			expectedFilepath:  "test.dg",
+			expectedFields:    false,
+			expectedMisc:      true,
+			expectedGenFuncs:  false,
+			expectedCalls:     false,
+			fail:              false,
 		},
 		{
 			name: "model with gens section",
@@ -206,11 +225,14 @@ func TestParse(t *testing.T) {
     }
   }
 }`,
-			expected: &codegen.DatagenParsed{
-				ModelName: "test",
-				Filepath:  "test.dg",
-			},
-			fail: false,
+			expectedMetadata:  nil,
+			expectedModelName: "test",
+			expectedFilepath:  "test.dg",
+			expectedFields:    false,
+			expectedMisc:      false,
+			expectedGenFuncs:  true,
+			expectedCalls:     false,
+			fail:              false,
 		},
 		{
 			name: "model with calls section",
@@ -222,11 +244,14 @@ func TestParse(t *testing.T) {
     name()
   }
 }`,
-			expected: &codegen.DatagenParsed{
-				ModelName: "test",
-				Filepath:  "test.dg",
-			},
-			fail: false,
+			expectedMetadata:  nil,
+			expectedModelName: "test",
+			expectedFilepath:  "test.dg",
+			expectedFields:    true,
+			expectedMisc:      false,
+			expectedGenFuncs:  false,
+			expectedCalls:     true,
+			fail:              false,
 		},
 		{
 			name: "model with comments",
@@ -237,11 +262,14 @@ model test {
     name() string // inline comment
   }
 }`,
-			expected: &codegen.DatagenParsed{
-				ModelName: "test",
-				Filepath:  "test.dg",
-			},
-			fail: false,
+			expectedMetadata:  nil,
+			expectedModelName: "test",
+			expectedFilepath:  "test.dg",
+			expectedFields:    true,
+			expectedMisc:      false,
+			expectedGenFuncs:  false,
+			expectedCalls:     false,
+			fail:              false,
 		},
 		{
 			name: "model with metadata count and tags",
@@ -253,17 +281,19 @@ model test {
     }
   }
 }`,
-			expected: &codegen.DatagenParsed{
-				ModelName: "test",
-				Filepath:  "test.dg",
-				Metadata: &codegen.Metadata{
-					Count: 50,
-					Tags: map[string]string{
-						"service": "test",
-					},
+			expectedMetadata: &codegen.Metadata{
+				Count: 50,
+				Tags: map[string]string{
+					"service": "test",
 				},
 			},
-			fail: false,
+			expectedModelName: "test",
+			expectedFilepath:  "test.dg",
+			expectedFields:    false,
+			expectedMisc:      false,
+			expectedGenFuncs:  false,
+			expectedCalls:     false,
+			fail:              false,
 		},
 		{
 			name: "model with all sections",
@@ -294,11 +324,19 @@ model test {
     name()
   }
 }`,
-			expected: &codegen.DatagenParsed{
-				ModelName: "complete",
-				Filepath:  "test.dg",
+			expectedMetadata: &codegen.Metadata{
+				Count: 42,
+				Tags: map[string]string{
+					"key": "value",
+				},
 			},
-			fail: false,
+			expectedModelName: "complete",
+			expectedFilepath:  "test.dg",
+			expectedFields:    true,
+			expectedMisc:      true,
+			expectedGenFuncs:  true,
+			expectedCalls:     true,
+			fail:              false,
 		},
 		{
 			name:   "missing model keyword",
@@ -322,7 +360,7 @@ model test {
 			name:   "missing closing brace",
 			input:  "model test {",
 			fail:   true,
-			errStr: "",
+			errStr: "expected '}', got '{'",
 		},
 		{
 			name:   "invalid section name",
@@ -334,13 +372,13 @@ model test {
 			name:   "incomplete metadata count",
 			input:  "model test { metadata { count } }",
 			fail:   true,
-			errStr: "",
+			errStr: "expected colon (:)",
 		},
 		{
 			name:   "incomplete metadata tags",
 			input:  "model test { metadata { tags } }",
 			fail:   true,
-			errStr: "",
+			errStr: "expected colon (:)",
 		},
 		{
 			name:   "invalid metadata field",
@@ -352,13 +390,13 @@ model test {
 			name:   "incomplete gens section",
 			input:  "model test { gens { func } }",
 			fail:   true,
-			errStr: "",
+			errStr: "expected gen fn name",
 		},
 		{
 			name:   "incomplete gen function",
 			input:  "model test { gens { func name } }",
 			fail:   true,
-			errStr: "",
+			errStr: "expected '(', got '}'",
 		},
 		{
 			name:   "empty input",
@@ -376,13 +414,13 @@ model test {
 			name:   "unclosed body",
 			input:  "model test { fields {",
 			fail:   true,
-			errStr: "",
+			errStr: "invalid fields body incomplete body",
 		},
 		{
 			name:   "mismatched braces - extra opening",
 			input:  "model test { fields { {",
 			fail:   true,
-			errStr: "",
+			errStr: "invalid fields body incomplete body",
 		},
 	}
 
@@ -392,43 +430,32 @@ model test {
 
 			if tt.fail {
 				require.Error(t, err, "expected error for input: %q", tt.input)
-				if tt.errStr != "" {
-					assert.Contains(t, err.Error(), tt.errStr,
-						"error message should contain %q, got: %v", tt.errStr, err)
-				}
+				assert.Contains(t, err.Error(), tt.errStr, "error message should contain %q, got: %v", tt.errStr, err)
 				return
 			}
 
 			require.NoError(t, err, "unexpected error for input: %q", tt.input)
 			require.NotNil(t, got, "expected non-nil result")
 
-			assert.Equal(t, tt.expected.ModelName, got.ModelName,
+			assert.Equal(t, tt.expectedModelName, got.ModelName,
 				"ModelName mismatch")
-			assert.Equal(t, tt.expected.Filepath, got.Filepath,
+			assert.Equal(t, tt.expectedFilepath, got.Filepath,
 				"Filepath mismatch")
 
-			if tt.expected.Metadata != nil {
+			if tt.expectedMetadata != nil {
 				require.NotNil(t, got.Metadata, "expected non-nil Metadata")
-				assert.Equal(t, tt.expected.Metadata.Count, got.Metadata.Count,
+				assert.Equal(t, tt.expectedMetadata.Count, got.Metadata.Count,
 					"Metadata.Count mismatch")
-				if len(tt.expected.Metadata.Tags) > 0 {
-					assert.Equal(t, tt.expected.Metadata.Tags, got.Metadata.Tags,
+				if len(tt.expectedMetadata.Tags) > 0 {
+					assert.Equal(t, tt.expectedMetadata.Tags, got.Metadata.Tags,
 						"Metadata.Tags mismatch")
 				}
 			}
 
-			if tt.expected.Fields != nil {
-				assert.NotNil(t, got.Fields, "expected non-nil Fields")
-			}
-			if tt.expected.Misc != "" {
-				assert.NotEmpty(t, got.Misc, "expected non-empty Misc")
-			}
-			if len(tt.expected.GenFuns) > 0 {
-				assert.NotEmpty(t, got.GenFuns, "expected non-empty GenFuns")
-			}
-			if len(tt.expected.Calls) > 0 {
-				assert.NotEmpty(t, got.Calls, "expected non-empty Calls")
-			}
+			assert.Equal(t, tt.expectedFields, got.Fields != nil, "Fields presence mismatch")
+			assert.Equal(t, tt.expectedMisc, got.Misc != "", "Misc presence mismatch")
+			assert.Equal(t, tt.expectedGenFuncs, len(got.GenFuns) > 0, "GenFuns presence mismatch")
+			assert.Equal(t, tt.expectedCalls, len(got.Calls) > 0, "Calls presence mismatch")
 		})
 	}
 }
