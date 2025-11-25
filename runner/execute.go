@@ -66,7 +66,7 @@ func BuildAndRunGen(cmd *cobra.Command, args []string) error {
 }
 
 func invokeGen(outDir string, count int, tags, output, format string, seed int64, inputPath string, verbose bool) error {
-	binaryPath, _ := buildTranspiledBinary(outDir)
+	binaryPath, _ := buildTranspiledBinary(filepath.Clean(filepath.Join(outDir, utils.DatagenDirName)))
 	args := []string{"gen", inputPath}
 	args = append(args, "-n", fmt.Sprintf("%d", count))
 	if strings.TrimSpace(tags) != "" {
@@ -124,7 +124,7 @@ func BuildAndRunExecute(cmd *cobra.Command, args []string) error {
 }
 
 func invokeExecute(outDir, output, config, inputPath string, verbose bool) error {
-	binaryPath, err := buildTranspiledBinary(outDir)
+	binaryPath, err := buildTranspiledBinary(filepath.Clean(filepath.Join(outDir, utils.DatagenDirName)))
 	if err != nil {
 		return nil
 	}
@@ -166,8 +166,13 @@ func findAndTranspileDatagenModels(outDir, inputPath string) error {
 		return fmt.Errorf("failed to process directory data\n  input_path: %s\n  cause: %w", inputPath, err)
 	}
 
-	slog.Debug(fmt.Sprintf("generating code for %d models into %s", len(parsedAll), outDir))
-	if err := codegen.Codegen(parsedAll, outDir, dgDirData); err != nil {
+	genDir := filepath.Clean(filepath.Join(outDir, utils.DatagenDirName))
+	if err := utils.RemoveDirIfExists(genDir); err != nil {
+		return err
+	}
+
+	slog.Debug(fmt.Sprintf("generating code for %d models into %s", len(parsedAll), genDir))
+	if err := codegen.Codegen(parsedAll, genDir, dgDirData); err != nil {
 		return fmt.Errorf("code generation failed\n  output_dir: %s\n  cause: %w", outDir, err)
 	}
 
