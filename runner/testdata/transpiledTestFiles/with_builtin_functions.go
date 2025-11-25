@@ -366,12 +366,12 @@ var (
 	_ = unsafe.Sizeof(0)
 )
 
-var with_builtin_functionsMetadata Metadata = Metadata{
+var with_builtin_functionsMetadata __dgi_Metadata = __dgi_Metadata{
 	Count: 1,
 	Tags:  map[string]string{},
 }
 
-func (cg *__datagen_with_builtin_functionsGenerator) Metadata() Metadata {
+func (cg *__datagen_with_builtin_functionsGenerator) Metadata() __dgi_Metadata {
 	return with_builtin_functionsMetadata
 }
 
@@ -386,7 +386,7 @@ type __datagen_with_builtin_functionsGenerator struct {
 	random_int   func(iter int) int
 	random_float func(iter int) float64
 	all          *__datagen_with_builtin_functionsDataHolder
-	datagen      *DataGenGenerators
+	datagen      *__dgi_DataGenGenerators
 }
 
 type __datagen_with_builtin_functionsDataHolder struct {
@@ -452,7 +452,7 @@ func (self *__datagen_with_builtin_functionsGenerator) __gen_id(iter int) int {
 	return iter
 }
 
-func (cg *__datagen_with_builtin_functionsGenerator) Gen(iter int) Record {
+func (cg *__datagen_with_builtin_functionsGenerator) Gen(iter int) __dgi_Record {
 	return &__datagen_with_builtin_functions{
 		id:           cg.id(iter),
 		random_int:   cg.random_int(iter),
@@ -499,14 +499,14 @@ func (e *__datagen_with_builtin_functions) ToJSON() string {
 }
 
 func (e *__datagen_with_builtin_functions) ToXML() string {
-	type alias struct {
+	type __dgi_xmlAlias struct {
 		XMLName          xml.Name `xml:"with_builtin_functions"`
 		Xml_id           int      `xml:"id"`
 		Xml_random_int   int      `xml:"random_int"`
 		Xml_random_float float64  `xml:"random_float"`
 	}
 
-	data := alias{
+	data := __dgi_xmlAlias{
 		Xml_id:           e.id,
 		Xml_random_int:   e.random_int,
 		Xml_random_float: e.random_float,

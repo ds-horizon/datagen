@@ -371,12 +371,12 @@ type UserInfo struct {
 	Email string
 }
 
-var nestedMetadata Metadata = Metadata{
+var nestedMetadata __dgi_Metadata = __dgi_Metadata{
 	Count: 1,
 	Tags:  map[string]string{},
 }
 
-func (cg *__datagen_nestedGenerator) Metadata() Metadata {
+func (cg *__datagen_nestedGenerator) Metadata() __dgi_Metadata {
 	return nestedMetadata
 }
 
@@ -389,7 +389,7 @@ type __datagen_nestedGenerator struct {
 	id      func(iter int) int
 	user    func(iter int) UserInfo
 	all     *__datagen_nestedDataHolder
-	datagen *DataGenGenerators
+	datagen *__dgi_DataGenGenerators
 }
 
 type __datagen_nestedDataHolder struct {
@@ -435,7 +435,7 @@ func (self *__datagen_nestedGenerator) __gen_id(iter int) int {
 	return iter
 }
 
-func (cg *__datagen_nestedGenerator) Gen(iter int) Record {
+func (cg *__datagen_nestedGenerator) Gen(iter int) __dgi_Record {
 	return &__datagen_nested{
 		id:   cg.id(iter),
 		user: cg.user(iter),
@@ -477,13 +477,13 @@ func (e *__datagen_nested) ToJSON() string {
 }
 
 func (e *__datagen_nested) ToXML() string {
-	type alias struct {
+	type __dgi_xmlAlias struct {
 		XMLName  xml.Name `xml:"nested"`
 		Xml_id   int      `xml:"id"`
 		Xml_user UserInfo `xml:"user"`
 	}
 
-	data := alias{
+	data := __dgi_xmlAlias{
 		Xml_id:   e.id,
 		Xml_user: e.user,
 	}

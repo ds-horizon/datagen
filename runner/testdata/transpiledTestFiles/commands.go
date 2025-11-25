@@ -9,60 +9,60 @@ import (
 	"strings"
 )
 
-func getModelGenCount(metadata Metadata, flagCount int) int {
+func __dgi_getModelGenCount(metadata __dgi_Metadata, flagCount int) int {
 	if flagCount != -1 {
 		return flagCount
 	}
 	return metadata.Count
 }
 
-func runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string, flagSeed int64) error {
+func __dgi_runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string, flagSeed int64) error {
 	if flagSeed != 0 {
-		if err := setDatagenSeed(flagSeed); err != nil {
+		if err := __dgi_setDatagenSeed(flagSeed); err != nil {
 			return fmt.Errorf("error setting seed: %v", err)
 		}
 	}
 
-	datagen, models := initGeneratorsAndModels()
-	allMetadata := getModelsMetadata(datagen)
+	datagen, models := __dgi_initGeneratorsAndModels()
+	allMetadata := __dgi_getModelsMetadata(datagen)
 
 	selected := make(map[string]int)
 	if strings.TrimSpace(flagTags) != "" {
-		tags, err := parseTags(flagTags)
+		tags, err := __dgi_parseTags(flagTags)
 		if err != nil {
 			return fmt.Errorf("error parsing tags: %v", err)
 		}
-		matchedModels := getMatchingModels(allMetadata, tags)
+		matchedModels := __dgi_getMatchingModels(allMetadata, tags)
 		if len(matchedModels) == 0 {
 			slog.Warn(fmt.Sprintf("no models found matching the specified tags: %s", flagTags))
 			return nil
 		}
 		slog.Debug(fmt.Sprintf("filtered %d models by tags: %s", len(matchedModels), flagTags))
 		for _, model := range matchedModels {
-			selected[model] = getModelGenCount(allMetadata[model], flagCount)
+			selected[model] = __dgi_getModelGenCount(allMetadata[model], flagCount)
 		}
 	} else {
 		for model := range models {
-			selected[model] = getModelGenCount(allMetadata[model], flagCount)
+			selected[model] = __dgi_getModelGenCount(allMetadata[model], flagCount)
 		}
 	}
 
-	writers := map[string]OutputWriter{
-		FormatCSV:    writeCSV,
-		FormatJSON:   writeJSON,
-		FormatXML:    writeXML,
-		FormatStdout: writeStdout,
+	writers := map[string]__dgi_OutputWriter{
+		__dgi_FormatCSV:    __dgi_writeCSV,
+		__dgi_FormatJSON:   __dgi_writeJSON,
+		__dgi_FormatXML:    __dgi_writeXML,
+		__dgi_FormatStdout: __dgi_writeStdout,
 	}
 
 	if flagFormat == "" {
-		flagFormat = FormatStdout
+		flagFormat = __dgi_FormatStdout
 	}
 
 	w, ok := writers[flagFormat]
 	if !ok {
-		return fmt.Errorf("--format must be one of %s", strings.Join([]string{FormatCSV, FormatJSON, FormatXML, FormatStdout}, ", "))
+		return fmt.Errorf("--format must be one of %s", strings.Join([]string{__dgi_FormatCSV, __dgi_FormatJSON, __dgi_FormatXML, __dgi_FormatStdout}, ", "))
 	}
-	writeFn := func(name string, records []Record) error { return w(name, records, flagOutput) }
+	writeFn := func(name string, records []__dgi_Record) error { return w(name, records, flagOutput) }
 
 	selectedNames := make([]string, 0, len(selected))
 	for name := range selected {
@@ -81,7 +81,7 @@ func runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string, flagS
 		}
 
 		slog.Debug(fmt.Sprintf("generating %d records for %s", count, name))
-		records := make([]Record, 0, count)
+		records := make([]__dgi_Record, 0, count)
 		for i := 0; i < count; i++ {
 			records = append(records, gen(i))
 		}
@@ -94,24 +94,24 @@ func runGenCommand(flagCount int, flagTags, flagOutput, flagFormat string, flagS
 	return nil
 }
 
-func runExecuteCommand(flagConfig, flagOutput string) error {
+func __dgi_runExecuteCommand(flagConfig, flagOutput string) error {
 	if strings.TrimSpace(flagConfig) == "" {
 		return fmt.Errorf("config file path not provided")
 	}
 
 	slog.Debug(fmt.Sprintf("loading configuration from %s", flagConfig))
-	datagen, models := initGeneratorsAndModels()
+	datagen, models := __dgi_initGeneratorsAndModels()
 	var modelsToLoad []string
-	allMetadata := getModelsMetadata(datagen)
+	allMetadata := __dgi_getModelsMetadata(datagen)
 
-	cfg, err := LoadConfigFile(flagConfig)
+	cfg, err := __dgi_LoadConfigFile(flagConfig)
 	if err != nil {
 		return fmt.Errorf("loading config file: %w", err)
 	}
 
 	if cfg.Seed != 0 {
 		slog.Debug(fmt.Sprintf("setting deterministic seed: %d", cfg.Seed))
-		if err := setDatagenSeed(cfg.Seed); err != nil {
+		if err := __dgi_setDatagenSeed(cfg.Seed); err != nil {
 			return fmt.Errorf("error setting seed: %v", err)
 		}
 	}
@@ -134,12 +134,12 @@ func runExecuteCommand(flagConfig, flagOutput string) error {
 	}
 
 	slog.Info(fmt.Sprintf("preparing to load data into sinks for %d models", len(modelsToLoad)))
-	allData := map[string][]Record{}
+	allData := map[string][]__dgi_Record{}
 
 	for _, name := range modelsToLoad {
 		gen := models[name]
 
-		count := getRecordCount(cfg, name, allMetadata[name])
+		count := __dgi_getRecordCount(cfg, name, allMetadata[name])
 
 		if count == 0 {
 			slog.Info(fmt.Sprintf("skipping %s with zero count", name))
@@ -149,7 +149,7 @@ func runExecuteCommand(flagConfig, flagOutput string) error {
 		datagen.__links.StartGen(name)
 
 		slog.Debug(fmt.Sprintf("generating %d records for %s for sink loading", count, name))
-		records := make([]Record, 0, count)
+		records := make([]__dgi_Record, 0, count)
 		for i := 0; i < count; i++ {
 			records = append(records, gen(i))
 		}
@@ -166,10 +166,10 @@ func runExecuteCommand(flagConfig, flagOutput string) error {
 	} else {
 		slog.Debug(fmt.Sprintf("topological sort completed: %v", topologicallySorted))
 	}
-	return orchestrateSinks(topologicallySorted, allData, cfg)
+	return __dgi_orchestrateSinks(topologicallySorted, allData, cfg)
 }
 
-func setDatagenSeed(seed int64) error {
+func __dgi_setDatagenSeed(seed int64) error {
 	rand.Seed(seed)
 	return gofakeit.Seed(seed)
 }

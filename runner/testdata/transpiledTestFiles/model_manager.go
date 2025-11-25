@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-type DataGenGenerators struct {
+type __dgi_DataGenGenerators struct {
 	minimal                func() *__datagen_minimalGenerator
 	multiple_types         func() *__datagen_multiple_typesGenerator
 	nested                 func() *__datagen_nestedGenerator
@@ -16,10 +16,10 @@ type DataGenGenerators struct {
 	with_misc              func() *__datagen_with_miscGenerator
 	with_slices            func() *__datagen_with_slicesGenerator
 
-	__links *Links
+	__links *__dgi_Links
 }
 
-type Metadata struct {
+type __dgi_Metadata struct {
 	Count int
 	Tags  map[string]string
 }
@@ -85,7 +85,7 @@ func with_slicesFunc(model *__datagen_with_slicesGenerator, tail string) func() 
 	}
 }
 
-func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) {
+func __dgi_initGeneratorsAndModels() (*__dgi_DataGenGenerators, map[string]__dgi_RecordGenerator) {
 	minimalGenerator := __init___datagen_minimalGenerator()
 	multiple_typesGenerator := __init___datagen_multiple_typesGenerator()
 	nestedGenerator := __init___datagen_nestedGenerator()
@@ -99,7 +99,7 @@ func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) 
 
 	// Construct directory instances bottom-up so children are available
 
-	datagen := &DataGenGenerators{
+	datagen := &__dgi_DataGenGenerators{
 		minimal:                minimalFunc(minimalGenerator, "minimal"),
 		multiple_types:         multiple_typesFunc(multiple_typesGenerator, "multiple_types"),
 		nested:                 nestedFunc(nestedGenerator, "nested"),
@@ -111,7 +111,7 @@ func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) 
 		with_misc:              with_miscFunc(with_miscGenerator, "with_misc"),
 		with_slices:            with_slicesFunc(with_slicesGenerator, "with_slices"),
 
-		__links: &Links{
+		__links: &__dgi_Links{
 			mu:   sync.Mutex{},
 			data: map[string]map[string]struct{}{},
 		},
@@ -128,7 +128,7 @@ func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) 
 	with_slicesGenerator.datagen = datagen
 
 	// model registry
-	models := map[string]RecordGenerator{
+	models := map[string]__dgi_RecordGenerator{
 		"minimal":                minimalGenerator.Gen,
 		"multiple_types":         multiple_typesGenerator.Gen,
 		"nested":                 nestedGenerator.Gen,

@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-type MySQLConfig struct {
+type __dgi_MySQLConfig struct {
 	Host           string `json:"host"`
 	Database       string `json:"database"`
 	Port           int    `json:"port,omitempty"`
@@ -16,7 +16,7 @@ type MySQLConfig struct {
 	Throttle       string `json:"throttle,omitempty"`
 }
 
-func (c *MySQLConfig) Validate() error {
+func (c *__dgi_MySQLConfig) Validate() error {
 	if c.Host == "" || c.Database == "" || c.Username == "" || c.Password == "" {
 		return errors.New("mysql: host, database, user and password are required")
 	}

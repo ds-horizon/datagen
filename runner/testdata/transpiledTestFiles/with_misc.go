@@ -369,12 +369,12 @@ var (
 const MaxValue = 1000
 const Prefix = "item"
 
-var with_miscMetadata Metadata = Metadata{
+var with_miscMetadata __dgi_Metadata = __dgi_Metadata{
 	Count: 1,
 	Tags:  map[string]string{},
 }
 
-func (cg *__datagen_with_miscGenerator) Metadata() Metadata {
+func (cg *__datagen_with_miscGenerator) Metadata() __dgi_Metadata {
 	return with_miscMetadata
 }
 
@@ -389,7 +389,7 @@ type __datagen_with_miscGenerator struct {
 	label   func(iter int) string
 	count   func(iter int) int
 	all     *__datagen_with_miscDataHolder
-	datagen *DataGenGenerators
+	datagen *__dgi_DataGenGenerators
 }
 
 type __datagen_with_miscDataHolder struct {
@@ -455,7 +455,7 @@ func (self *__datagen_with_miscGenerator) __gen_id(iter int) int {
 	return iter
 }
 
-func (cg *__datagen_with_miscGenerator) Gen(iter int) Record {
+func (cg *__datagen_with_miscGenerator) Gen(iter int) __dgi_Record {
 	return &__datagen_with_misc{
 		id:    cg.id(iter),
 		label: cg.label(iter),
@@ -502,14 +502,14 @@ func (e *__datagen_with_misc) ToJSON() string {
 }
 
 func (e *__datagen_with_misc) ToXML() string {
-	type alias struct {
+	type __dgi_xmlAlias struct {
 		XMLName   xml.Name `xml:"with_misc"`
 		Xml_id    int      `xml:"id"`
 		Xml_label string   `xml:"label"`
 		Xml_count int      `xml:"count"`
 	}
 
-	data := alias{
+	data := __dgi_xmlAlias{
 		Xml_id:    e.id,
 		Xml_label: e.label,
 		Xml_count: e.count,

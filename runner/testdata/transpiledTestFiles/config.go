@@ -9,45 +9,45 @@ import (
 	"strings"
 )
 
-type SinkType string
+type __dgi_SinkType string
 
 const (
-	SinkTypeMySQL SinkType = "mysql"
-	SinkTypeKafka SinkType = "kafka"
+	__dgi_SinkTypeMySQL __dgi_SinkType = "mysql"
+	__dgi_SinkTypeKafka __dgi_SinkType = "kafka"
 )
 
-type Config struct {
-	ClearData bool        `json:"clear_data,omitempty"`
-	Models    []ModelSpec `json:"models"`
-	Sinks     []SinkSpec  `json:"sinks"`
-	Seed      int64       `json:"seed,omitempty"`
+type __dgi_Config struct {
+	ClearData bool              `json:"clear_data,omitempty"`
+	Models    []__dgi_ModelSpec `json:"models"`
+	Sinks     []__dgi_SinkSpec  `json:"sinks"`
+	Seed      int64             `json:"seed,omitempty"`
 }
 
-type ModelSpec struct {
+type __dgi_ModelSpec struct {
 	ModelName   string   `json:"model_name"`
 	TargetSinks []string `json:"target_sinks"`
 	Count       *int     `json:"count,omitempty"`
 }
 
-type SinkSpec struct {
+type __dgi_SinkSpec struct {
 	SinkName string          `json:"sink_name"`
-	SinkType SinkType        `json:"sink_type"`
+	SinkType __dgi_SinkType  `json:"sink_type"`
 	Config   json.RawMessage `json:"config"`
 }
 
-func LoadConfigFile(path string) (*Config, error) {
+func __dgi_LoadConfigFile(path string) (*__dgi_Config, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("open config: %w", err)
 	}
-	var cfg Config
+	var cfg __dgi_Config
 	if err := json.Unmarshal(b, &cfg); err != nil {
 		return nil, fmt.Errorf("decode config: %w", err)
 	}
 	return &cfg, nil
 }
 
-func (c *Config) Validate(models map[string]RecordGenerator) error {
+func (c *__dgi_Config) Validate(models map[string]__dgi_RecordGenerator) error {
 	var missingModels []string
 	for _, m := range c.Models {
 		if _, ok := models[m.ModelName]; !ok {
@@ -102,8 +102,8 @@ func (c *Config) Validate(models map[string]RecordGenerator) error {
 	}
 	for _, s := range c.Sinks {
 		switch s.SinkType {
-		case SinkTypeMySQL:
-			var sc MySQLConfig
+		case __dgi_SinkTypeMySQL:
+			var sc __dgi_MySQLConfig
 			if err := s.ConfigInto(&sc); err != nil {
 				return fmt.Errorf("sink %q (mysql): %w", s.SinkName, err)
 			}
@@ -125,10 +125,10 @@ func (c *Config) Validate(models map[string]RecordGenerator) error {
 	return nil
 }
 
-func (c *Config) SinkSpecsForModel(modelName string) ([]*SinkSpec, error) {
+func (c *__dgi_Config) SinkSpecsForModel(modelName string) ([]*__dgi_SinkSpec, error) {
 	for _, m := range c.Models {
 		if m.ModelName == modelName {
-			out := make([]*SinkSpec, 0, len(m.TargetSinks))
+			out := make([]*__dgi_SinkSpec, 0, len(m.TargetSinks))
 			for _, sn := range m.TargetSinks {
 				if s := c.findSinkByName(sn); s != nil {
 					out = append(out, s)
@@ -140,7 +140,7 @@ func (c *Config) SinkSpecsForModel(modelName string) ([]*SinkSpec, error) {
 	return nil, fmt.Errorf("unknown model %q", modelName)
 }
 
-func (c *Config) findSinkByName(name string) *SinkSpec {
+func (c *__dgi_Config) findSinkByName(name string) *__dgi_SinkSpec {
 	for i := range c.Sinks {
 		if c.Sinks[i].SinkName == name {
 			return &c.Sinks[i]
@@ -149,7 +149,7 @@ func (c *Config) findSinkByName(name string) *SinkSpec {
 	return nil
 }
 
-func (s *SinkSpec) ConfigInto(dst interface{}) error {
+func (s *__dgi_SinkSpec) ConfigInto(dst interface{}) error {
 	// Expand environment variables like ${FOO}
 	expanded := os.ExpandEnv(string(s.Config))
 	if err := json.Unmarshal([]byte(expanded), dst); err != nil {

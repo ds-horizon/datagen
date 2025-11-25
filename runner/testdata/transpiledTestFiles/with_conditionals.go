@@ -366,12 +366,12 @@ var (
 	_ = unsafe.Sizeof(0)
 )
 
-var with_conditionalsMetadata Metadata = Metadata{
+var with_conditionalsMetadata __dgi_Metadata = __dgi_Metadata{
 	Count: 1,
 	Tags:  map[string]string{},
 }
 
-func (cg *__datagen_with_conditionalsGenerator) Metadata() Metadata {
+func (cg *__datagen_with_conditionalsGenerator) Metadata() __dgi_Metadata {
 	return with_conditionalsMetadata
 }
 
@@ -386,7 +386,7 @@ type __datagen_with_conditionalsGenerator struct {
 	category func(iter int) string
 	value    func(iter int) int
 	all      *__datagen_with_conditionalsDataHolder
-	datagen  *DataGenGenerators
+	datagen  *__dgi_DataGenGenerators
 }
 
 type __datagen_with_conditionalsDataHolder struct {
@@ -460,7 +460,7 @@ func (self *__datagen_with_conditionalsGenerator) __gen_id(iter int) int {
 	return iter
 }
 
-func (cg *__datagen_with_conditionalsGenerator) Gen(iter int) Record {
+func (cg *__datagen_with_conditionalsGenerator) Gen(iter int) __dgi_Record {
 	return &__datagen_with_conditionals{
 		id:       cg.id(iter),
 		category: cg.category(iter),
@@ -507,14 +507,14 @@ func (e *__datagen_with_conditionals) ToJSON() string {
 }
 
 func (e *__datagen_with_conditionals) ToXML() string {
-	type alias struct {
+	type __dgi_xmlAlias struct {
 		XMLName      xml.Name `xml:"with_conditionals"`
 		Xml_id       int      `xml:"id"`
 		Xml_category string   `xml:"category"`
 		Xml_value    int      `xml:"value"`
 	}
 
-	data := alias{
+	data := __dgi_xmlAlias{
 		Xml_id:       e.id,
 		Xml_category: e.category,
 		Xml_value:    e.value,
