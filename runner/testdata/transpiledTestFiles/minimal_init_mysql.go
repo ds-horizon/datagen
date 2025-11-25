@@ -11,7 +11,7 @@ import (
 var __datagen_minimal_mysql_connection *sql.DB
 
 // Init___datagen_minimal_mysql_connection initializes a shared MySQL connection for __datagen_minimal.
-func Init___datagen_minimal_mysql_connection(req *MySQLConfig) error {
+func Init___datagen_minimal_mysql_connection(req *__dgi_MySQLConfig) error {
 	if _, err := Get___datagen_minimal_mysql_connection(); err == nil {
 		return nil
 	}

@@ -9,7 +9,7 @@ import (
 )
 
 // Sink_mysql___datagen_with_slices_data loads __datagen_with_slices data into MySQL
-func Sink_mysql___datagen_with_slices_data(modelName string, records []*__datagen_with_slices, config *MySQLConfig) error {
+func Sink_mysql___datagen_with_slices_data(modelName string, records []*__datagen_with_slices, config *__dgi_MySQLConfig) error {
 	slog.Debug(fmt.Sprintf("initializing MySQL connection for %s with %d records", modelName, len(records)))
 	if err := Init___datagen_with_slices_mysql_connection(config); err != nil {
 		return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: 0/%d\n   └─ Error: %v\n",
@@ -83,7 +83,7 @@ func Sink_mysql___datagen_with_slices_data(modelName string, records []*__datage
 }
 
 // Clear_mysql___datagen_with_slices_data clears __datagen_with_slices data from MySQL
-func Clear_mysql___datagen_with_slices_data(modelName string, config *MySQLConfig) error {
+func Clear_mysql___datagen_with_slices_data(modelName string, config *__dgi_MySQLConfig) error {
 	slog.Debug(fmt.Sprintf("initializing MySQL connection for clearing data for %s", modelName))
 	if err := Init___datagen_with_slices_mysql_connection(config); err != nil {
 		return fmt.Errorf("MySQL connection failed: %w", err)

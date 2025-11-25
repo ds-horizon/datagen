@@ -366,7 +366,7 @@ var (
 	_ = unsafe.Sizeof(0)
 )
 
-var with_metadataMetadata Metadata = Metadata{
+var with_metadataMetadata __dgi_Metadata = __dgi_Metadata{
 	Count: 100,
 	Tags: map[string]string{
 		"env":     "test",
@@ -374,7 +374,7 @@ var with_metadataMetadata Metadata = Metadata{
 	},
 }
 
-func (cg *__datagen_with_metadataGenerator) Metadata() Metadata {
+func (cg *__datagen_with_metadataGenerator) Metadata() __dgi_Metadata {
 	return with_metadataMetadata
 }
 
@@ -387,7 +387,7 @@ type __datagen_with_metadataGenerator struct {
 	id      func(iter int) int
 	value   func(iter int) string
 	all     *__datagen_with_metadataDataHolder
-	datagen *DataGenGenerators
+	datagen *__dgi_DataGenGenerators
 }
 
 type __datagen_with_metadataDataHolder struct {
@@ -433,7 +433,7 @@ func (self *__datagen_with_metadataGenerator) __gen_id(iter int) int {
 	return iter
 }
 
-func (cg *__datagen_with_metadataGenerator) Gen(iter int) Record {
+func (cg *__datagen_with_metadataGenerator) Gen(iter int) __dgi_Record {
 	return &__datagen_with_metadata{
 		id:    cg.id(iter),
 		value: cg.value(iter),
@@ -475,13 +475,13 @@ func (e *__datagen_with_metadata) ToJSON() string {
 }
 
 func (e *__datagen_with_metadata) ToXML() string {
-	type alias struct {
+	type __dgi_xmlAlias struct {
 		XMLName   xml.Name `xml:"with_metadata"`
 		Xml_id    int      `xml:"id"`
 		Xml_value string   `xml:"value"`
 	}
 
-	data := alias{
+	data := __dgi_xmlAlias{
 		Xml_id:    e.id,
 		Xml_value: e.value,
 	}

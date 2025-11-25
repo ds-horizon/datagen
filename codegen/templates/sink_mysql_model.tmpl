@@ -9,7 +9,7 @@ import (
 )
 
 // Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data loads __datagen_{{.FullyQualifiedModelName}} data into MySQL
-func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, records []*__datagen_{{.FullyQualifiedModelName}}, config *MySQLConfig) error {
+func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, records []*__datagen_{{.FullyQualifiedModelName}}, config *__dgi_MySQLConfig) error {
     slog.Debug(fmt.Sprintf("initializing MySQL connection for %s with %d records", modelName, len(records)))
 	if err := Init___datagen_{{.FullyQualifiedModelName}}_mysql_connection(config); err != nil {
 		return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: 0/%d\n   └─ Error: %v\n",
@@ -58,7 +58,7 @@ func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, re
 		batch := records[i:end]
 
         slog.Debug(fmt.Sprintf("loading batch starting at %d of size %d for %s into MySQL", i, len(batch), modelName))
-		if err := Load___datagen_{{.FullyQualifiedModelName}}_mysql(batch, tx); err != nil {
+        if err := Load___datagen_{{.FullyQualifiedModelName}}_mysql(batch, tx); err != nil {
 			return fmt.Errorf("✘ [MySQL] %s: FAILED\n   └─ Rows inserted: %d/%d\n   └─ Error: %v\n",
                              				modelName, totalInserted, len(records), err)
 		}
@@ -83,7 +83,7 @@ func Sink_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, re
 }
 
 // Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data clears __datagen_{{.FullyQualifiedModelName}} data from MySQL
-func Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, config *MySQLConfig) error {
+func Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, config *__dgi_MySQLConfig) error {
     slog.Debug(fmt.Sprintf("initializing MySQL connection for clearing data for %s", modelName))
 	if err := Init___datagen_{{.FullyQualifiedModelName}}_mysql_connection(config); err != nil {
 		return fmt.Errorf("MySQL connection failed: %w", err)
@@ -107,7 +107,7 @@ func Clear_mysql___datagen_{{.FullyQualifiedModelName}}_data(modelName string, c
 	return fmt.Errorf("beginning transaction for clearing model %s: %w", modelName, err)
     }
 
-	if err := Truncate___datagen_{{.FullyQualifiedModelName}}_mysql(tx); err != nil {
+    if err := Truncate___datagen_{{.FullyQualifiedModelName}}_mysql(tx); err != nil {
 			return fmt.Errorf("failed to truncate table for model %s: %w", modelName, err)
 	}
 

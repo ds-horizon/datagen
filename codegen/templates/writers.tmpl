@@ -14,24 +14,24 @@ import (
 
 // format constants
 const (
-	FormatCSV    = "csv"
-	FormatJSON   = "json"
-	FormatXML    = "xml"
-	FormatStdout = "stdout"
+    __dgi_FormatCSV    = "csv"
+    __dgi_FormatJSON   = "json"
+    __dgi_FormatXML    = "xml"
+    __dgi_FormatStdout = "stdout"
 )
 
-type Record interface {
-	ToCSV() []string
-	CSVHeaders() []string
-	ToJSON() string
-	ToXML() string
+type __dgi_Record interface {
+    ToCSV() []string
+    CSVHeaders() []string
+    ToJSON() string
+    ToXML() string
 }
 
-type RecordGenerator func(i int) Record
+type __dgi_RecordGenerator func(i int) __dgi_Record
 
-type OutputWriter func(name string, records []Record, outPath string) error
+type __dgi_OutputWriter func(name string, records []__dgi_Record, outPath string) error
 
-func resolveOutputFilePath(outPath, name, ext string) (string, error) {
+func __dgi_resolveOutputFilePath(outPath, name, ext string) (string, error) {
 	if outPath == "" {
 		return fmt.Sprintf("%s.%s", name, ext), nil
 	}
@@ -50,8 +50,8 @@ func resolveOutputFilePath(outPath, name, ext string) (string, error) {
 	}
 }
 
-func getOutputFile(outPath, name, ext string) (*os.File, error) {
-	filePath, err := resolveOutputFilePath(outPath, name, ext)
+func __dgi_getOutputFile(outPath, name, ext string) (*os.File, error) {
+    filePath, err := __dgi_resolveOutputFilePath(outPath, name, ext)
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +65,8 @@ func getOutputFile(outPath, name, ext string) (*os.File, error) {
 	return outputFile, nil
 }
 
-func writeCSV(name string, records []Record, outPath string) error {
-	csvFile, err := getOutputFile(outPath, name, FormatCSV)
+func __dgi_writeCSV(name string, records []__dgi_Record, outPath string) error {
+    csvFile, err := __dgi_getOutputFile(outPath, name, __dgi_FormatCSV)
 	if err != nil {
 		return fmt.Errorf("error creating CSV file for %s: %v", name, err)
 	}
@@ -74,11 +74,11 @@ func writeCSV(name string, records []Record, outPath string) error {
 	writer := csv.NewWriter(csvFile)
 	defer writer.Flush()
 
-	headersWritten := false
-	for _, record := range records {
-		row := record.ToCSV()
-		if !headersWritten {
-			if err := writer.Write(record.CSVHeaders()); err != nil {
+    headersWritten := false
+    for _, record := range records {
+        row := record.ToCSV()
+        if !headersWritten {
+            if err := writer.Write(record.CSVHeaders()); err != nil {
 				return fmt.Errorf("error writing CSV headers for %s: %w", name, err)
 			}
 			headersWritten = true
@@ -91,39 +91,39 @@ func writeCSV(name string, records []Record, outPath string) error {
 	return nil
 }
 
-func writeJSON(name string, records []Record, outPath string) error {
-	jsonFile, jsonErr := getOutputFile(outPath, name, FormatJSON)
+func __dgi_writeJSON(name string, records []__dgi_Record, outPath string) error {
+    jsonFile, jsonErr := __dgi_getOutputFile(outPath, name, __dgi_FormatJSON)
 	if jsonErr != nil {
 		return fmt.Errorf("error creating JSON file for %s: %v", name, jsonErr)
 	}
 	defer jsonFile.Close()
 	jsonWriter := bufio.NewWriter(jsonFile)
 	defer jsonWriter.Flush()
-	for _, record := range records {
-		jsonRow := record.ToJSON()
+    for _, record := range records {
+        jsonRow := record.ToJSON()
 		fmt.Fprintln(jsonWriter, jsonRow)
 	}
     slog.Info(fmt.Sprintf("generated JSON file %s with %d records", jsonFile.Name(), len(records)))
 	return nil
 }
 
-func writeXML(name string, records []Record, outPath string) error {
-	xmlFile, xmlErr := getOutputFile(outPath, name, FormatXML)
+func __dgi_writeXML(name string, records []__dgi_Record, outPath string) error {
+    xmlFile, xmlErr := __dgi_getOutputFile(outPath, name, __dgi_FormatXML)
 	if xmlErr != nil {
 		return fmt.Errorf("error creating XML file for %s: %v", name, xmlErr)
 	}
 	defer xmlFile.Close()
 	xmlWriter := bufio.NewWriter(xmlFile)
 	defer xmlWriter.Flush()
-	for _, record := range records {
-		xmlRow := record.ToXML()
+    for _, record := range records {
+        xmlRow := record.ToXML()
 		fmt.Fprintln(xmlWriter, xmlRow)
 	}
     slog.Info(fmt.Sprintf("generated XML file %s with %d records", xmlFile.Name(), len(records)))
 	return nil
 }
 
-func writeStdout(name string, records []Record, outPath string) error {
+func __dgi_writeStdout(name string, records []__dgi_Record, outPath string) error {
 	outWriter := bufio.NewWriter(os.Stdout)
 	defer outWriter.Flush()
 	for _, record := range records {

@@ -11,7 +11,7 @@ import (
 var __datagen_with_misc_mysql_connection *sql.DB
 
 // Init___datagen_with_misc_mysql_connection initializes a shared MySQL connection for __datagen_with_misc.
-func Init___datagen_with_misc_mysql_connection(req *MySQLConfig) error {
+func Init___datagen_with_misc_mysql_connection(req *__dgi_MySQLConfig) error {
 	if _, err := Get___datagen_with_misc_mysql_connection(); err == nil {
 		return nil
 	}

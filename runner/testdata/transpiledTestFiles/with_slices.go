@@ -366,12 +366,12 @@ var (
 	_ = unsafe.Sizeof(0)
 )
 
-var with_slicesMetadata Metadata = Metadata{
+var with_slicesMetadata __dgi_Metadata = __dgi_Metadata{
 	Count: 1,
 	Tags:  map[string]string{},
 }
 
-func (cg *__datagen_with_slicesGenerator) Metadata() Metadata {
+func (cg *__datagen_with_slicesGenerator) Metadata() __dgi_Metadata {
 	return with_slicesMetadata
 }
 
@@ -386,7 +386,7 @@ type __datagen_with_slicesGenerator struct {
 	tags    func(iter int) []string
 	scores  func(iter int) []int
 	all     *__datagen_with_slicesDataHolder
-	datagen *DataGenGenerators
+	datagen *__dgi_DataGenGenerators
 }
 
 type __datagen_with_slicesDataHolder struct {
@@ -452,7 +452,7 @@ func (self *__datagen_with_slicesGenerator) __gen_id(iter int) int {
 	return iter
 }
 
-func (cg *__datagen_with_slicesGenerator) Gen(iter int) Record {
+func (cg *__datagen_with_slicesGenerator) Gen(iter int) __dgi_Record {
 	return &__datagen_with_slices{
 		id:     cg.id(iter),
 		tags:   cg.tags(iter),
@@ -499,14 +499,14 @@ func (e *__datagen_with_slices) ToJSON() string {
 }
 
 func (e *__datagen_with_slices) ToXML() string {
-	type alias struct {
+	type __dgi_xmlAlias struct {
 		XMLName    xml.Name `xml:"with_slices"`
 		Xml_id     int      `xml:"id"`
 		Xml_tags   []string `xml:"tags"`
 		Xml_scores []int    `xml:"scores"`
 	}
 
-	data := alias{
+	data := __dgi_xmlAlias{
 		Xml_id:     e.id,
 		Xml_tags:   e.tags,
 		Xml_scores: e.scores,

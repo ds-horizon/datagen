@@ -366,12 +366,12 @@ var (
 	_ = unsafe.Sizeof(0)
 )
 
-var multiple_typesMetadata Metadata = Metadata{
+var multiple_typesMetadata __dgi_Metadata = __dgi_Metadata{
 	Count: 1,
 	Tags:  map[string]string{},
 }
 
-func (cg *__datagen_multiple_typesGenerator) Metadata() Metadata {
+func (cg *__datagen_multiple_typesGenerator) Metadata() __dgi_Metadata {
 	return multiple_typesMetadata
 }
 
@@ -388,7 +388,7 @@ type __datagen_multiple_typesGenerator struct {
 	name    func(iter int) string
 	active  func(iter int) bool
 	all     *__datagen_multiple_typesDataHolder
-	datagen *DataGenGenerators
+	datagen *__dgi_DataGenGenerators
 }
 
 type __datagen_multiple_typesDataHolder struct {
@@ -474,7 +474,7 @@ func (self *__datagen_multiple_typesGenerator) __gen_id(iter int) int {
 	return iter
 }
 
-func (cg *__datagen_multiple_typesGenerator) Gen(iter int) Record {
+func (cg *__datagen_multiple_typesGenerator) Gen(iter int) __dgi_Record {
 	return &__datagen_multiple_types{
 		id:     cg.id(iter),
 		score:  cg.score(iter),
@@ -526,7 +526,7 @@ func (e *__datagen_multiple_types) ToJSON() string {
 }
 
 func (e *__datagen_multiple_types) ToXML() string {
-	type alias struct {
+	type __dgi_xmlAlias struct {
 		XMLName    xml.Name `xml:"multiple_types"`
 		Xml_id     int      `xml:"id"`
 		Xml_score  float64  `xml:"score"`
@@ -534,7 +534,7 @@ func (e *__datagen_multiple_types) ToXML() string {
 		Xml_active bool     `xml:"active"`
 	}
 
-	data := alias{
+	data := __dgi_xmlAlias{
 		Xml_id:     e.id,
 		Xml_score:  e.score,
 		Xml_name:   e.name,

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func parseTags(tagsStr string) (map[string]string, error) {
+func __dgi_parseTags(tagsStr string) (map[string]string, error) {
 	tags := make(map[string]string)
 
 	if tagsStr == "" {
@@ -35,8 +35,8 @@ func parseTags(tagsStr string) (map[string]string, error) {
 	return tags, nil
 }
 
-func getModelsMetadata(datagen *DataGenGenerators) map[string]Metadata {
-	out := make(map[string]Metadata)
+func __dgi_getModelsMetadata(datagen *__dgi_DataGenGenerators) map[string]__dgi_Metadata {
+	out := make(map[string]__dgi_Metadata)
 	if datagen.minimal != nil {
 		out["minimal"] = datagen.minimal().Metadata()
 	}
@@ -70,7 +70,7 @@ func getModelsMetadata(datagen *DataGenGenerators) map[string]Metadata {
 	return out
 }
 
-func getMatchingModels(modelsMetadata map[string]Metadata, need map[string]string) []string {
+func __dgi_getMatchingModels(modelsMetadata map[string]__dgi_Metadata, need map[string]string) []string {
 	matchedModels := make([]string, 0)
 	if len(need) == 0 {
 		return matchedModels

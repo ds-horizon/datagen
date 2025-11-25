@@ -9,17 +9,17 @@ import (
 	"sort"
 )
 
-type Links struct {
+type __dgi_Links struct {
 	mu       sync.Mutex
 	data     map[string]map[string]struct{}
 	curModel string
 }
 
-type Stack struct {
+type __dgi_Stack struct {
 	data []string
 }
 
-func (s *Stack) Pop() (string, error) {
+func (s *__dgi_Stack) Pop() (string, error) {
         if s.IsEmpty() {
      	   return "", errors.New("stack is empty")
      	}
@@ -28,22 +28,22 @@ func (s *Stack) Pop() (string, error) {
 	return elem, nil
 }
 
-func (s *Stack) Push(elem string) {
+func (s *__dgi_Stack) Push(elem string) {
 	s.data = append(s.data, elem)
 }
 
-func (s *Stack) IsEmpty() bool {
+func (s *__dgi_Stack) IsEmpty() bool {
 	return len(s.data) == 0
 }
 
-func (s *Stack) Peek() (string, error) {
-     	if s.IsEmpty() {
+func (s *__dgi_Stack) Peek() (string, error) {
+    	if s.IsEmpty() {
      	   return "", errors.New("stack is empty")
      	}
         return s.data[len(s.data)-1], nil
 }
 
-func (l *Links) TopologicalSort() ([]string, error) {
+func (l *__dgi_Links) TopologicalSort() ([]string, error) {
 	allModels := []string{}
 	for key, _ := range l.data {
 	    if  key != "" {
@@ -54,8 +54,8 @@ func (l *Links) TopologicalSort() ([]string, error) {
 	sort.Strings(allModels)
 
 slog.Debug(fmt.Sprintf("performing topological sort for %d models", len(allModels)))
-	finalStack := &Stack{}
-	curStack := &Stack{}
+	finalStack := &__dgi_Stack{}
+	curStack := &__dgi_Stack{}
 	visited := map[string]struct{}{}
 	for _, model := range allModels {
 		if _, ok := visited[model]; ok {
@@ -78,10 +78,10 @@ slog.Debug(fmt.Sprintf("performing topological sort for %d models", len(allModel
 	}
 
 slog.Debug(fmt.Sprintf("topological sort completed: %v", finalStack.data))
-	return finalStack.data, nil
+    return finalStack.data, nil
 }
 
-func (l *Links) dfs(curStack *Stack, visited map[string]struct{}) error {
+func (l *__dgi_Links) dfs(curStack *__dgi_Stack, visited map[string]struct{}) error {
 	if curStack.IsEmpty() {
 		return nil
 	}
@@ -104,7 +104,7 @@ func (l *Links) dfs(curStack *Stack, visited map[string]struct{}) error {
 	return nil
 }
 
-func (l *Links) StartGen(model string) {
+func (l *__dgi_Links) StartGen(model string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 slog.Debug(fmt.Sprintf("starting generation tracking for %s", model))
@@ -114,14 +114,14 @@ slog.Debug(fmt.Sprintf("starting generation tracking for %s", model))
 	}
 }
 
-func (l *Links) EndGen(model string) {
+func (l *__dgi_Links) EndGen(model string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 slog.Debug(fmt.Sprintf("ending generation tracking for %s", model))
 	l.curModel = ""
 }
 
-func (l *Links) AcceptSignal(model string) {
+func (l *__dgi_Links) AcceptSignal(model string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -134,7 +134,7 @@ slog.Debug(fmt.Sprintf("recording dependency from %s to %s", l.curModel, model))
 	v[model] = struct{}{}
 }
 
-func (l *Links) PrettyPrint() {
+func (l *__dgi_Links) PrettyPrint() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 

@@ -366,12 +366,12 @@ var (
 	_ = unsafe.Sizeof(0)
 )
 
-var simpleMetadata Metadata = Metadata{
+var simpleMetadata __dgi_Metadata = __dgi_Metadata{
 	Count: 1,
 	Tags:  map[string]string{},
 }
 
-func (cg *__datagen_simpleGenerator) Metadata() Metadata {
+func (cg *__datagen_simpleGenerator) Metadata() __dgi_Metadata {
 	return simpleMetadata
 }
 
@@ -384,7 +384,7 @@ type __datagen_simpleGenerator struct {
 	id      func(iter int) int
 	name    func(iter int) string
 	all     *__datagen_simpleDataHolder
-	datagen *DataGenGenerators
+	datagen *__dgi_DataGenGenerators
 }
 
 type __datagen_simpleDataHolder struct {
@@ -430,7 +430,7 @@ func (self *__datagen_simpleGenerator) __gen_id(iter int) int {
 	return iter
 }
 
-func (cg *__datagen_simpleGenerator) Gen(iter int) Record {
+func (cg *__datagen_simpleGenerator) Gen(iter int) __dgi_Record {
 	return &__datagen_simple{
 		id:   cg.id(iter),
 		name: cg.name(iter),
@@ -472,13 +472,13 @@ func (e *__datagen_simple) ToJSON() string {
 }
 
 func (e *__datagen_simple) ToXML() string {
-	type alias struct {
+	type __dgi_xmlAlias struct {
 		XMLName  xml.Name `xml:"simple"`
 		Xml_id   int      `xml:"id"`
 		Xml_name string   `xml:"name"`
 	}
 
-	data := alias{
+	data := __dgi_xmlAlias{
 		Xml_id:   e.id,
 		Xml_name: e.name,
 	}

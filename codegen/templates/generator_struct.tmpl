@@ -3,5 +3,5 @@ type __datagen_{{.FullyQualifiedModelName}}Generator struct {
 	{{.Name}} func(iter int) {{.Type}}
 {{- end}}
         all *__datagen_{{.FullyQualifiedModelName}}DataHolder
-	datagen *DataGenGenerators
+	datagen *__dgi_DataGenGenerators
 } 
