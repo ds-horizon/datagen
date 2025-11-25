@@ -5,12 +5,12 @@ import (
 )
 
 {{- define "emitDirTree" -}}
-type {{ dirName . }}Dir struct {
+type __datagen_{{ dirName . }}Dir struct {
     {{- range models . }}
     {{ last . }} func() *__datagen_{{ . }}Generator
     {{- end }}
     {{- range children . }}
-    {{ dirName . }} *{{ dirName . }}Dir
+    {{ dirName . }} *__datagen_{{ dirName . }}Dir
     {{- end }}
 }
 {{- range children . }}
@@ -18,15 +18,15 @@ type {{ dirName . }}Dir struct {
 {{- end }}
 {{- end }}
 
-type DataGenGenerators struct {
+type __dgi_DataGenGenerators struct {
     {{- range models .DgDir }}
     {{ last . }} func() *__datagen_{{ . }}Generator
     {{- end }}
     {{- range children .DgDir }}
-    {{ dirName . }} *{{ dirName . }}Dir
+    {{ dirName . }} *__datagen_{{ dirName . }}Dir
     {{- end }}
 
-    __links *Links
+    __links *__dgi_Links
 }
 
 
@@ -34,7 +34,7 @@ type DataGenGenerators struct {
 {{ template "emitDirTree" . }}
 {{- end }}
 
-type Metadata struct {
+type __dgi_Metadata struct {
 	Count int
 	Tags  map[string]string
 }
@@ -42,14 +42,14 @@ type Metadata struct {
 {{- range .SanitisedModelNames}}
 func {{ .}}Func(model *__datagen_{{ .}}Generator, tail string) func() *__datagen_{{ .}}Generator {
      return func() *__datagen_{{ .}}Generator {
-     	    model.datagen.__links.AcceptSignal(tail)
+            model.datagen.__links.AcceptSignal(tail)
 	    return model
      }
 }
 {{- end}}
 
 
-func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) {
+func __dgi_initGeneratorsAndModels() (*__dgi_DataGenGenerators, map[string]__dgi_RecordGenerator) {
 	{{- range .SanitisedModelNames}}
 	{{ .}}Generator := __init___datagen_{{.}}Generator()
 	{{- end}}
@@ -59,9 +59,9 @@ func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) 
 	{{- range children . }}
 	{{ template "emitDirInstances" . }}
 	{{- end }}
-	{{ dirName . }}Dir := &{{ dirName . }}Dir{
+    {{ dirName . }}Dir := &__datagen_{{ dirName . }}Dir{
 		{{- range models . }}
-		{{ last . }}: {{ .}}Func({{ .}}Generator, "{{ dot . }}"),
+        {{ last . }}: {{ .}}Func({{ .}}Generator, "{{ dot . }}"),
 		{{- end }}
 		{{- range children . }}
 		{{ dirName . }}: {{ dirName . }}Dir,
@@ -72,15 +72,15 @@ func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) 
 	{{ template "emitDirInstances" . }}
 	{{- end }}
 
-	datagen := &DataGenGenerators{
+    datagen := &__dgi_DataGenGenerators{
 		{{- range models .DgDir }}
-		{{ last . }}: {{ .}}Func({{ last .}}Generator, "{{ dot . }}"),
+        {{ last . }}: {{ .}}Func({{ last .}}Generator, "{{ dot . }}"),
 		{{- end }}
 		{{- range children .DgDir }}
 		{{ dirName . }}: {{ dirName . }}Dir,
 		{{- end }}
 
- 		__links: &Links{
+ 		__links: &__dgi_Links{
  			mu:       sync.Mutex{},
  			data:     map[string]map[string]struct{}{},
  		},
@@ -90,9 +90,9 @@ func initGeneratorsAndModels() (*DataGenGenerators, map[string]RecordGenerator) 
 	{{- end}}
 
 	// model registry
-	models := map[string]RecordGenerator{
+    models := map[string]__dgi_RecordGenerator{
 		{{- range .SanitisedModelNames}}
-		"{{ dot . }}": {{.}}Generator.Gen,
+        "{{ dot . }}": {{.}}Generator.Gen,
 		{{- end}}
 	}
 
