@@ -36,7 +36,8 @@ const (
 	tmplBaseStruct     = "templates/base_struct.tmpl"
 	tmplGenerator      = "templates/generator_struct.tmpl"
 	tmplDataHolder     = "templates/data_holder_struct.tmpl"
-	tmplWrapperFunc    = "templates/wrapper_func.tmpl"
+	tmplGenWrapperFunc = "templates/wrapper_func.tmpl"
+	tmplSerialiserFunc = "templates/serialiser_func.tmpl"
 	tmplGenFunction    = "templates/gen_function.tmpl"
 	tmplInitFunction   = "templates/init_function.tmpl"
 	tmplCSV            = "templates/csv_function.tmpl"
@@ -85,6 +86,7 @@ func codegenModel(parsed *DatagenParsed, dirPath string) error {
 		"generator_struct": generateGeneratorStruct,
 		"data_holder":      generateDataHolderStruct,
 		"generator_funcs":  generateGeneratorFuncs,
+		"serialiser_funcs": generateSerialiserFunc,
 		"gen_function":     generateGenFunction,
 		"init_function":    generateInitFunction,
 		"csv_functions":    generateCSVFunctions,
@@ -241,9 +243,9 @@ func generateDataHolderStruct(d *DatagenParsed) (string, error) {
 }
 
 func generateGeneratorFuncs(d *DatagenParsed) (string, error) {
-	tmpl, err := template.ParseFS(templates, tmplWrapperFunc)
+	tmpl, err := template.ParseFS(templates, tmplGenWrapperFunc)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse template\n  template: %s\n  cause: %w", tmplWrapperFunc, err)
+		return "", fmt.Errorf("failed to parse template\n  template: %s\n  cause: %w", tmplGenWrapperFunc, err)
 	}
 
 	var buf bytes.Buffer
@@ -304,6 +306,36 @@ func generateGeneratorFuncs(d *DatagenParsed) (string, error) {
 		if err := tmpl.Execute(&buf, data); err != nil {
 			return "", fmt.Errorf("failed to generate wrapper function\n  model: %s\n  field: %s\n  cause: %w", d.FullyQualifiedModelName, fieldName, err)
 		}
+	}
+
+	return buf.String(), nil
+}
+
+func generateSerialiserFunc(d *DatagenParsed) (string, error) {
+	tmpl, err := template.ParseFS(templates, tmplSerialiserFunc)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse template\n  template: %s\n  cause: %w", tmplGenWrapperFunc, err)
+	}
+
+	var buf bytes.Buffer
+	fset := token.NewFileSet()
+
+	var bodyBuf bytes.Buffer
+	if d.SerialiserFunc != nil {
+		err := printer.Fprint(&bodyBuf, fset, d.SerialiserFunc.Body)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	data := serialiserFuncData{
+		ModelName:               d.ModelName,
+		FullyQualifiedModelName: d.FullyQualifiedModelName,
+		SerialiserFuncBody:      bodyBuf.String(),
+	}
+
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("failed to generate wrapper function\n  model: %s\n  cause: %w", d.FullyQualifiedModelName, err)
 	}
 
 	return buf.String(), nil

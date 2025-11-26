@@ -1,0 +1,3 @@
+{{- if .SerialiserFuncBody }}
+func (self *__datagen_{{.FullyQualifiedModelName}}Generator) __dgi_Serialise() []byte {{ .SerialiserFuncBody }}
+{{- end }}
