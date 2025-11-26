@@ -1,12 +1,12 @@
 func (e *__datagen_{{.FullyQualifiedModelName}}) ToXML() string {
-    type alias struct {
+    type __dgi_xmlAlias struct {
         XMLName xml.Name `xml:"{{.ModelName}}"`
         {{- range .Fields}}
         {{XmlPrefix .Name}} {{.Type}} `xml:"{{.Name}}"`
         {{- end}}
     }
 
-    data := alias{
+    data := __dgi_xmlAlias{
         {{- range .Fields}}
         {{XmlPrefix .Name}}: e.{{.Name}},
         {{- end}}

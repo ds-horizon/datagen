@@ -512,8 +512,8 @@ func generateModelManagerFile(dirPath string, modelNames []string, dgDir *utils.
 			return name
 		},
 		"models": func(d *utils.DgDir) []string {
-			keys := make([]string, 0, len(d.Models))
-			for k := range d.Models {
+			keys := make([]string, 0, d.Models.Len())
+			for k := range d.Models.AllFromFront() {
 				keys = append(keys, k)
 			}
 			sort.Strings(keys)

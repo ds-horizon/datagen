@@ -1,22 +1,27 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/elliotchance/orderedmap/v3"
+)
 
 const (
 	DgDirDelimeter       = "___DGDIRDELIM___"
 	DefaultMetadataCount = 1
 	EncodedBinaryName    = "datagen"
 	CompilerBinaryName   = "datagenc"
+	DatagenDirName       = "datagen"
 )
 
 type DgDir struct {
 	Name     string
-	Models   map[string][]byte
+	Models   *orderedmap.OrderedMap[string, []byte]
 	Children []*DgDir
 }
 
 func (n *DgDir) ModelCount() int {
-	total := len(n.Models)
+	total := n.Models.Len()
 	for _, child := range n.Children {
 		total += child.ModelCount()
 	}
@@ -26,8 +31,8 @@ func (n *DgDir) ModelCount() int {
 func (n *DgDir) prettyPrint(indent string) {
 	fmt.Println(indent + n.Name)
 
-	if len(n.Models) > 0 {
-		for k := range n.Models {
+	if n.Models.Len() > 0 {
+		for k := range n.Models.AllFromFront() {
 			fmt.Println(indent + "  [model] " + k)
 		}
 	}

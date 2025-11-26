@@ -1,0 +1,16 @@
+model simple {
+  fields {
+    id() int
+    name() string
+  }
+
+  gens {
+    func id() {
+      return iter
+    }
+
+    func name() {
+      return "test_user"
+    }
+  }
+}
