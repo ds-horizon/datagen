@@ -11,7 +11,7 @@ import (
 var __datagen_{{.FullyQualifiedModelName}}_postgres_connection *sql.DB
 
 // Init___datagen_{{.FullyQualifiedModelName}}_postgres_connection initializes a shared Postgres connection for __datagen_{{.FullyQualifiedModelName}}.
-func Init___datagen_{{.FullyQualifiedModelName}}_postgres_connection(req *PostgresConfig) error {
+func Init___datagen_{{.FullyQualifiedModelName}}_postgres_connection(req *__dgi_PostgresConfig) error {
     if _, err := Get___datagen_{{.FullyQualifiedModelName}}_postgres_connection(); err == nil {
         return nil
     }

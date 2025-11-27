@@ -66,8 +66,8 @@ slog.Debug(fmt.Sprintf("clearing %s from %d sinks", modelName, len(sinks)))
 			if err != nil {
 				return fmt.Errorf("error while clearing MySQL sink %s: %w", s.SinkName, err)
 			}
-    		case SinkTypePostgres:
-			err := clearPostgresSink(s, modelName)
+    		case __dgi_SinkTypePostgres:
+			err := __dgi_clearPostgresSink(s, modelName)
 			if err != nil {
 				return fmt.Errorf("error while clearing Postgres sink %s: %w", s.SinkName, err)
 			}
@@ -93,8 +93,8 @@ slog.Debug(fmt.Sprintf("loading %s to %d sinks with %d records", modelName, len(
 			if err != nil {
 				return fmt.Errorf("error in loading MySQL sink %s: %w", s.SinkName, err)
 			}
-    		case SinkTypePostgres:
-			err := loadPostgresSink(s, modelName, records)
+    		case __dgi_SinkTypePostgres:
+			err := __dgi_loadPostgresSink(s, modelName, records)
 			if err != nil {
 				return fmt.Errorf("error in loading Postgres sink %s: %w", s.SinkName, err)
 			}
@@ -146,8 +146,8 @@ func __dgi_clearMysqlSink(sinkSpec *__dgi_SinkSpec, modelName string) error {
 	}
 }
 
-func loadPostgresSink(sinkSpec *SinkSpec, modelName string, records []Record) error {
-	var sc PostgresConfig
+func __dgi_loadPostgresSink(sinkSpec *__dgi_SinkSpec, modelName string, records []__dgi_Record) error {
+	var sc __dgi_PostgresConfig
 	if err := sinkSpec.ConfigInto(&sc); err != nil {
 		return fmt.Errorf("postgres sink %q config: %w", sinkSpec.SinkName, err)
 	}
@@ -171,8 +171,8 @@ func loadPostgresSink(sinkSpec *SinkSpec, modelName string, records []Record) er
 	}
 }
 
-func clearPostgresSink(sinkSpec *SinkSpec, modelName string) error {
-	var sc PostgresConfig
+func __dgi_clearPostgresSink(sinkSpec *__dgi_SinkSpec, modelName string) error {
+	var sc __dgi_PostgresConfig
 	if err := sinkSpec.ConfigInto(&sc); err != nil {
 		return fmt.Errorf("postgres sink %q config: %w", sinkSpec.SinkName, err)
 	}

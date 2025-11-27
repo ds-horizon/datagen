@@ -9,7 +9,7 @@ import (
 )
 
 // Sink_postgres___datagen_{{.FullyQualifiedModelName}}_data loads __datagen_{{.FullyQualifiedModelName}} data into Postgres
-func Sink_postgres___datagen_{{.FullyQualifiedModelName}}_data(modelName string, records []*__datagen_{{.FullyQualifiedModelName}}, config *PostgresConfig) error {
+func Sink_postgres___datagen_{{.FullyQualifiedModelName}}_data(modelName string, records []*__datagen_{{.FullyQualifiedModelName}}, config *__dgi_PostgresConfig) error {
     slog.Debug(fmt.Sprintf("initializing Postgres connection for %s with %d records", modelName, len(records)))
 	if err := Init___datagen_{{.FullyQualifiedModelName}}_postgres_connection(config); err != nil {
 		return fmt.Errorf("✘ [Postgres] %s: FAILED\n   └─ Rows inserted: 0/%d\n   └─ Error: %v\n",
@@ -83,7 +83,7 @@ func Sink_postgres___datagen_{{.FullyQualifiedModelName}}_data(modelName string,
 }
 
 // Clear_postgres___datagen_{{.FullyQualifiedModelName}}_data clears __datagen_{{.FullyQualifiedModelName}} data from Postgres
-func Clear_postgres___datagen_{{.FullyQualifiedModelName}}_data(modelName string, config *PostgresConfig) error {
+func Clear_postgres___datagen_{{.FullyQualifiedModelName}}_data(modelName string, config *__dgi_PostgresConfig) error {
     slog.Debug(fmt.Sprintf("initializing Postgres connection for clearing data for %s", modelName))
 	if err := Init___datagen_{{.FullyQualifiedModelName}}_postgres_connection(config); err != nil {
 		return fmt.Errorf("Postgres connection failed: %w", err)
