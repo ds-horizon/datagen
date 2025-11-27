@@ -13,6 +13,24 @@ export default defineConfig({
       logo: {
         src: './src/assets/datagen-logo.png',
       },
+      head: [
+        {
+          tag: 'script',
+          attrs: {
+            src: 'https://www.googletagmanager.com/gtag/js?id=G-MLS9F7DGX9',
+            async: true,
+          },
+        },
+        {
+          tag: 'script',
+          content: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-MLS9F7DGX9');
+          `,
+        },
+      ],
       social: [
         {
           icon: 'github',
@@ -22,7 +40,7 @@ export default defineConfig({
         {
           icon: 'discord',
           label: 'Discord',
-          href: 'https://discord.gg/cvMa8HrN',
+          href: 'https://discord.gg/f92f4bWp',
         },
       ],
       sidebar: [
