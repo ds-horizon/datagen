@@ -1,0 +1,21 @@
+name: Draft and Bump
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  update-release-draft:
+    runs-on: ubuntu-latest
+
+    outputs:
+      tag-name: ${{ steps.release-drafter.outputs.tag_name }}
+
+    steps:
+      - id: release-drafter
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
