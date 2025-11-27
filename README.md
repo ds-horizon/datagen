@@ -3,7 +3,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.24.0-blue.svg)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ds-horizon/datagen)](https://goreportcard.com/report/github.com/ds-horizon/datagen)
-[![Join our Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?logo=discord&logoColor=white)](https://discord.gg/cvMa8HrN)
+[![Join our Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?logo=discord&logoColor=white)](https://discord.gg/f92f4bWp)
 
 datagen is a tool to generate coherent, synthetic data generation from models expressed in a simple, declarative DSL.
 
