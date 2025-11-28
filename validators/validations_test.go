@@ -182,5 +182,3 @@ func TestGenFnsReturnValidator(t *testing.T) {
 		t.Fatalf("expected error for body without return, got: %q", msg)
 	}
 }
-
-
