@@ -1,14 +1,16 @@
 package parser
 
 import (
-	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/parser"
+	"go/token"
+	"strconv"
 	"strings"
 )
 
-// parseWrappedExpr wraps the input in a specific syntax and parses it as an expression
+type wrapperFunc func(input string, wrapper func(string) string) (ast.Expr, error)
+
 func parseWrappedExpr(input string, wrapper func(string) string) (ast.Expr, error) {
 	wrappedCode := wrapper(input)
 	expr, err := parser.ParseExpr(wrappedCode)
@@ -20,8 +22,8 @@ func parseWrappedExpr(input string, wrapper func(string) string) (ast.Expr, erro
 
 // parseFieldList parses a string containing field definitions into an *ast.FieldList.
 // The input string should be in the format of Go interface methods.
-func parseFieldList(input string) (*ast.FieldList, error) {
-	expr, err := parseWrappedExpr(input, func(s string) string {
+func parseFieldList(input string, wrapperFunc wrapperFunc) (*ast.FieldList, error) {
+	expr, err := wrapperFunc(input, func(s string) string {
 		return fmt.Sprintf("interface {\n %s \n}", s)
 	})
 	if err != nil {
@@ -39,8 +41,8 @@ func parseFieldList(input string) (*ast.FieldList, error) {
 
 // parseFunctionBlock parses a string containing arbitrary Go code into an *ast.BlockStmt.
 // The input string should be valid Go code that can be wrapped in a function body.
-func parseFunctionBlock(input string) (*ast.BlockStmt, error) {
-	expr, err := parseWrappedExpr(input, func(s string) string {
+func parseFunctionBlock(input string, wrapperFunc wrapperFunc) (*ast.BlockStmt, error) {
+	expr, err := wrapperFunc(input, func(s string) string {
 		return fmt.Sprintf("func() {\n%s\n}", s)
 	})
 	if err != nil {
@@ -67,14 +69,18 @@ func parseFunctionBlock(input string) (*ast.BlockStmt, error) {
 //
 //	id(1, 1)
 //	created_at(time.Now(), time.Now())
-func parseCallList(input string) ([]*ast.CallExpr, error) {
+func parseCallList(input string, wrapperFunc wrapperFunc) ([]*ast.CallExpr, error) {
 	// Wrap the input in a block statement
-	block, err := parseFunctionBlock(input)
+	block, err := parseFunctionBlock(input, wrapperFunc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse call list: %w", err)
 	}
 
 	// Extract call expressions from the block
+	return processCallBlock(block)
+}
+
+func processCallBlock(block *ast.BlockStmt) ([]*ast.CallExpr, error) {
 	calls := make([]*ast.CallExpr, 0, len(block.List))
 	for _, stmt := range block.List {
 		// Each statement should be an expression statement
@@ -101,47 +107,67 @@ func parseCallList(input string) ([]*ast.CallExpr, error) {
 //
 //	"service_name": "pluto",
 //	"team_name": "platform"
-func parseTags(input string) (map[string]string, error) {
-	cleaned := removeLineComments(input)
-	trimmed := strings.TrimSpace(cleaned)
-
+func parseTags(input string, wrapperFunc wrapperFunc) (map[string]string, error) {
+	trimmed := strings.TrimSpace(input)
 	if trimmed == "" {
 		return map[string]string{}, nil
 	}
 
-	// Disallow a trailing comma in the tags section of the DSL.
 	if strings.HasSuffix(trimmed, ",") {
 		return nil, fmt.Errorf("failed to parse tags: trailing comma is not allowed")
 	}
 
-	payload := "{" + trimmed + "}"
-	var out map[string]string
-	if err := json.Unmarshal([]byte(payload), &out); err != nil {
-		return nil, fmt.Errorf("failed to parse tags: %w", err)
+	expr, err := wrapperFunc(trimmed, func(s string) string {
+		return fmt.Sprintf("map[string]string{\n%s,\n}", s)
+	})
+	if err != nil {
+		return nil, err
 	}
-	return out, nil
+
+	return processTagExpr(expr)
 }
 
-// removeLineComments strips Go-style line comments (// ...) from the input.
-// This is used to reliably detect a trailing comma even when a comment follows it.
-func removeLineComments(s string) string {
-	// Fast path: if there's no comment marker, return as-is
-	if !strings.Contains(s, "//") {
-		return s
+func processTagExpr(expr ast.Expr) (map[string]string, error) {
+	compLit, ok := expr.(*ast.CompositeLit)
+	if !ok {
+		return nil, fmt.Errorf("expected CompositeLit, got %T", expr)
 	}
-	var b strings.Builder
-	lines := strings.Split(s, "\n")
-	for i, line := range lines {
-		if idx := strings.Index(line, "//"); idx >= 0 {
-			line = line[:idx]
-		}
-		b.WriteString(line)
-		// Preserve original line structure
-		if i < len(lines)-1 {
-			b.WriteByte('\n')
-		}
+
+	// Ensure the type is a map
+	if _, ok := compLit.Type.(*ast.MapType); !ok {
+		return nil, fmt.Errorf("expected map literal, got %T", compLit.Type)
 	}
-	return b.String()
+
+	result := make(map[string]string)
+	for _, elt := range compLit.Elts {
+		kv, ok := elt.(*ast.KeyValueExpr)
+		if !ok {
+			return nil, fmt.Errorf("expected key-value pair, got %T", elt)
+		}
+
+		// Keys and values must be string literals
+		kLit, ok := kv.Key.(*ast.BasicLit)
+		if !ok || kLit.Kind != token.STRING {
+			return nil, fmt.Errorf("map key must be a string literal, got %T", kv.Key)
+		}
+		vLit, ok := kv.Value.(*ast.BasicLit)
+		if !ok || vLit.Kind != token.STRING {
+			return nil, fmt.Errorf("map value must be a string literal, got %T", kv.Value)
+		}
+
+		key, err := strconv.Unquote(kLit.Value)
+		if err != nil {
+			return nil, fmt.Errorf("invalid string key: %w", err)
+		}
+		val, err := strconv.Unquote(vLit.Value)
+		if err != nil {
+			return nil, fmt.Errorf("invalid string value for key %q: %w", key, err)
+		}
+
+		result[key] = val
+	}
+
+	return result, nil
 }
 
 // parseParamList parses a string containing a parameter list into *ast.CallExpr.
@@ -151,9 +177,9 @@ func removeLineComments(s string) string {
 //	''
 //	start time.Time
 //	a, b, c int
-func parseParamList(input string) (*ast.CallExpr, error) {
+func parseParamList(input string, wrapperFunc wrapperFunc) (*ast.CallExpr, error) {
 	// Wrap the input in a function type
-	expr, err := parseWrappedExpr(input, func(s string) string {
+	expr, err := wrapperFunc(input, func(s string) string {
 		return fmt.Sprintf("func ( %s )", s)
 	})
 	if err != nil {
