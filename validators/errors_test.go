@@ -2,6 +2,7 @@ package validators
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 )
@@ -9,113 +10,75 @@ import (
 func TestMultiErr_AddAndCount(t *testing.T) {
 	m := &MultiErr{}
 
-	if m.Count() != 0 {
-		t.Fatalf("expected empty MultiErr to have count 0, got %d", m.Count())
-	}
+	assert.Equal(t, 0, m.Count(), "expected empty MultiErr to have count 0")
 
 	// Adding nil should not change state
 	m.Add(nil)
-	if m.Count() != 0 {
-		t.Fatalf("expected count to remain 0 after adding nil, got %d", m.Count())
-	}
+	assert.Equal(t, 0, m.Count(), "expected count to remain 0 after adding nil")
 
 	err1 := fmt.Errorf("first")
 	m.Add(err1)
-	if m.Count() != 1 {
-		t.Fatalf("expected count 1 after adding an error, got %d", m.Count())
-	}
-	if m.Errors[0] != err1 {
-		t.Fatalf("expected stored error to be err1")
-	}
+	assert.Equal(t, 1, m.Count(), "expected count 1 after adding an error")
+	assert.Equal(t, err1, m.Errors[0], "expected stored error to be err1")
 
 	// Adding another nil should not change
 	m.Add(nil)
-	if m.Count() != 1 {
-		t.Fatalf("expected count to remain 1 after adding nil, got %d", m.Count())
-	}
+	assert.Equal(t, 1, m.Count(), "expected count to remain 1 after adding nil")
+	assert.Equal(t, "first", m.Error(), "expected single error to render its own message")
 }
 
 func TestMultiErr_AddMsg(t *testing.T) {
 	m := &MultiErr{}
 
 	m.AddMsg("")
-	if m.Count() != 0 {
-		t.Fatalf("expected empty message to be ignored, got count %d", m.Count())
-	}
+	assert.Equal(t, 0, m.Count(), "expected empty message to be ignored")
 
 	m.AddMsg("hello world")
-	if m.Count() != 1 {
-		t.Fatalf("expected 1 error after AddMsg, got %d", m.Count())
-	}
-	if got := m.Errors[0].Error(); got != "hello world" {
-		t.Fatalf("expected error message 'hello world', got %q", got)
-	}
+	assert.Equal(t, 1, m.Count(), "expected 1 error after AddMsg")
+	assert.Equal(t, "hello world", m.Errors[0].Error(), "expected error message")
 }
 
 func TestMultiErr_Addf(t *testing.T) {
 	m := &MultiErr{}
 	m.Addf("value %d: %s", 42, "ok")
 
-	if m.Count() != 1 {
-		t.Fatalf("expected 1 error after Addf, got %d", m.Count())
-	}
-	if got := m.Errors[0].Error(); got != "value 42: ok" {
-		t.Fatalf("expected formatted error 'value 42: ok', got %q", got)
-	}
+	assert.Equal(t, 1, m.Count(), "expected 1 error after Addf")
+	assert.Equal(t, "value 42: ok", m.Errors[0].Error(), "expected formatted error")
 }
 
 func TestMultiErr_AnyAndHasErrors(t *testing.T) {
 	m := &MultiErr{}
-	if m.Any() || m.HasErrors() {
-		t.Fatalf("expected empty MultiErr to report no errors")
-	}
+	assert.False(t, m.Any(), "expected empty MultiErr to report no errors")
+	assert.False(t, m.HasErrors(), "expected empty MultiErr to report no errors")
 
 	m.Add(fmt.Errorf("e"))
-	if !m.Any() || !m.HasErrors() {
-		t.Fatalf("expected non-empty MultiErr to report errors")
-	}
+	assert.True(t, m.Any(), "expected non-empty MultiErr to report errors")
+	assert.True(t, m.HasErrors(), "expected non-empty MultiErr to report errors")
 }
 
 func TestMultiErr_ErrorFormatting(t *testing.T) {
 	// Empty should produce empty string
 	var empty MultiErr
-	if s := empty.Error(); s != "" {
-		t.Fatalf("expected empty error string for empty MultiErr, got %q", s)
-	}
+	assert.Equal(t, "", empty.Error(), "expected empty error string for empty MultiErr")
 
 	m := &MultiErr{}
 	m.Add(fmt.Errorf("alpha"))
 	m.Add(fmt.Errorf("beta"))
 
 	s := m.Error()
-	if !strings.HasPrefix(s, "multiple errors occurred\n") {
-		t.Fatalf("expected header 'multiple errors occurred', got %q", s)
-	}
-	if !strings.Contains(s, "  - alpha\n") || !strings.Contains(s, "  - beta\n") {
-		t.Fatalf("expected each error on its own line with bullet, got %q", s)
-	}
-	if !strings.HasSuffix(s, "\n") {
-		t.Fatalf("expected final newline, got %q", s)
-	}
+	assert.Equal(t, "multiple errors occurred\n  - alpha\n  - beta\n", s)
+	assert.True(t, strings.HasSuffix(s, "\n"), "expected final newline")
 }
 
 func Test_errorOrNil(t *testing.T) {
-	if got := errorOrNil(nil); got != nil {
-		t.Fatalf("expected nil for nil input, got %v", got)
-	}
+	assert.Nil(t, errorOrNil(nil), "expected nil for nil input")
 
 	empty := &MultiErr{}
-	if got := errorOrNil(empty); got != nil {
-		t.Fatalf("expected nil for empty MultiErr, got %v", got)
-	}
+	assert.Nil(t, errorOrNil(empty), "expected nil for empty MultiErr")
 
 	nonEmpty := &MultiErr{}
 	nonEmpty.Add(fmt.Errorf("x"))
-	if got := errorOrNil(nonEmpty); got == nil {
-		t.Fatalf("expected non-nil for MultiErr with errors")
-	} else if got != nonEmpty {
-		t.Fatalf("expected returned error to be the same MultiErr instance")
-	}
+	got := errorOrNil(nonEmpty)
+	assert.NotNil(t, got, "expected non-nil for MultiErr with errors")
+	assert.Same(t, nonEmpty, got, "expected returned error to be the same MultiErr instance")
 }
-
-
