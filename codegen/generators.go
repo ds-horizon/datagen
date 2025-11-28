@@ -16,34 +16,38 @@ import (
 )
 
 const (
-	tmplPackage        = "templates/package.tmpl"
-	tmplMain           = "templates/main.tmpl"
-	tmplCommands       = "templates/commands.tmpl"
-	tmplModelManager   = "templates/model_manager.tmpl"
-	tmplSinkManager    = "templates/sink_manager.tmpl"
-	tmplSinkMysqlModel = "templates/sink_mysql_model.tmpl"
-	tmplTags           = "templates/tags.go.tmpl"
-	tmplConfig         = "templates/config.go.tmpl"
-	tmplLinks          = "templates/links.go.tmpl"
-	tmplMySQLConfig    = "templates/mysql_config.tmpl"
-	tmplKafkaConfig    = "templates/kafka_config.tmpl"
-	tmplWriters        = "templates/writers.tmpl"
-	tmplGoMod          = "templates/go.mod.tmpl"
-	tmplGoSum          = "templates/go.sum.tmpl"
-	tmplStdlib         = "templates/stdlib.go.tmpl"
-	tmplLogger         = "templates/logger.go.tmpl"
-	tmplMetadata       = "templates/metadata_struct.tmpl"
-	tmplBaseStruct     = "templates/base_struct.tmpl"
-	tmplGenerator      = "templates/generator_struct.tmpl"
-	tmplDataHolder     = "templates/data_holder_struct.tmpl"
-	tmplWrapperFunc    = "templates/wrapper_func.tmpl"
-	tmplGenFunction    = "templates/gen_function.tmpl"
-	tmplInitFunction   = "templates/init_function.tmpl"
-	tmplCSV            = "templates/csv_function.tmpl"
-	tmplJSON           = "templates/json_function.tmpl"
-	tmplXML            = "templates/xml_function.tmpl"
-	tmplMysqlSink      = "templates/load_mysql.tmpl"
-	tmplMysqlInit      = "templates/init_mysql.tmpl"
+	tmplPackage           = "templates/package.tmpl"
+	tmplMain              = "templates/main.tmpl"
+	tmplCommands          = "templates/commands.tmpl"
+	tmplModelManager      = "templates/model_manager.tmpl"
+	tmplSinkManager       = "templates/sink_manager.tmpl"
+	tmplSinkMysqlModel    = "templates/sink_mysql_model.tmpl"
+	tmplTags              = "templates/tags.go.tmpl"
+	tmplConfig            = "templates/config.go.tmpl"
+	tmplLinks             = "templates/links.go.tmpl"
+	tmplMySQLConfig       = "templates/mysql_config.tmpl"
+	tmplPostgresConfig    = "templates/postgres_config.tmpl"
+	tmplKafkaConfig       = "templates/kafka_config.tmpl"
+	tmplWriters           = "templates/writers.tmpl"
+	tmplGoMod             = "templates/go.mod.tmpl"
+	tmplGoSum             = "templates/go.sum.tmpl"
+	tmplStdlib            = "templates/stdlib.go.tmpl"
+	tmplLogger            = "templates/logger.go.tmpl"
+	tmplMetadata          = "templates/metadata_struct.tmpl"
+	tmplBaseStruct        = "templates/base_struct.tmpl"
+	tmplGenerator         = "templates/generator_struct.tmpl"
+	tmplDataHolder        = "templates/data_holder_struct.tmpl"
+	tmplWrapperFunc       = "templates/wrapper_func.tmpl"
+	tmplGenFunction       = "templates/gen_function.tmpl"
+	tmplInitFunction      = "templates/init_function.tmpl"
+	tmplCSV               = "templates/csv_function.tmpl"
+	tmplJSON              = "templates/json_function.tmpl"
+	tmplXML               = "templates/xml_function.tmpl"
+	tmplMysqlSink         = "templates/load_mysql.tmpl"
+	tmplMysqlInit         = "templates/init_mysql.tmpl"
+	tmplPostgresSink      = "templates/load_postgres.tmpl"
+	tmplPostgresInit      = "templates/init_postgres.tmpl"
+	tmplSinkPostgresModel = "templates/sink_postgres_model.tmpl"
 )
 
 type SectionGenerator func(d *DatagenParsed) (string, error)
@@ -126,6 +130,16 @@ func codegenModel(parsed *DatagenParsed, dirPath string) error {
 		return fmt.Errorf("failed to generate MySQL sink file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
 	}
 
+	if err := parsed.generatePostgresInitFile(modelDir); err != nil {
+		return fmt.Errorf("failed to generate Postgres init file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
+	}
+	if err := parsed.generatePostgresLoadFile(modelDir); err != nil {
+		return fmt.Errorf("failed to generate Postgres load file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
+	}
+	if err := parsed.generatePostgresSinkFile(modelDir); err != nil {
+		return fmt.Errorf("failed to generate Postgres sink file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
+	}
+
 	return nil
 }
 
@@ -183,14 +197,15 @@ func codegenCommons(parsed []*DatagenParsed, dirPath string, dgDir *utils.DgDir)
 	}
 
 	staticFiles := map[string]string{
-		tmplWriters:     "writers.go",
-		tmplGoMod:       "go.mod",
-		tmplGoSum:       "go.sum",
-		tmplStdlib:      "stdlib.go",
-		tmplLogger:      "logger.go",
-		tmplMySQLConfig: "mysql_config.go",
-		tmplKafkaConfig: "kafka_config.go",
-		tmplLinks:       "links.go",
+		tmplWriters:        "writers.go",
+		tmplGoMod:          "go.mod",
+		tmplGoSum:          "go.sum",
+		tmplStdlib:         "stdlib.go",
+		tmplLogger:         "logger.go",
+		tmplMySQLConfig:    "mysql_config.go",
+		tmplPostgresConfig: "postgres_config.go",
+		tmplKafkaConfig:    "kafka_config.go",
+		tmplLinks:          "links.go",
 	}
 	if err := copyStaticTemplates(dirPath, staticFiles); err != nil {
 		return fmt.Errorf("failed to copy static templates\n  output_dir: %s\n  cause: %w", dirPath, err)
@@ -399,6 +414,52 @@ func (d *DatagenParsed) generateMySQLSinkFile(modelDir string) error {
 
 	if err := writeFormattedGoFile(sinkMySQLPath, []byte(ib)); err != nil {
 		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", sinkMySQLPath, err)
+	}
+	return nil
+}
+
+// generatePostgresLoadFile renders templates/load_postgres.tmpl into <ModelName>_postgres.go
+func (d *DatagenParsed) generatePostgresLoadFile(modelDir string) error {
+	if len(getFieldData(d)) == 0 {
+		return nil
+	}
+
+	ib, err := renderFS(tmplPostgresSink, fieldsVars(d))
+	if err != nil {
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplPostgresSink, err)
+	}
+
+	outPath := filepath.Join(modelDir, fmt.Sprintf("%s_postgres.go", d.FullyQualifiedModelName))
+	if err := writeFormattedGoFile(outPath, []byte(ib)); err != nil {
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", outPath, err)
+	}
+	return nil
+}
+
+// generatePostgresInitFile renders templates/init_postgres.tmpl into <ModelName>_init_postgres.go
+func (d *DatagenParsed) generatePostgresInitFile(modelDir string) error {
+	ib, err := renderFS(tmplPostgresInit, fieldsVars(d))
+	if err != nil {
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplPostgresInit, err)
+	}
+	initPostgresPath := filepath.Join(modelDir, fmt.Sprintf("%s_init_postgres.go", d.FullyQualifiedModelName))
+
+	if err := writeFormattedGoFile(initPostgresPath, []byte(ib)); err != nil {
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", initPostgresPath, err)
+	}
+	return nil
+}
+
+// generatePostgresSinkFile renders templates/sink_postgres_model.tmpl into <ModelName>_sink_postgres.go
+func (d *DatagenParsed) generatePostgresSinkFile(modelDir string) error {
+	ib, err := renderFS(tmplSinkPostgresModel, fieldsVars(d))
+	if err != nil {
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplSinkPostgresModel, err)
+	}
+	sinkPostgresPath := filepath.Join(modelDir, fmt.Sprintf("%s_sink_postgres.go", d.FullyQualifiedModelName))
+
+	if err := writeFormattedGoFile(sinkPostgresPath, []byte(ib)); err != nil {
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", sinkPostgresPath, err)
 	}
 	return nil
 }

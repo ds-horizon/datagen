@@ -66,6 +66,11 @@ slog.Debug(fmt.Sprintf("clearing %s from %d sinks", modelName, len(sinks)))
 			if err != nil {
 				return fmt.Errorf("error while clearing MySQL sink %s: %w", s.SinkName, err)
 			}
+    		case __dgi_SinkTypePostgres:
+			err := __dgi_clearPostgresSink(s, modelName)
+			if err != nil {
+				return fmt.Errorf("error while clearing Postgres sink %s: %w", s.SinkName, err)
+			}
 		default:
 			return fmt.Errorf("unsupported sink_type %q for model %q", s.SinkType, modelName)
 		}
@@ -87,6 +92,11 @@ slog.Debug(fmt.Sprintf("loading %s to %d sinks with %d records", modelName, len(
             err := __dgi_loadMysqlSink(s, modelName, records)
 			if err != nil {
 				return fmt.Errorf("error in loading MySQL sink %s: %w", s.SinkName, err)
+			}
+    		case __dgi_SinkTypePostgres:
+			err := __dgi_loadPostgresSink(s, modelName, records)
+			if err != nil {
+				return fmt.Errorf("error in loading Postgres sink %s: %w", s.SinkName, err)
 			}
 		default:
 			return fmt.Errorf("unsupported sink_type %q for model %q", s.SinkType, modelName)
@@ -136,6 +146,46 @@ func __dgi_clearMysqlSink(sinkSpec *__dgi_SinkSpec, modelName string) error {
 	}
 }
 
+func __dgi_loadPostgresSink(sinkSpec *__dgi_SinkSpec, modelName string, records []__dgi_Record) error {
+	var sc __dgi_PostgresConfig
+	if err := sinkSpec.ConfigInto(&sc); err != nil {
+		return fmt.Errorf("postgres sink %q config: %w", sinkSpec.SinkName, err)
+	}
+
+	if sc.BatchSize <= 0 {
+		sc.BatchSize = len(records)
+	}
+
+	switch modelName {
+	{{- range $i, $sanitised := .SanitisedModelNames}}
+	case "{{$sanitised}}":
+		typed := make([]*__datagen_{{index $.FullyQualifiedModelNames $i}}, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_{{index $.FullyQualifiedModelNames $i}}))
+		}
+
+		return Sink_postgres___datagen_{{index $.FullyQualifiedModelNames $i}}_data(modelName, typed, &sc)
+	{{- end}}
+	default:
+		return fmt.Errorf("postgres sink not implemented for model %q", modelName)
+	}
+}
+
+func __dgi_clearPostgresSink(sinkSpec *__dgi_SinkSpec, modelName string) error {
+	var sc __dgi_PostgresConfig
+	if err := sinkSpec.ConfigInto(&sc); err != nil {
+		return fmt.Errorf("postgres sink %q config: %w", sinkSpec.SinkName, err)
+	}
+
+	switch modelName {
+	{{- range $i, $sanitised := .SanitisedModelNames}}
+	case "{{$sanitised}}":
+		return Clear_postgres___datagen_{{index $.FullyQualifiedModelNames $i}}_data(modelName, &sc)
+	{{- end}}
+	default:
+		return fmt.Errorf("postgres sink not implemented for model %q", modelName)
+	}
+}
 
 func __dgi_getRecordCount(cfg *__dgi_Config, modelName string, metadata __dgi_Metadata) int {
        for _, m := range cfg.Models {
