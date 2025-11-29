@@ -1,10 +1,11 @@
 package validators
 
 import (
-	"go/ast"
-	"go/token"
 	"strings"
 	"testing"
+
+	"go/ast"
+	"go/token"
 
 	"github.com/ds-horizon/datagen/codegen"
 	"github.com/ds-horizon/datagen/utils"
