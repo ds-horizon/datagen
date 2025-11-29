@@ -2,9 +2,10 @@ package validators
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMultiErr_AddAndCount(t *testing.T) {
@@ -24,7 +25,7 @@ func TestMultiErr_AddAndCount(t *testing.T) {
 	// Adding another nil should not change
 	m.Add(nil)
 	assert.Equal(t, 1, m.Count(), "expected count to remain 1 after adding nil")
-	assert.Equal(t, "first", m.Error(), "expected single error to render its own message")
+	assert.Equal(t, "multiple errors occurred\n  - first\n", m.Error(), "expected single error to render its own message")
 }
 
 func TestMultiErr_AddMsg(t *testing.T) {
