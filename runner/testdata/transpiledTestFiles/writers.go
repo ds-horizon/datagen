@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
-	"encoding/csv"
 	"errors"
+	"encoding/csv"
 	"fmt"
 	"log/slog"
 	"os"
@@ -14,17 +14,17 @@ import (
 
 // format constants
 const (
-	__dgi_FormatCSV    = "csv"
-	__dgi_FormatJSON   = "json"
-	__dgi_FormatXML    = "xml"
-	__dgi_FormatStdout = "stdout"
+    __dgi_FormatCSV    = "csv"
+    __dgi_FormatJSON   = "json"
+    __dgi_FormatXML    = "xml"
+    __dgi_FormatStdout = "stdout"
 )
 
 type __dgi_Record interface {
-	ToCSV() []string
-	CSVHeaders() []string
-	ToJSON() string
-	ToXML() string
+    ToCSV() []string
+    CSVHeaders() []string
+    ToJSON() string
+    ToXML() string
 }
 
 type __dgi_RecordGenerator func(i int) __dgi_Record
@@ -51,7 +51,7 @@ func __dgi_resolveOutputFilePath(outPath, name, ext string) (string, error) {
 }
 
 func __dgi_getOutputFile(outPath, name, ext string) (*os.File, error) {
-	filePath, err := __dgi_resolveOutputFilePath(outPath, name, ext)
+    filePath, err := __dgi_resolveOutputFilePath(outPath, name, ext)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func __dgi_getOutputFile(outPath, name, ext string) (*os.File, error) {
 }
 
 func __dgi_writeCSV(name string, records []__dgi_Record, outPath string) error {
-	csvFile, err := __dgi_getOutputFile(outPath, name, __dgi_FormatCSV)
+    csvFile, err := __dgi_getOutputFile(outPath, name, __dgi_FormatCSV)
 	if err != nil {
 		return fmt.Errorf("error creating CSV file for %s: %v", name, err)
 	}
@@ -74,11 +74,11 @@ func __dgi_writeCSV(name string, records []__dgi_Record, outPath string) error {
 	writer := csv.NewWriter(csvFile)
 	defer writer.Flush()
 
-	headersWritten := false
-	for _, record := range records {
-		row := record.ToCSV()
-		if !headersWritten {
-			if err := writer.Write(record.CSVHeaders()); err != nil {
+    headersWritten := false
+    for _, record := range records {
+        row := record.ToCSV()
+        if !headersWritten {
+            if err := writer.Write(record.CSVHeaders()); err != nil {
 				return fmt.Errorf("error writing CSV headers for %s: %w", name, err)
 			}
 			headersWritten = true
@@ -87,39 +87,39 @@ func __dgi_writeCSV(name string, records []__dgi_Record, outPath string) error {
 			return fmt.Errorf("error writing CSV row for %s: %w", name, err)
 		}
 	}
-	slog.Info(fmt.Sprintf("generated CSV file %s with %d records", csvFile.Name(), len(records)))
+    slog.Info(fmt.Sprintf("generated CSV file %s with %d records", csvFile.Name(), len(records)))
 	return nil
 }
 
 func __dgi_writeJSON(name string, records []__dgi_Record, outPath string) error {
-	jsonFile, jsonErr := __dgi_getOutputFile(outPath, name, __dgi_FormatJSON)
+    jsonFile, jsonErr := __dgi_getOutputFile(outPath, name, __dgi_FormatJSON)
 	if jsonErr != nil {
 		return fmt.Errorf("error creating JSON file for %s: %v", name, jsonErr)
 	}
 	defer jsonFile.Close()
 	jsonWriter := bufio.NewWriter(jsonFile)
 	defer jsonWriter.Flush()
-	for _, record := range records {
-		jsonRow := record.ToJSON()
+    for _, record := range records {
+        jsonRow := record.ToJSON()
 		fmt.Fprintln(jsonWriter, jsonRow)
 	}
-	slog.Info(fmt.Sprintf("generated JSON file %s with %d records", jsonFile.Name(), len(records)))
+    slog.Info(fmt.Sprintf("generated JSON file %s with %d records", jsonFile.Name(), len(records)))
 	return nil
 }
 
 func __dgi_writeXML(name string, records []__dgi_Record, outPath string) error {
-	xmlFile, xmlErr := __dgi_getOutputFile(outPath, name, __dgi_FormatXML)
+    xmlFile, xmlErr := __dgi_getOutputFile(outPath, name, __dgi_FormatXML)
 	if xmlErr != nil {
 		return fmt.Errorf("error creating XML file for %s: %v", name, xmlErr)
 	}
 	defer xmlFile.Close()
 	xmlWriter := bufio.NewWriter(xmlFile)
 	defer xmlWriter.Flush()
-	for _, record := range records {
-		xmlRow := record.ToXML()
+    for _, record := range records {
+        xmlRow := record.ToXML()
 		fmt.Fprintln(xmlWriter, xmlRow)
 	}
-	slog.Info(fmt.Sprintf("generated XML file %s with %d records", xmlFile.Name(), len(records)))
+    slog.Info(fmt.Sprintf("generated XML file %s with %d records", xmlFile.Name(), len(records)))
 	return nil
 }
 

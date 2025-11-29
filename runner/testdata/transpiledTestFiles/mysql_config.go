@@ -5,15 +5,15 @@ import (
 )
 
 type __dgi_MySQLConfig struct {
-	Host         string `json:"host"`
-	Database     string `json:"database"`
-	Port         int    `json:"port,omitempty"`
-	Username     string `json:"username"`
-	Password     string `json:"password"`
-	BatchSize    int    `json:"batch_size,omitempty"`
-	Timeout      string `json:"timeout,omitempty"`
-	WriteTimeout string `json:"write_timeout,omitempty"`
-	Throttle     string `json:"throttle,omitempty"`
+	Host           string `json:"host"`
+	Database       string `json:"database"`
+	Port           int    `json:"port,omitempty"`
+	Username       string `json:"username"`
+	Password       string `json:"password"`
+	BatchSize      int    `json:"batch_size,omitempty"`
+	Timeout        string `json:"timeout,omitempty"`
+	WriteTimeout   string `json:"write_timeout,omitempty"`
+	Throttle       string `json:"throttle,omitempty"`
 }
 
 func (c *__dgi_MySQLConfig) Validate() error {
