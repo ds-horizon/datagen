@@ -12,7 +12,7 @@ type __dgi_KafkaConfig struct {
 	KeySerializer       string   `json:"key_serializer"`
 	ValueSerializer     string   `json:"value_serializer"`
 	BatchSize           int      `json:"batch_size,omitempty"`
-	Throttle          int      `json:"throttle,omitempty"`
+	Throttle            int      `json:"throttle,omitempty"`
 }
 
 func (c *__dgi_KafkaConfig) Validate() error {
