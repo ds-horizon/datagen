@@ -173,6 +173,7 @@ func Username() string {
 	return gofakeit.Username()
 }
 
+
 func Password(opts PasswordOptions) string {
 	return gofakeit.Password(
 		opts.Lower,
