@@ -21,7 +21,7 @@ var (
 	flagSeed    int64
 	flagVerbose bool
 	flagVersion bool
-	version     = "dev"
+	version     = "0.0.1"
 )
 
 func buildRootCommand() *cobra.Command {
