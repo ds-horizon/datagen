@@ -2,7 +2,7 @@
 
 [![Go Version](https://img.shields.io/badge/Go-1.24.0-blue.svg)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ds-horizon/datagen)](https://goreportcard.com/report/github.com/ds-horizon/datagen)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dream-horizon-org/datagen)](https://goreportcard.com/report/github.com/dream-horizon-org/datagen)
 [![Join our Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?logo=discord&logoColor=white)](https://discord.gg/f92f4bWp)
 
 datagen is a tool to generate coherent, synthetic data generation from models expressed in a simple, declarative DSL.
@@ -41,7 +41,7 @@ Say, you wish to place the binary in `/opt/homebrew/bin`;
 
 ```bash
 export GOBIN=/opt/homebrew/bin
-go install github.com/ds-horizon/datagen/cmd/datagenc@latest
+go install github.com/dream-horizon-org/datagen/cmd/datagenc@latest
 ```
 
 ##### Verify installation
@@ -55,7 +55,7 @@ datagenc --help
 ##### Clone the repository
 
 ```bash
-git clone github.com/ds-horizon/datagen
+git clone github.com/dream-horizon-org/datagen
 ```
 
 ##### Build the compiler
@@ -113,7 +113,7 @@ this will generate a `user.csv` file in `output` directory with 100 user records
 
 ## More information
 
-* See the [Documentation](https://ds-horizon.github.io/datagen/) for details
+* See the [Documentation](https://dream-horizon-org.github.io/datagen/) for details
 
 ## Contributing
 
