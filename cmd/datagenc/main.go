@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ds-horizon/datagen/runner"
-	"github.com/ds-horizon/datagen/utils"
+	"github.com/dream-horizon-org/datagen/runner"
+	"github.com/dream-horizon-org/datagen/utils"
 )
 
 var (

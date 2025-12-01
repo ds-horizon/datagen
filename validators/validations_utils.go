@@ -4,7 +4,7 @@ import (
 	"go/ast"
 	"strings"
 
-	"github.com/ds-horizon/datagen/codegen"
+	"github.com/dream-horizon-org/datagen/codegen"
 )
 
 // buildGenSet creates a set of declared generator function names.

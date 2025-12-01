@@ -12,10 +12,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ds-horizon/datagen/codegen"
-	"github.com/ds-horizon/datagen/parser"
-	"github.com/ds-horizon/datagen/utils"
-	"github.com/ds-horizon/datagen/validators"
+	"github.com/dream-horizon-org/datagen/codegen"
+	"github.com/dream-horizon-org/datagen/parser"
+	"github.com/dream-horizon-org/datagen/utils"
+	"github.com/dream-horizon-org/datagen/validators"
 )
 
 func BuildAndRunGen(cmd *cobra.Command, args []string) error {
