@@ -9,7 +9,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ds-horizon/datagen/codegen"
+	"github.com/dream-horizon-org/datagen/codegen"
 )
 
 //go:generate goyacc -l -o grammar.go grammar.y

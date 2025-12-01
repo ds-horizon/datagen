@@ -4,7 +4,7 @@ package parser
 import __yyfmt__ "fmt"
 
 import (
-	"github.com/ds-horizon/datagen/codegen"
+	"github.com/dream-horizon-org/datagen/codegen"
 	"go/ast"
 )
 

@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ds-horizon/datagen/codegen"
-	"github.com/ds-horizon/datagen/utils"
+	"github.com/dream-horizon-org/datagen/codegen"
+	"github.com/dream-horizon-org/datagen/utils"
 )
 
 func TestProcessDgDirData(t *testing.T) {

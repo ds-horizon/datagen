@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ds-horizon/datagen/utils"
+	"github.com/dream-horizon-org/datagen/utils"
 )
 
 func TestGetDgFileStructure(t *testing.T) {
