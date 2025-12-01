@@ -49,4 +49,4 @@ formatters:
       extra-rules: true
     goimports:
       local-prefixes:
-        - github.com/ds-horizon/datagen
+        - github.com/dream-horizon-org/datagen
