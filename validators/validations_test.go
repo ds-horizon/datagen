@@ -5,9 +5,10 @@ import (
 	"go/token"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/dream-horizon-org/datagen/codegen"
 	"github.com/dream-horizon-org/datagen/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestValidate_AggregatesErrors(t *testing.T) {
