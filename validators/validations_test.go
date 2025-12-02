@@ -3,11 +3,11 @@ package validators
 import (
 	"go/ast"
 	"go/token"
-	"strings"
 	"testing"
 
 	"github.com/ds-horizon/datagen/codegen"
 	"github.com/ds-horizon/datagen/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestValidate_AggregatesErrors(t *testing.T) {
@@ -18,28 +18,21 @@ func TestValidate_AggregatesErrors(t *testing.T) {
 	}
 
 	err := Validate(d)
-	if err == nil {
-		t.Fatalf("expected aggregated error, got nil")
-	}
+	assert.Error(t, err, "expected aggregated error")
 
 	s := err.Error()
-	if !strings.Contains(s, "model has no fields section") {
-		t.Fatalf("expected missing fields message, got: %q", s)
-	}
-	if !strings.Contains(s, "model has no gens section") {
-		t.Fatalf("expected missing gens message, got: %q", s)
-	}
-	if !strings.Contains(s, "model should be in file named User.dg, found in NotUser.dg") {
-		t.Fatalf("expected model/filepath mismatch message, got: %q", s)
-	}
+	assert.Contains(t, s, "model has no fields section")
+	assert.Contains(t, s, "model has no gens section")
+	assert.Contains(t, s, "model should be in file named User.dg, found in NotUser.dg")
 }
 
 func TestRequiredSectionsValidator(t *testing.T) {
 	var errs MultiErr
 	RequiredSectionsValidator(&codegen.DatagenParsed{}, &errs)
-	if errs.Count() != 2 {
-		t.Fatalf("expected 2 errors for missing sections, got %d", errs.Count())
-	}
+	assert.Equal(t, 2, errs.Count(), "expected 2 errors for missing sections")
+	msg := errs.Error()
+	assert.Contains(t, msg, "model has no fields section")
+	assert.Contains(t, msg, "model has no gens section")
 }
 
 func TestNoDuplicateFieldNamesValidator(t *testing.T) {
@@ -49,12 +42,8 @@ func TestNoDuplicateFieldNamesValidator(t *testing.T) {
 	}}
 	var errs MultiErr
 	NoDuplicateFieldNamesValidator(&codegen.DatagenParsed{Fields: fields}, &errs)
-	if errs.Count() != 1 {
-		t.Fatalf("expected 1 error for duplicate fields, got %d", errs.Count())
-	}
-	if !strings.Contains(errs.Error(), "model has duplicate field names: foo") {
-		t.Fatalf("unexpected error text: %q", errs.Error())
-	}
+	assert.Equal(t, 1, errs.Count(), "expected 1 error for duplicate fields")
+	assert.Contains(t, errs.Error(), "model has duplicate field names: foo")
 }
 
 func TestNoMissingGensValidator(t *testing.T) {
@@ -65,12 +54,8 @@ func TestNoMissingGensValidator(t *testing.T) {
 	d := &codegen.DatagenParsed{Fields: fields, GenFuns: []*codegen.GenFn{{Name: "a"}}}
 	var errs MultiErr
 	NoMissingGensValidator(d, &errs)
-	if errs.Count() != 1 {
-		t.Fatalf("expected 1 error for missing gen, got %d", errs.Count())
-	}
-	if !strings.Contains(errs.Error(), "model has missing gen functions: b") {
-		t.Fatalf("unexpected error text: %q", errs.Error())
-	}
+	assert.Equal(t, 1, errs.Count(), "expected 1 error for missing gen")
+	assert.Contains(t, errs.Error(), "model has missing gen functions: b")
 }
 
 func TestNoExtraGensValidator(t *testing.T) {
@@ -78,12 +63,8 @@ func TestNoExtraGensValidator(t *testing.T) {
 	d := &codegen.DatagenParsed{Fields: fields, GenFuns: []*codegen.GenFn{{Name: "a"}, {Name: "c"}}}
 	var errs MultiErr
 	NoExtraGensValidator(d, &errs)
-	if errs.Count() != 1 {
-		t.Fatalf("expected 1 error for extra gen, got %d", errs.Count())
-	}
-	if !strings.Contains(errs.Error(), "found extra gen functions: c") {
-		t.Fatalf("unexpected error text: %q", errs.Error())
-	}
+	assert.Equal(t, 1, errs.Count(), "expected 1 error for extra gen")
+	assert.Contains(t, errs.Error(), "found extra gen functions: c")
 }
 
 func TestFilePathModelNameValidator(t *testing.T) {
@@ -91,18 +72,12 @@ func TestFilePathModelNameValidator(t *testing.T) {
 	// ok case
 	good := &codegen.DatagenParsed{ModelName: "good", Filepath: "x" + utils.DgDirDelimeter + "good"}
 	FilePathModelNameValidator(good, &errs)
-	if errs.Count() != 0 {
-		t.Fatalf("expected no error for matching model/file, got %d", errs.Count())
-	}
+	assert.Equal(t, 0, errs.Count(), "expected no error for matching model/file")
 	// bad case
 	bad := &codegen.DatagenParsed{ModelName: "good", Filepath: "x" + utils.DgDirDelimeter + "bad"}
 	FilePathModelNameValidator(bad, &errs)
-	if errs.Count() != 1 {
-		t.Fatalf("expected 1 error for mismatched filename, got %d", errs.Count())
-	}
-	if !strings.Contains(errs.Error(), "model should be in file named good.dg, found in bad.dg") {
-		t.Fatalf("unexpected error text: %q", errs.Error())
-	}
+	assert.Equal(t, 1, errs.Count(), "expected 1 error for mismatched filename")
+	assert.Contains(t, errs.Error(), "model should be in file named good.dg, found in bad.dg")
 }
 
 func TestCallExprsValidator_MissingReturnType(t *testing.T) {
@@ -112,9 +87,8 @@ func TestCallExprsValidator_MissingReturnType(t *testing.T) {
 	d := &codegen.DatagenParsed{Fields: fields}
 	var errs MultiErr
 	CallExprsValidator(d, &errs)
-	if errs.Count() != 1 || !strings.Contains(errs.Error(), "field f must declare a return type") {
-		t.Fatalf("expected missing return type error, got: %q", errs.Error())
-	}
+	assert.Equal(t, 1, errs.Count(), "expected one error for missing return type")
+	assert.Contains(t, errs.Error(), "field f must declare a return type")
 }
 
 func TestCallExprsValidator_ZeroParamsSkipsCallRequirement(t *testing.T) {
@@ -124,9 +98,7 @@ func TestCallExprsValidator_ZeroParamsSkipsCallRequirement(t *testing.T) {
 	d := &codegen.DatagenParsed{Fields: fields}
 	var errs MultiErr
 	CallExprsValidator(d, &errs)
-	if errs.Count() != 0 {
-		t.Fatalf("expected no error (zero-parameter function), got: %q", errs.Error())
-	}
+	assert.Equal(t, 0, errs.Count(), "expected no error (zero-parameter function)")
 }
 
 func TestCallExprsValidator_ParamCountMismatchAndUnknownCall(t *testing.T) {
@@ -145,12 +117,8 @@ func TestCallExprsValidator_ParamCountMismatchAndUnknownCall(t *testing.T) {
 	var errs MultiErr
 	CallExprsValidator(d, &errs)
 	msg := errs.Error()
-	if !strings.Contains(msg, "field g expects 2 args, got 1") {
-		t.Fatalf("expected arg mismatch error, got: %q", msg)
-	}
-	if !strings.Contains(msg, "unknown call h") {
-		t.Fatalf("expected unknown call error, got: %q", msg)
-	}
+	assert.Contains(t, msg, "field g expects 2 args, got 1")
+	assert.Contains(t, msg, "unknown call h")
 }
 
 func TestGenFnsReturnValidator(t *testing.T) {
@@ -171,13 +139,7 @@ func TestGenFnsReturnValidator(t *testing.T) {
 	GenFnsReturnValidator(d, &errs)
 
 	msg := errs.Error()
-	if !strings.Contains(msg, "gen func <unknown> must return a value") {
-		t.Fatalf("expected error for nil gen, got: %q", msg)
-	}
-	if !strings.Contains(msg, "gen func A must return a value") {
-		t.Fatalf("expected error for nil body, got: %q", msg)
-	}
-	if !strings.Contains(msg, "gen func B must return a value") {
-		t.Fatalf("expected error for body without return, got: %q", msg)
-	}
+	assert.Contains(t, msg, "gen func <unknown> must return a value")
+	assert.Contains(t, msg, "gen func A must return a value")
+	assert.Contains(t, msg, "gen func B must return a value")
 }
