@@ -1,10 +1,10 @@
 package validators
 
 import (
+	"github.com/stretchr/testify/assert"
 	"go/ast"
 	"go/token"
 	"testing"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/dream-horizon-org/datagen/codegen"
 	"github.com/dream-horizon-org/datagen/utils"
