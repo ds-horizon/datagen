@@ -9,7 +9,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ds-horizon/datagen/codegen"
+	"github.com/dream-horizon-org/datagen/codegen"
 )
 
 //go:generate goyacc -l -o grammar.go grammar.y
@@ -386,7 +386,7 @@ func lexModel(l *lex) (stateFn, int) {
 }
 
 func (l *lex) parse_fields(s string) *ast.FieldList {
-	fieldList, err := parseFieldList(s)
+	fieldList, err := parseFieldList(s, parseWrappedExpr)
 	if err != nil {
 		l.error("could not parse field list: %s", err)
 	}
@@ -398,7 +398,7 @@ func (l *lex) parse_misc(s string) string {
 }
 
 func (l *lex) parse_tags(s string) map[string]string {
-	tags, err := parseTags(s)
+	tags, err := parseTags(s, parseWrappedExpr)
 	if err != nil {
 		l.error("could not parse tags: %s", err)
 	}
@@ -406,7 +406,7 @@ func (l *lex) parse_tags(s string) map[string]string {
 }
 
 func (l *lex) parse_calls(s string) []*ast.CallExpr {
-	calls, err := parseCallList(s)
+	calls, err := parseCallList(s, parseWrappedExpr)
 	if err != nil {
 		l.error("could not parse calls: %s", err)
 	}
@@ -414,12 +414,12 @@ func (l *lex) parse_calls(s string) []*ast.CallExpr {
 }
 
 func (l *lex) add_gen_fn(name, args, body string) {
-	argsList, err := parseParamList(args)
+	argsList, err := parseParamList(args, parseWrappedExpr)
 	if err != nil {
 		l.error("could not parse args list: %s", err)
 	}
 
-	funcBody, err := parseFunctionBlock(body)
+	funcBody, err := parseFunctionBlock(body, parseWrappedExpr)
 	if err != nil {
 		l.error("could not parse func block: %s", err)
 	}

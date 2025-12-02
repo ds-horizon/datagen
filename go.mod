@@ -1,4 +1,4 @@
-module github.com/ds-horizon/datagen
+module github.com/dream-horizon-org/datagen
 
 go 1.24.0
 

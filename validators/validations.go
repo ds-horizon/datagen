@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ds-horizon/datagen/codegen"
-	"github.com/ds-horizon/datagen/utils"
+	"github.com/dream-horizon-org/datagen/codegen"
+	"github.com/dream-horizon-org/datagen/utils"
 )
 
 type ValidatorFunc func(d *codegen.DatagenParsed, errs *MultiErr)

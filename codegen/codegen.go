@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/ds-horizon/datagen/utils"
+	"github.com/dream-horizon-org/datagen/utils"
 )
 
 //go:embed templates
