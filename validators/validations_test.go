@@ -5,8 +5,8 @@ import (
 	"go/token"
 	"testing"
 
-	"github.com/ds-horizon/datagen/codegen"
-	"github.com/ds-horizon/datagen/utils"
+	"github.com/dream-horizon-org/datagen/codegen"
+	"github.com/dream-horizon-org/datagen/utils"
 	"github.com/stretchr/testify/assert"
 )
 
