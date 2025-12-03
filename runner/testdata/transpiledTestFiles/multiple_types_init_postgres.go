@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -59,6 +60,7 @@ func Get___datagen_multiple_types_postgres_connection() (*sql.DB, error) {
 // Close___datagen_multiple_types_postgres_connection closes the shared Postgres DB for __datagen_multiple_types if initialized.
 func Close___datagen_multiple_types_postgres_connection() error {
 	if __datagen_multiple_types_postgres_connection == nil {
+		slog.Warn(fmt.Sprintf("Attempted to close Postgres connection for %s, but connection was never initialized or already closed", "multiple_types"))
 		return nil
 	}
 	err := __datagen_multiple_types_postgres_connection.Close()

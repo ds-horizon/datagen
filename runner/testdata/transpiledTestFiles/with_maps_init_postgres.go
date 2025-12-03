@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -59,6 +60,7 @@ func Get___datagen_with_maps_postgres_connection() (*sql.DB, error) {
 // Close___datagen_with_maps_postgres_connection closes the shared Postgres DB for __datagen_with_maps if initialized.
 func Close___datagen_with_maps_postgres_connection() error {
 	if __datagen_with_maps_postgres_connection == nil {
+		slog.Warn(fmt.Sprintf("Attempted to close Postgres connection for %s, but connection was never initialized or already closed", "with_maps"))
 		return nil
 	}
 	err := __datagen_with_maps_postgres_connection.Close()

@@ -4,12 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"strings"
 )
 
 // Load___datagen_with_builtin_functions_postgres executes a single batch of records using the provided transaction.
 func Load___datagen_with_builtin_functions_postgres(records []*__datagen_with_builtin_functions, tx *sql.Tx) error {
 	if len(records) == 0 {
+		slog.Warn(fmt.Sprintf("no records to insert for model %s", "with_builtin_functions"))
 		return nil
 	}
 
@@ -61,8 +63,8 @@ func Load___datagen_with_builtin_functions_postgres(records []*__datagen_with_bu
 // Truncate___datagen_with_builtin_functions_postgres() truncates the model's table using the shared connection.
 func Truncate___datagen_with_builtin_functions_postgres(tx *sql.Tx) error {
 	ctx := context.Background()
-	if _, err := tx.ExecContext(ctx, "DELETE FROM \"with_builtin_functions\";"); err != nil {
-		return fmt.Errorf("delete failed with error : %w", err)
+	if _, err := tx.ExecContext(ctx, "TRUNCATE TABLE \"with_builtin_functions\" RESTART IDENTITY CASCADE;"); err != nil {
+		return fmt.Errorf("truncate failed with error : %w", err)
 	}
 	return nil
 }

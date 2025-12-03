@@ -4,12 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"strings"
 )
 
 // Load___datagen_minimal_postgres executes a single batch of records using the provided transaction.
 func Load___datagen_minimal_postgres(records []*__datagen_minimal, tx *sql.Tx) error {
 	if len(records) == 0 {
+		slog.Warn(fmt.Sprintf("no records to insert for model %s", "minimal"))
 		return nil
 	}
 
@@ -57,8 +59,8 @@ func Load___datagen_minimal_postgres(records []*__datagen_minimal, tx *sql.Tx) e
 // Truncate___datagen_minimal_postgres() truncates the model's table using the shared connection.
 func Truncate___datagen_minimal_postgres(tx *sql.Tx) error {
 	ctx := context.Background()
-	if _, err := tx.ExecContext(ctx, "DELETE FROM \"minimal\";"); err != nil {
-		return fmt.Errorf("delete failed with error : %w", err)
+	if _, err := tx.ExecContext(ctx, "TRUNCATE TABLE \"minimal\" RESTART IDENTITY CASCADE;"); err != nil {
+		return fmt.Errorf("truncate failed with error : %w", err)
 	}
 	return nil
 }

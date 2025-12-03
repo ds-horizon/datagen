@@ -4,12 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"strings"
 )
 
 // Load___datagen_with_maps_postgres executes a single batch of records using the provided transaction.
 func Load___datagen_with_maps_postgres(records []*__datagen_with_maps, tx *sql.Tx) error {
 	if len(records) == 0 {
+		slog.Warn(fmt.Sprintf("no records to insert for model %s", "with_maps"))
 		return nil
 	}
 
@@ -59,8 +61,8 @@ func Load___datagen_with_maps_postgres(records []*__datagen_with_maps, tx *sql.T
 // Truncate___datagen_with_maps_postgres() truncates the model's table using the shared connection.
 func Truncate___datagen_with_maps_postgres(tx *sql.Tx) error {
 	ctx := context.Background()
-	if _, err := tx.ExecContext(ctx, "DELETE FROM \"with_maps\";"); err != nil {
-		return fmt.Errorf("delete failed with error : %w", err)
+	if _, err := tx.ExecContext(ctx, "TRUNCATE TABLE \"with_maps\" RESTART IDENTITY CASCADE;"); err != nil {
+		return fmt.Errorf("truncate failed with error : %w", err)
 	}
 	return nil
 }
