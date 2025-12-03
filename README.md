@@ -26,64 +26,7 @@ Salient features:
 
 ## Install
 
-There are various ways of installing datagen.
-
-### Option 1: Install via Go
-
-Check your `$PATH`, and choose a directory you would like to place the `datagenc` compiler in.
-
-```bash
-echo $PATH
-/Users/username/go/bin:/opt/homebrew/bin:/opt/homebrew/sbin
-```
-
-Say, you wish to place the binary in `/opt/homebrew/bin`;
-
-```bash
-export GOBIN=/opt/homebrew/bin
-go install github.com/dream-horizon-org/datagen/cmd/datagenc@latest
-```
-
-##### Verify installation
-
-```bash
-datagenc --help
-```
-
-### Option 2: Install from Source
-
-##### Clone the repository
-
-```bash
-git clone github.com/dream-horizon-org/datagen
-```
-
-##### Build the compiler
-
-```bash
-make build-compiler
-```
-
-For permanent access on Mac/Unix, add the binary to your path, or add the current directory to your path:
-
-```bash
-echo 'export PATH=$PATH:$(pwd)' >> ~/.bashrc  # for bash
-echo 'export PATH=$PATH:$(pwd)' >> ~/.zshrc   # for zsh
-```
-
-For permanent access on Windows, add to your shell profile:
-
-```powershell
-echo '$env:PATH += ";C:\path\to\datagen"' >> $PROFILE
-```
-
-Now, source the `rc` files or fire up a new terminal window for the changes to take effect.
-
-##### Verify installation
-
-```bash
-datagenc --help
-```
+See the [Installation Guide](http://dream-horizon-org.github.io/datagen/introduction/getting-started/#installation) for detailed installation instructions.
 
 ## Usage
 
