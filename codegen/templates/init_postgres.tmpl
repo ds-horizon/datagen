@@ -3,6 +3,7 @@ package main
 import (
     "database/sql"
     "fmt"
+    "log/slog"
     "time"
 
     _ "github.com/lib/pq"
@@ -59,6 +60,7 @@ func Get___datagen_{{.FullyQualifiedModelName}}_postgres_connection() (*sql.DB, 
 // Close___datagen_{{.FullyQualifiedModelName}}_postgres_connection closes the shared Postgres DB for __datagen_{{.FullyQualifiedModelName}} if initialized.
 func Close___datagen_{{.FullyQualifiedModelName}}_postgres_connection() error {
     if __datagen_{{.FullyQualifiedModelName}}_postgres_connection == nil {
+        slog.Warn(fmt.Sprintf("Attempted to close Postgres connection for %s, but connection was never initialized or already closed", "{{.FullyQualifiedModelName}}"))
         return nil
     }
     err := __datagen_{{.FullyQualifiedModelName}}_postgres_connection.Close()
