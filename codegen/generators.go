@@ -45,6 +45,9 @@ const (
 	tmplXML            = "templates/xml_function.tmpl"
 	tmplMysqlSink      = "templates/load_mysql.tmpl"
 	tmplMysqlInit      = "templates/init_mysql.tmpl"
+	tmplKafkaSink      = "templates/load_kafka.tmpl"
+	tmplKafkaInit      = "templates/init_kafka.tmpl"
+	tmplSinkKafkaModel = "templates/sink_kafka_model.tmpl"
 )
 
 type SectionGenerator func(d *DatagenParsed) (string, error)
@@ -126,6 +129,16 @@ func codegenModel(parsed *DatagenParsed, dirPath string) error {
 	}
 	if err := parsed.generateMySQLSinkFile(modelDir); err != nil {
 		return fmt.Errorf("failed to generate MySQL sink file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
+	}
+
+	if err := parsed.generateKafkaInitFile(modelDir); err != nil {
+		return fmt.Errorf("failed to generate Kafka init file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
+	}
+	if err := parsed.generateKafkaLoadFile(modelDir); err != nil {
+		return fmt.Errorf("failed to generate Kafka load file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
+	}
+	if err := parsed.generateKafkaSinkFile(modelDir); err != nil {
+		return fmt.Errorf("failed to generate Kafka sink file\n  model: %s\n  cause: %w", parsed.FullyQualifiedModelName, err)
 	}
 
 	return nil
@@ -431,6 +444,52 @@ func (d *DatagenParsed) generateMySQLSinkFile(modelDir string) error {
 
 	if err := writeFormattedGoFile(sinkMySQLPath, []byte(ib)); err != nil {
 		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", sinkMySQLPath, err)
+	}
+	return nil
+}
+
+// generateKafkaLoadFile renders templates/load_kafka.tmpl into <ModelName>_kafka.go
+func (d *DatagenParsed) generateKafkaLoadFile(modelDir string) error {
+	if len(getFieldData(d)) == 0 {
+		return nil
+	}
+
+	ib, err := renderFS(tmplKafkaSink, fieldsVars(d))
+	if err != nil {
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplKafkaSink, err)
+	}
+
+	outPath := filepath.Join(modelDir, fmt.Sprintf("%s_kafka.go", d.FullyQualifiedModelName))
+	if err := writeFormattedGoFile(outPath, []byte(ib)); err != nil {
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", outPath, err)
+	}
+	return nil
+}
+
+// generateKafkaInitFile renders templates/init_kafka.tmpl into <ModelName>_init_kafka.go
+func (d *DatagenParsed) generateKafkaInitFile(modelDir string) error {
+	ib, err := renderFS(tmplKafkaInit, fieldsVars(d))
+	if err != nil {
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplKafkaInit, err)
+	}
+	initKafkaPath := filepath.Join(modelDir, fmt.Sprintf("%s_init_kafka.go", d.FullyQualifiedModelName))
+
+	if err := writeFormattedGoFile(initKafkaPath, []byte(ib)); err != nil {
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", initKafkaPath, err)
+	}
+	return nil
+}
+
+// generateKafkaSinkFile renders templates/sink_kafka_model.tmpl into <ModelName>_sink_kafka.go
+func (d *DatagenParsed) generateKafkaSinkFile(modelDir string) error {
+	ib, err := renderFS(tmplSinkKafkaModel, fieldsVars(d))
+	if err != nil {
+		return fmt.Errorf("failed to render template\n  template: %s\n  cause: %w", tmplSinkKafkaModel, err)
+	}
+	sinkKafkaPath := filepath.Join(modelDir, fmt.Sprintf("%s_sink_kafka.go", d.FullyQualifiedModelName))
+
+	if err := writeFormattedGoFile(sinkKafkaPath, []byte(ib)); err != nil {
+		return fmt.Errorf("failed to write generated file\n  path: %s\n  cause: %w", sinkKafkaPath, err)
 	}
 	return nil
 }
