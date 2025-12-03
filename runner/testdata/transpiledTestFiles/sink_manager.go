@@ -66,6 +66,12 @@ func __dgi_clearModelSinks(modelName string, records []__dgi_Record, cfg *__dgi_
 			if err != nil {
 				return fmt.Errorf("error while clearing MySQL sink %s: %w", s.SinkName, err)
 			}
+		case __dgi_SinkTypeKafka:
+			err := __dgi_clearKafkaSink(s, modelName)
+			if err != nil {
+				return fmt.Errorf("error while clearing kafka sink %s: %w", s.SinkName, err)
+			}
+
 		default:
 			return fmt.Errorf("unsupported sink_type %q for model %q", s.SinkType, modelName)
 		}
@@ -87,6 +93,11 @@ func __dgi_loadModelSinks(modelName string, records []__dgi_Record, cfg *__dgi_C
 			err := __dgi_loadMysqlSink(s, modelName, records)
 			if err != nil {
 				return fmt.Errorf("error in loading MySQL sink %s: %w", s.SinkName, err)
+			}
+		case __dgi_SinkTypeKafka:
+			err := __dgi_loadKafkaSink(s, modelName, records)
+			if err != nil {
+				return fmt.Errorf("error in loading Kafka sink %s: %w", s.SinkName, err)
 			}
 		default:
 			return fmt.Errorf("unsupported sink_type %q for model %q", s.SinkType, modelName)
@@ -210,6 +221,124 @@ func __dgi_clearMysqlSink(sinkSpec *__dgi_SinkSpec, modelName string) error {
 		return Clear_mysql___datagen_with_slices_data(modelName, &sc)
 	default:
 		return fmt.Errorf("mysql sink not implemented for model %q", modelName)
+	}
+}
+
+func __dgi_loadKafkaSink(sinkSpec *__dgi_SinkSpec, modelName string, records []__dgi_Record) error {
+	var sc __dgi_KafkaConfig
+	if err := sinkSpec.ConfigInto(&sc); err != nil {
+		return fmt.Errorf("kafka sink %q config: %w", sinkSpec.SinkName, err)
+	}
+
+	if sc.BatchSize <= 0 {
+		sc.BatchSize = len(records)
+	}
+
+	switch modelName {
+	case "minimal":
+		typed := make([]*__datagen_minimal, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_minimal))
+		}
+
+		return Sink_kafka___datagen_minimal_data(modelName, typed, &sc)
+	case "multiple_types":
+		typed := make([]*__datagen_multiple_types, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_multiple_types))
+		}
+
+		return Sink_kafka___datagen_multiple_types_data(modelName, typed, &sc)
+	case "nested":
+		typed := make([]*__datagen_nested, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_nested))
+		}
+
+		return Sink_kafka___datagen_nested_data(modelName, typed, &sc)
+	case "simple":
+		typed := make([]*__datagen_simple, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_simple))
+		}
+
+		return Sink_kafka___datagen_simple_data(modelName, typed, &sc)
+	case "with_builtin_functions":
+		typed := make([]*__datagen_with_builtin_functions, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_with_builtin_functions))
+		}
+
+		return Sink_kafka___datagen_with_builtin_functions_data(modelName, typed, &sc)
+	case "with_conditionals":
+		typed := make([]*__datagen_with_conditionals, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_with_conditionals))
+		}
+
+		return Sink_kafka___datagen_with_conditionals_data(modelName, typed, &sc)
+	case "with_maps":
+		typed := make([]*__datagen_with_maps, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_with_maps))
+		}
+
+		return Sink_kafka___datagen_with_maps_data(modelName, typed, &sc)
+	case "with_metadata":
+		typed := make([]*__datagen_with_metadata, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_with_metadata))
+		}
+
+		return Sink_kafka___datagen_with_metadata_data(modelName, typed, &sc)
+	case "with_misc":
+		typed := make([]*__datagen_with_misc, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_with_misc))
+		}
+
+		return Sink_kafka___datagen_with_misc_data(modelName, typed, &sc)
+	case "with_slices":
+		typed := make([]*__datagen_with_slices, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_with_slices))
+		}
+
+		return Sink_kafka___datagen_with_slices_data(modelName, typed, &sc)
+	default:
+		return fmt.Errorf("kafka sink not implemented for model %q", modelName)
+	}
+}
+
+func __dgi_clearKafkaSink(sinkSpec *__dgi_SinkSpec, modelName string) error {
+	var sc __dgi_KafkaConfig
+	if err := sinkSpec.ConfigInto(&sc); err != nil {
+		return fmt.Errorf("kafka sink %q config: %w", sinkSpec.SinkName, err)
+	}
+
+	switch modelName {
+	case "minimal":
+		return Clear_kafka___datagen_minimal_data(modelName, &sc)
+	case "multiple_types":
+		return Clear_kafka___datagen_multiple_types_data(modelName, &sc)
+	case "nested":
+		return Clear_kafka___datagen_nested_data(modelName, &sc)
+	case "simple":
+		return Clear_kafka___datagen_simple_data(modelName, &sc)
+	case "with_builtin_functions":
+		return Clear_kafka___datagen_with_builtin_functions_data(modelName, &sc)
+	case "with_conditionals":
+		return Clear_kafka___datagen_with_conditionals_data(modelName, &sc)
+	case "with_maps":
+		return Clear_kafka___datagen_with_maps_data(modelName, &sc)
+	case "with_metadata":
+		return Clear_kafka___datagen_with_metadata_data(modelName, &sc)
+	case "with_misc":
+		return Clear_kafka___datagen_with_misc_data(modelName, &sc)
+	case "with_slices":
+		return Clear_kafka___datagen_with_slices_data(modelName, &sc)
+	default:
+		return fmt.Errorf("kafka sink not implemented for model %q", modelName)
 	}
 }
 
