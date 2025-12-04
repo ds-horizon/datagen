@@ -18,17 +18,9 @@ func Init___datagen_with_slices_kafka_producer(req *__dgi_KafkaConfig) error {
 	config.Producer.Return.Successes = true
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Retry.Max = 5
-
-	// Set the producer version (use latest stable)
 	config.Version = sarama.V2_6_0_0
 
-	// Join bootstrap servers
-	brokers := req.BootstrapServers
-	if len(brokers) == 0 {
-		return fmt.Errorf("bootstrap_servers cannot be empty")
-	}
-
-	producer, err := sarama.NewSyncProducer(brokers, config)
+	producer, err := sarama.NewSyncProducer(req.BootstrapServers, config)
 	if err != nil {
 		return fmt.Errorf("failed to create kafka producer: %w", err)
 	}

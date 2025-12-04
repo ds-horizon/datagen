@@ -2,9 +2,24 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/IBM/sarama"
 )
+
+// __dgi_GetFieldAsString returns the value of a field as a string for use as Kafka key
+func __datagen_with_misc_GetFieldAsString(record *__datagen_with_misc, fieldName string) (string, error) {
+	switch fieldName {
+	case "id":
+		return fmt.Sprintf("%v", record.id), nil
+	case "label":
+		return fmt.Sprintf("%v", record.label), nil
+	case "count":
+		return fmt.Sprintf("%v", record.count), nil
+	default:
+		return "", fmt.Errorf("field '%s' not found in with_misc", fieldName)
+	}
+}
 
 // Load___datagen_with_misc_kafka sends a batch of records to the configured Kafka topic.
 func Load___datagen_with_misc_kafka(records []*__datagen_with_misc, config *__dgi_KafkaConfig) error {
@@ -28,8 +43,13 @@ func Load___datagen_with_misc_kafka(records []*__datagen_with_misc, config *__dg
 		}
 
 		// Set the key if provided in config
+		// config.Key represents the field name, we need to extract the value of that field
 		if config.Key != "" {
-			msg.Key = sarama.StringEncoder(config.Key)
+			keyValue, err := __datagen_with_misc_GetFieldAsString(record, config.Key)
+			if err != nil {
+				return fmt.Errorf("failed to extract key field '%s': %w", config.Key, err)
+			}
+			msg.Key = sarama.StringEncoder(keyValue)
 		}
 
 		// Send the message synchronously
@@ -38,19 +58,13 @@ func Load___datagen_with_misc_kafka(records []*__datagen_with_misc, config *__dg
 			return fmt.Errorf("failed to send message to kafka: %w", err)
 		}
 
-		// Optional: Log successful send (can be removed or made conditional)
-		_ = partition
-		_ = offset
+		slog.Debug(fmt.Sprintf("sent kafka message on partition %d at offset %d", partition, offset))
 	}
 
 	return nil
 }
 
 // Truncate___datagen_with_misc_kafka is a no-op for Kafka as it's an append-only log.
-// Kafka topics cannot be truncated in the traditional sense without deleting and recreating them.
 func Truncate___datagen_with_misc_kafka(config *__dgi_KafkaConfig) error {
-	// No-op: Kafka doesn't support truncation like SQL databases
-	// If you need to clear data, you would need to delete and recreate the topic,
-	// which requires admin permissions and is typically not done during normal operations.
 	return nil
 }

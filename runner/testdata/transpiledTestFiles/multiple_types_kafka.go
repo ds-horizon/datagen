@@ -2,9 +2,26 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/IBM/sarama"
 )
+
+// __dgi_GetFieldAsString returns the value of a field as a string for use as Kafka key
+func __datagen_multiple_types_GetFieldAsString(record *__datagen_multiple_types, fieldName string) (string, error) {
+	switch fieldName {
+	case "id":
+		return fmt.Sprintf("%v", record.id), nil
+	case "score":
+		return fmt.Sprintf("%v", record.score), nil
+	case "name":
+		return fmt.Sprintf("%v", record.name), nil
+	case "active":
+		return fmt.Sprintf("%v", record.active), nil
+	default:
+		return "", fmt.Errorf("field '%s' not found in multiple_types", fieldName)
+	}
+}
 
 // Load___datagen_multiple_types_kafka sends a batch of records to the configured Kafka topic.
 func Load___datagen_multiple_types_kafka(records []*__datagen_multiple_types, config *__dgi_KafkaConfig) error {
@@ -28,8 +45,13 @@ func Load___datagen_multiple_types_kafka(records []*__datagen_multiple_types, co
 		}
 
 		// Set the key if provided in config
+		// config.Key represents the field name, we need to extract the value of that field
 		if config.Key != "" {
-			msg.Key = sarama.StringEncoder(config.Key)
+			keyValue, err := __datagen_multiple_types_GetFieldAsString(record, config.Key)
+			if err != nil {
+				return fmt.Errorf("failed to extract key field '%s': %w", config.Key, err)
+			}
+			msg.Key = sarama.StringEncoder(keyValue)
 		}
 
 		// Send the message synchronously
@@ -38,19 +60,13 @@ func Load___datagen_multiple_types_kafka(records []*__datagen_multiple_types, co
 			return fmt.Errorf("failed to send message to kafka: %w", err)
 		}
 
-		// Optional: Log successful send (can be removed or made conditional)
-		_ = partition
-		_ = offset
+		slog.Debug(fmt.Sprintf("sent kafka message on partition %d at offset %d", partition, offset))
 	}
 
 	return nil
 }
 
 // Truncate___datagen_multiple_types_kafka is a no-op for Kafka as it's an append-only log.
-// Kafka topics cannot be truncated in the traditional sense without deleting and recreating them.
 func Truncate___datagen_multiple_types_kafka(config *__dgi_KafkaConfig) error {
-	// No-op: Kafka doesn't support truncation like SQL databases
-	// If you need to clear data, you would need to delete and recreate the topic,
-	// which requires admin permissions and is typically not done during normal operations.
 	return nil
 }
