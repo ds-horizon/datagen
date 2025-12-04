@@ -7,6 +7,19 @@ import (
 	"github.com/IBM/sarama"
 )
 
+// __dgi_GetFieldAsString returns the value of a field as a string for use as Kafka key
+func __datagen_{{.FullyQualifiedModelName}}_GetFieldAsString(record *__datagen_{{.FullyQualifiedModelName}}, fieldName string) (string, error) {
+	switch fieldName {
+	{{- range .Fields}}
+	case "{{.Name}}":
+		return fmt.Sprintf("%v", record.{{.Name}}), nil
+	{{- end}}
+	default:
+		return "", fmt.Errorf("field '%s' not found in {{.FullyQualifiedModelName}}", fieldName)
+	}
+}
+
+
 // Load___datagen_{{.FullyQualifiedModelName}}_kafka sends a batch of records to the configured Kafka topic.
 func Load___datagen_{{.FullyQualifiedModelName}}_kafka(records []*__datagen_{{.FullyQualifiedModelName}}, config *__dgi_KafkaConfig) error {
 	if len(records) == 0 {
@@ -29,8 +42,13 @@ func Load___datagen_{{.FullyQualifiedModelName}}_kafka(records []*__datagen_{{.F
 		}
 
 		// Set the key if provided in config
+		// config.Key represents the field name, we need to extract the value of that field
 		if config.Key != "" {
-			msg.Key = sarama.StringEncoder(config.Key)
+			keyValue, err := __datagen_{{.FullyQualifiedModelName}}_GetFieldAsString(record, config.Key)
+			if err != nil {
+				return fmt.Errorf("failed to extract key field '%s': %w", config.Key, err)
+			}
+			msg.Key = sarama.StringEncoder(keyValue)
 		}
 
 		// Send the message synchronously
