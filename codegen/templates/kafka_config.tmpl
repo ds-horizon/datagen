@@ -9,8 +9,6 @@ type __dgi_KafkaConfig struct {
 	Key                 string   `json:"key,omitempty"`
 	IncludeKeyInMessage string   `json:"include_key_in_message,omitempty"`
 	BootstrapServers    []string `json:"bootstrap_servers"`
-	KeySerializer       string   `json:"key_serializer"`
-	ValueSerializer     string   `json:"value_serializer"`
 	BatchSize           int      `json:"batch_size,omitempty"`
 	Throttle          int      `json:"throttle,omitempty"`
 }

@@ -519,3 +519,7 @@ func (e *__datagen_with_slices) ToXML() string {
 	}
 	return string(xmlData)
 }
+
+func (self *__datagen_with_slices) __dgi_Serialise() []byte {
+	return []byte{}
+}

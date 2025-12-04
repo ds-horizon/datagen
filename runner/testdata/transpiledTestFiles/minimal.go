@@ -461,3 +461,7 @@ func (e *__datagen_minimal) ToXML() string {
 	}
 	return string(xmlData)
 }
+
+func (self *__datagen_minimal) __dgi_Serialise() []byte {
+	return []byte{}
+}

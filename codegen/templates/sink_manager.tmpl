@@ -58,7 +58,7 @@ func __dgi_clearModelSinks(modelName string, records []__dgi_Record, cfg *__dgi_
 		return fmt.Errorf("error while getting sink specs for model %s: %w", modelName, err)
 	}
 
-slog.Debug(fmt.Sprintf("clearing %s from %d sinks", modelName, len(sinks)))
+        slog.Debug(fmt.Sprintf("clearing %s from %d sinks", modelName, len(sinks)))
 	for _, s := range sinks {
         switch s.SinkType {
         	case __dgi_SinkTypeMySQL:
@@ -66,6 +66,12 @@ slog.Debug(fmt.Sprintf("clearing %s from %d sinks", modelName, len(sinks)))
 			if err != nil {
 				return fmt.Errorf("error while clearing MySQL sink %s: %w", s.SinkName, err)
 			}
+        	case __dgi_SinkTypeKafka:
+            err := __dgi_clearKafkaSink(s, modelName)
+			if err != nil {
+				return fmt.Errorf("error while clearing kafka sink %s: %w", s.SinkName, err)
+			}
+
 		default:
 			return fmt.Errorf("unsupported sink_type %q for model %q", s.SinkType, modelName)
 		}
@@ -80,13 +86,18 @@ func __dgi_loadModelSinks(modelName string, records []__dgi_Record, cfg *__dgi_C
 		return fmt.Errorf("error while getting sink specs for model %s: %w", modelName, err)
 	}
 
-slog.Debug(fmt.Sprintf("loading %s to %d sinks with %d records", modelName, len(sinks), len(records)))
+	slog.Debug(fmt.Sprintf("loading %s to %d sinks with %d records", modelName, len(sinks), len(records)))
 	for _, s := range sinks {
         switch s.SinkType {
         	case __dgi_SinkTypeMySQL:
             err := __dgi_loadMysqlSink(s, modelName, records)
 			if err != nil {
 				return fmt.Errorf("error in loading MySQL sink %s: %w", s.SinkName, err)
+			}
+        	case __dgi_SinkTypeKafka:
+            err := __dgi_loadKafkaSink(s, modelName, records)
+			if err != nil {
+				return fmt.Errorf("error in loading Kafka sink %s: %w", s.SinkName, err)
 			}
 		default:
 			return fmt.Errorf("unsupported sink_type %q for model %q", s.SinkType, modelName)
@@ -133,6 +144,47 @@ func __dgi_clearMysqlSink(sinkSpec *__dgi_SinkSpec, modelName string) error {
 	{{- end}}
 	default:
 		return fmt.Errorf("mysql sink not implemented for model %q", modelName)
+	}
+}
+
+func __dgi_loadKafkaSink(sinkSpec *__dgi_SinkSpec, modelName string, records []__dgi_Record) error {
+    var sc __dgi_KafkaConfig
+    if err := sinkSpec.ConfigInto(&sc); err != nil {
+		return fmt.Errorf("kafka sink %q config: %w", sinkSpec.SinkName, err)
+	}
+
+	if sc.BatchSize <= 0 {
+		sc.BatchSize = len(records)
+	}
+
+	switch modelName {
+	{{- range $i, $sanitised := .SanitisedModelNames}}
+	case "{{$sanitised}}":
+        typed := make([]*__datagen_{{index $.FullyQualifiedModelNames $i}}, 0, len(records))
+		for _, r := range records {
+			typed = append(typed, r.(*__datagen_{{index $.FullyQualifiedModelNames $i}}))
+		}
+
+        return Sink_kafka___datagen_{{index $.FullyQualifiedModelNames $i}}_data(modelName, typed, &sc)
+	{{- end}}
+	default:
+		return fmt.Errorf("kafka sink not implemented for model %q", modelName)
+	}
+}
+
+func __dgi_clearKafkaSink(sinkSpec *__dgi_SinkSpec, modelName string) error {
+    var sc __dgi_KafkaConfig
+    if err := sinkSpec.ConfigInto(&sc); err != nil {
+		return fmt.Errorf("kafka sink %q config: %w", sinkSpec.SinkName, err)
+	}
+
+	switch modelName {
+	{{- range $i, $sanitised := .SanitisedModelNames}}
+	case "{{$sanitised}}":
+        return Clear_kafka___datagen_{{index $.FullyQualifiedModelNames $i}}_data(modelName, &sc)
+	{{- end}}
+	default:
+		return fmt.Errorf("kafka sink not implemented for model %q", modelName)
 	}
 }
 

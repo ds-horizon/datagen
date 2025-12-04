@@ -495,3 +495,7 @@ func (e *__datagen_nested) ToXML() string {
 	}
 	return string(xmlData)
 }
+
+func (self *__datagen_nested) __dgi_Serialise() []byte {
+	return []byte{}
+}

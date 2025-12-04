@@ -33,6 +33,7 @@ const (
 	Gens
 	GenFn
 	Calls
+	Serialiser
 	None
 )
 
@@ -143,8 +144,11 @@ func lexBody(l *lex) (stateFn, int) {
 	case "calls":
 		l.curSection = Calls
 		return lexLBrace, CALLS
+	case "serialiser":
+		l.curSection = Serialiser
+		return lexLBrace, SERIALISER_FUNC
 	default:
-		return l.error("expected section header: one of 'fields', 'misc', 'metadata', 'gens', 'calls'; got '%s'", val)
+		return l.error("expected section header: one of 'fields', 'misc', 'metadata', 'gens', 'calls', 'serialiser'; got '%s'", val)
 	}
 }
 
@@ -236,10 +240,10 @@ func lexCallsBody(l *lex) (stateFn, int) {
 	return lexRBrace, CALLS_BODY
 }
 
-func lexGenFnBody(l *lex) (stateFn, int) {
+func lexFuncBody(l *lex) (stateFn, int) {
 	val, err := l.consumeBodyTillRBrace()
 	if err != nil {
-		return l.error("invalid gen fn body %s", err)
+		return l.error("invalid fn body %s", err)
 	}
 	l.lval.str = val
 	return lexRBrace, FN_BODY
@@ -367,11 +371,15 @@ func lexLBrace(l *lex) (stateFn, int) {
 	}
 
 	if l.curSection == GenFn {
-		return lexGenFnBody, L_BRACE
+		return lexFuncBody, L_BRACE
 	}
 
 	if l.curSection == Calls {
 		return lexCallsBody, L_BRACE
+	}
+
+	if l.curSection == Serialiser {
+		return lexFuncBody, L_BRACE
 	}
 
 	return lexRBrace, MODEL_NAME
@@ -421,7 +429,7 @@ func (l *lex) add_gen_fn(name, args, body string) {
 
 	funcBody, err := parseFunctionBlock(body, parseWrappedExpr)
 	if err != nil {
-		l.error("could not parse func block: %s", err)
+		l.error("could not parse gen func block: %s", err)
 	}
 
 	l.parsed.GenFuns = append(l.parsed.GenFuns, &codegen.GenFn{
@@ -429,6 +437,17 @@ func (l *lex) add_gen_fn(name, args, body string) {
 		Calls: argsList,
 		Body:  funcBody,
 	})
+}
+
+func (l *lex) add_serialiser_fn(body string) *codegen.SerialiserFunc {
+	funcBody, err := parseFunctionBlock(body, parseWrappedExpr)
+	if err != nil {
+		l.error("could not parse serialiser func block: %s", err)
+	}
+
+	return &codegen.SerialiserFunc{
+		Body: funcBody,
+	}
 }
 
 // Lex implements yyLexer

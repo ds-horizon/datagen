@@ -111,9 +111,18 @@ func (c *__dgi_Config) Validate(models map[string]__dgi_RecordGenerator) error {
 			if err := sc.Validate(); err != nil {
 				return fmt.Errorf("sink %q (mysql): %w", s.SinkName, err)
 			}
-		default:
+
+	case __dgi_SinkTypeKafka:
+			var sc __dgi_KafkaConfig
+			if err := s.ConfigInto(&sc); err != nil {
+				return fmt.Errorf("sink %q (kafka): %w", s.SinkName, err)
+			}
+			if err := sc.Validate(); err != nil {
+				return fmt.Errorf("sink %q (kafka): %w", s.SinkName, err)
+			}
+	default:
 			return fmt.Errorf("sink %q: unsupported sink_type %q", s.SinkName, s.SinkType)
-		}
+	}
 	}
 
     for _, m := range c.Models {

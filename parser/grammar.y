@@ -9,22 +9,23 @@ import (
 
 /* ------------ Semantic value union ------------ */
 %union{
-    parsed    *codegen.DatagenParsed
-    modelName string
-    fields    *ast.FieldList
-    misc      string
-    tags      map[string]string
-    genFuns   []*codegen.GenFn
-    calls     []*ast.CallExpr
-    count     int
-    str       string
-    metadata  *codegen.Metadata
+    parsed          *codegen.DatagenParsed
+    modelName       string
+    fields          *ast.FieldList
+    misc            string
+    tags            map[string]string
+    genFuns         []*codegen.GenFn
+    serialiserFunc  *codegen.SerialiserFunc
+    calls           []*ast.CallExpr
+    count           int
+    str             string
+    metadata        *codegen.Metadata
 }
 
 /* ------------ Terminals (tokens) ------------ */
 
 /* Keywords */
-%token MODEL FIELDS MISC METADATA GEN_FNS CALLS FN COUNT TAGS
+%token MODEL FIELDS MISC METADATA GEN_FNS CALLS FN COUNT TAGS GEN_FNS SERIALISER_FUNC
 
 /* Punctuators */
 %token L_BRACE R_BRACE L_PARENTHESIS R_PARENTHESIS COLON
@@ -43,6 +44,7 @@ import (
 %type<metadata>  metadata_section metadata_body
 %type<tags>      tags_entry
 %type<genFuns>   gen_fns_section gen_fns
+%type<serialiserFunc> serialiser_func_section
 %type<calls>     calls_section
 %type<count>     count_entry
 
@@ -82,6 +84,11 @@ body: fields_section body
           {
 	    yylex.(*lex).parsed.GenFuns = $1
 	      $$ = yylex.(*lex).parsed
+	  }
+      | serialiser_func_section body
+          {
+	    yylex.(*lex).parsed.SerialiserFunc = $1
+	    $$ = yylex.(*lex).parsed
 	  }
       | // empty
          {
@@ -167,3 +174,9 @@ gen_fns: FN FN_NAME L_PARENTHESIS FN_ARGS R_PARENTHESIS L_BRACE FN_BODY R_BRACE 
             {
               $$ = yylex.(*lex).parsed.GenFuns
             }
+
+// serialisers
+serialiser_func_section: SERIALISER_FUNC L_BRACE FN_BODY R_BRACE
+{
+  $$ = yylex.(*lex).add_serialiser_fn($3)
+}

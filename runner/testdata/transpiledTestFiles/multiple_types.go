@@ -548,3 +548,7 @@ func (e *__datagen_multiple_types) ToXML() string {
 	}
 	return string(xmlData)
 }
+
+func (self *__datagen_multiple_types) __dgi_Serialise() []byte {
+	return []byte{}
+}

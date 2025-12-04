@@ -41,10 +41,20 @@ type wrapperFuncData struct {
 	GenFuncBody             string
 }
 
+type serialiserFuncData struct {
+	ModelName               string
+	FullyQualifiedModelName string
+	SerialiserFuncBody      string
+}
+
 type GenFn struct {
 	Name  string
 	Calls *ast.CallExpr
 	Body  *ast.BlockStmt
+}
+
+type SerialiserFunc struct {
+	Body *ast.BlockStmt
 }
 
 type DatagenParsed struct {
@@ -53,6 +63,7 @@ type DatagenParsed struct {
 	Fields                  *ast.FieldList
 	Misc                    string
 	GenFuns                 []*GenFn
+	SerialiserFunc          *SerialiserFunc
 	Calls                   []*ast.CallExpr
 	Metadata                *Metadata
 	Filepath                string
