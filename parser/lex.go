@@ -440,7 +440,7 @@ func (l *lex) add_gen_fn(name, args, body string) {
 }
 
 func (l *lex) add_serialiser_fn(body string) *codegen.SerialiserFunc {
-	funcBody, err := parseFunctionBlock(body)
+	funcBody, err := parseFunctionBlock(body, parseWrappedExpr)
 	if err != nil {
 		l.error("could not parse serialiser func block: %s", err)
 	}
