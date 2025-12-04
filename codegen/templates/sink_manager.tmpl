@@ -86,7 +86,7 @@ func __dgi_loadModelSinks(modelName string, records []__dgi_Record, cfg *__dgi_C
 		return fmt.Errorf("error while getting sink specs for model %s: %w", modelName, err)
 	}
 
-slog.Debug(fmt.Sprintf("loading %s to %d sinks with %d records", modelName, len(sinks), len(records)))
+	slog.Debug(fmt.Sprintf("loading %s to %d sinks with %d records", modelName, len(sinks), len(records)))
 	for _, s := range sinks {
         switch s.SinkType {
         	case __dgi_SinkTypeMySQL:

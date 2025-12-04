@@ -62,8 +62,5 @@ func Sink_kafka___datagen_with_conditionals_data(modelName string, records []*__
 // Clear_kafka___datagen_with_conditionals_data is a no-op for Kafka as it's an append-only log
 func Clear_kafka___datagen_with_conditionals_data(modelName string, config *__dgi_KafkaConfig) error {
 	slog.Info(fmt.Sprintf("Kafka clear operation skipped for %s (Kafka is append-only)", modelName))
-	// No-op: Kafka doesn't support truncation like SQL databases
-	// If you need to clear data, you would need to delete and recreate the topic,
-	// which requires admin permissions and is typically not done during normal operations.
 	return nil
 }

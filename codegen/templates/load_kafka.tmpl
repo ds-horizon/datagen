@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/IBM/sarama"
 )
@@ -38,20 +39,14 @@ func Load___datagen_{{.FullyQualifiedModelName}}_kafka(records []*__datagen_{{.F
 			return fmt.Errorf("failed to send message to kafka: %w", err)
 		}
 
-		// Optional: Log successful send (can be removed or made conditional)
-		_ = partition
-		_ = offset
+        	slog.Debug(fmt.Sprintf("sent kafka message on partition %d at offset %d", partition, offset))
 	}
 
 	return nil
 }
 
 // Truncate___datagen_{{.FullyQualifiedModelName}}_kafka is a no-op for Kafka as it's an append-only log.
-// Kafka topics cannot be truncated in the traditional sense without deleting and recreating them.
 func Truncate___datagen_{{.FullyQualifiedModelName}}_kafka(config *__dgi_KafkaConfig) error {
-	// No-op: Kafka doesn't support truncation like SQL databases
-	// If you need to clear data, you would need to delete and recreate the topic,
-	// which requires admin permissions and is typically not done during normal operations.
 	return nil
 }
 
