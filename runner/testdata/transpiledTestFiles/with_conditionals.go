@@ -527,3 +527,7 @@ func (e *__datagen_with_conditionals) ToXML() string {
 	}
 	return string(xmlData)
 }
+
+func (self *__datagen_with_conditionals) __dgi_Serialise() []byte {
+	return []byte{}
+}

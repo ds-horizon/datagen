@@ -490,3 +490,7 @@ func (e *__datagen_simple) ToXML() string {
 	}
 	return string(xmlData)
 }
+
+func (self *__datagen_simple) __dgi_Serialise() []byte {
+	return []byte{}
+}

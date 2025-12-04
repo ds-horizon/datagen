@@ -519,3 +519,7 @@ func (e *__datagen_with_builtin_functions) ToXML() string {
 	}
 	return string(xmlData)
 }
+
+func (self *__datagen_with_builtin_functions) __dgi_Serialise() []byte {
+	return []byte{}
+}

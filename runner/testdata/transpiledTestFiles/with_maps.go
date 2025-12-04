@@ -490,3 +490,7 @@ func (e *__datagen_with_maps) ToXML() string {
 	}
 	return string(xmlData)
 }
+
+func (self *__datagen_with_maps) __dgi_Serialise() []byte {
+	return []byte{}
+}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/IBM/sarama"
@@ -20,10 +19,7 @@ func Load___datagen_simple_kafka(records []*__datagen_simple, config *__dgi_Kafk
 
 	for _, record := range records {
 		// Serialize the record to JSON (default serialization)
-		valueBytes, err := json.Marshal(record)
-		if err != nil {
-			return fmt.Errorf("failed to serialize record: %w", err)
-		}
+		valueBytes := record.__dgi_Serialise()
 
 		// Prepare the Kafka message
 		msg := &sarama.ProducerMessage{
