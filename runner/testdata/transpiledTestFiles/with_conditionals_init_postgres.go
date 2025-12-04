@@ -17,18 +17,13 @@ func Init___datagen_with_conditionals_postgres_connection(req *__dgi_PostgresCon
 		return nil
 	}
 
-	sslMode := req.SSLMode
-	if sslMode == "" {
-		sslMode = "disable"
-	}
-
 	port := req.Port
 	if port == 0 {
 		port = 5432
 	}
 
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		req.Host, port, req.Username, req.Password, req.Database, sslMode)
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		req.Host, req.Port, req.Username, req.Password, req.Database)
 
 	// Optional timeout
 	if d, err := time.ParseDuration(req.Timeout); err == nil && d > 0 {
