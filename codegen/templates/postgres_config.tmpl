@@ -11,7 +11,6 @@ type __dgi_PostgresConfig struct {
 	Username       string `json:"username"`
 	Password       string `json:"password"`
 	BatchSize      int    `json:"batch_size,omitempty"`
-	SSLMode        string `json:"ssl_mode,omitempty"`
 	Timeout        string `json:"timeout,omitempty"`
 	Throttle       string `json:"throttle,omitempty"`
 }
