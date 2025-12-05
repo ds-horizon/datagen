@@ -13,6 +13,7 @@ type __dgi_SinkType string
 
 const (
     __dgi_SinkTypeMySQL __dgi_SinkType = "mysql"
+    __dgi_SinkTypePostgres __dgi_SinkType = "postgres"
     __dgi_SinkTypeKafka __dgi_SinkType = "kafka"
 )
 
@@ -110,6 +111,14 @@ func (c *__dgi_Config) Validate(models map[string]__dgi_RecordGenerator) error {
 			}
 			if err := sc.Validate(); err != nil {
 				return fmt.Errorf("sink %q (mysql): %w", s.SinkName, err)
+			}
+		case __dgi_SinkTypePostgres:
+			var sc __dgi_PostgresConfig
+			if err := s.ConfigInto(&sc); err != nil {
+				return fmt.Errorf("sink %q (postgres): %w", s.SinkName, err)
+			}
+			if err := sc.Validate(); err != nil {
+				return fmt.Errorf("sink %q (postgres): %w", s.SinkName, err)
 			}
 		default:
 			return fmt.Errorf("sink %q: unsupported sink_type %q", s.SinkName, s.SinkType)
